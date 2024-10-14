@@ -56,3 +56,12 @@ coverage.xml
 # Translations
 *.mo
 *.pot
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Flask
+.flaskenv
+
