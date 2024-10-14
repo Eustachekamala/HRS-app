@@ -1,3 +1,4 @@
+# Node modules
 node_modules/
 
 # Byte-compiled / optimized / DLL files
@@ -30,8 +31,6 @@ share/python-wheels/
 MANIFEST
 
 # PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
 
@@ -59,9 +58,19 @@ coverage.xml
 
 # Docker
 .dockerignore
-Dockerfile
-docker-compose.yml
 
-# Flask
+# Flask specific
 .flaskenv
 
+# Ignore local environment files
+.env
+
+# Ignore IDE and editor files
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Operating system files
+.DS_Store
+Thumbs.db

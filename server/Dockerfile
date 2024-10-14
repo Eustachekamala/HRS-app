@@ -11,8 +11,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the backend code
 COPY app/ .
 
-# Expose the port your backend runs on (e.g., 5000)
-EXPOSE 5000
+# Expose the port your backend runs on (e.g., 5555)
+EXPOSE 5555
 
 # Command to run your application (adjust as needed)
-CMD ["python3", "app.py", "flask", "run", "--host=127.0.0.1", "--port=5000"]
+CMD ["python3", "app.py", "flask", "run", "--host=127.0.0.1", "--port=5555", "--debug=False"]
