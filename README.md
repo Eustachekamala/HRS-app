@@ -22,11 +22,10 @@ HRS-app is a web application that allows users to register, login, and view thei
 
 
 ### Project features
-- JWT authentication
 - User registration
-- Service Provider Profiles
-- Request Home Repair Services
-- Local Repair Service Listings
+- User login
+- User profile view
+- JWT authentication
 - Database management with Flask-SQLAlchemy
 - Database migration with Flask-Migrate
 
