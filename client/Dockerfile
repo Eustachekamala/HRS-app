@@ -1,4 +1,5 @@
-# Use the official Node.js image
+# client/Dockerfile
+
 FROM node:20
 
 # Set the working directory
@@ -14,14 +15,8 @@ RUN npm install
 # Copy the rest of the frontend code
 COPY ./client .
 
-# Build the Vite application
-RUN npm run build
-
-# Install a simple server to serve the static files
-RUN npm install -g serve
-
 # Expose the application port
 EXPOSE 3000
 
-# Command to serve the application
-CMD ["serve", "-s", "dist"]
+# Start the Vite application in development mode
+CMD ["npm", "run", "dev"]
