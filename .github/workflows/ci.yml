@@ -4,9 +4,14 @@ on:
   push:
     branches:
       - main
+      - dev-eustache
+      - dev-mx
+      - dev-yasir
+
   pull_request:
     branches:
       - main
+      - dev-eustache
 
 jobs:
   build-frontend:
@@ -18,9 +23,9 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '20'
+          node-version: '20' 
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
         working-directory: ./client
         run: npm install
 
@@ -40,16 +45,16 @@ jobs:
         with:
           python-version: '3.8'
 
-      - name: Install dependencies
+      - name: Install backend dependencies
         run: |
           python3 -m pip install --upgrade pip
-          pip3 install -r ./server/requirements.txt
+          pip3 install -r ./server/requirements.txt 
 
       - name: Start application in development mode
-        run: honcho start -f Procfile.dev
+        run: honcho start -f Procfile.dev & 
 
       - name: Wait for app to start
-        run: sleep 10 
+        run: sleep 10
 
       - name: Run tests with Honcho
         run: honcho run pytest
