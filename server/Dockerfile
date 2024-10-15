@@ -1,18 +1,25 @@
-# Use the official Python image from the Docker Hub
-FROM python:3.8-slim-buster
+# server/Dockerfile
+
+FROM python:3.8-slim
 
 # Set the working directory
 WORKDIR /app
 
-# Copy requirements file and install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy requirements file
+COPY ./server/requirements.txt .
 
-# Copy the rest of the backend code
-COPY app/ .
+# Install dependencies
+RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Expose the port your backend runs on (e.g., 5555)
-EXPOSE 5555
+# Copy the application code
+COPY ./server .
 
-# Command to run your application (adjust as needed)
-CMD ["python3", "app.py", "flask", "run", "--host=127.0.0.1", "--port=5555", "--debug=False"]
+# Set environment variables
+ENV FLASK_APP=app.py
+ENV FLASK_ENV=development
+
+# Expose the application port
+EXPOSE 5000
+
+# Start the application using Honcho
+CMD ["honcho", "start", "-f", "/app/Procfile.dev"]
