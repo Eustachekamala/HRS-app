@@ -176,6 +176,20 @@ class PaymentResource(Resource):
         db.session.add(new_payment)
         db.session.commit()
         return {'message': 'Payment created successfully!', 'payment_id': new_payment.id}, 201
+    
+
+#! Blogs
+class BlogResource(Resource):
+    def get(self, blog_id=None):
+        if blog_id:
+            blog = Blog.query.get(blog_id)
+            if not blog:
+                return {'error': 'Blog not found'}, 404
+            return blog.to_dict(), 200
+
+        # Get all blogs
+        blogs = Blog.query.all()
+        return [blog.to_dict() for blog in blogs], 200
 
 #! Add resources to API
 api.add_resource(Index, '/')
@@ -185,6 +199,7 @@ api.add_resource(ServiceResource, '/services', '/services/<int:service_id>')
 api.add_resource(UploadResource, '/upload')
 api.add_resource(RequestResource, '/requests', '/requests/<int:request_id>')
 api.add_resource(PaymentResource, '/payment')
+api.add_resource(BlogResource, '/blogs')
 
 if __name__ == '__main__':
     app.run(debug=True)

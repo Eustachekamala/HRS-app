@@ -18,6 +18,19 @@ class Admin(db.Model, SerializerMixin):
 
     technicians = db.relationship('Technician', back_populates='admin')
     services = db.relationship('Service', back_populates='admin')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'phone': self.phone,
+            'image_path': self.image_path,
+            'is_admin': self.is_admin,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'technicians': [tech.to_dict() for tech in self.technicians],
+            'services': [srv.to_dict() for srv in self.services]
+        }
 
 class Technician(db.Model, SerializerMixin):
     __tablename__ = 'technicians'
@@ -34,6 +47,19 @@ class Technician(db.Model, SerializerMixin):
     
     id_admin = db.Column(db.Integer, db.ForeignKey('admins.id'), nullable=False)
     admin = db.relationship('Admin', back_populates='technicians')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'phone': self.phone,
+            'image_path': self.image_path,
+            'occupation': self.occupation,
+            'is_admin': self.is_admin,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'id_admin': self.id_admin  # Include admin ID if needed
+        }
 
 class Service(db.Model, SerializerMixin):
     __tablename__ = 'services'
@@ -71,6 +97,16 @@ class User(db.Model, SerializerMixin):
     create_at = db.Column(db.DateTime, server_default=func.now())
     
     user_requests = db.relationship('UserRequest', back_populates='user')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'phone': self.phone,
+            'password': self.password,
+            'create_at': self.create_at
+        }
 
 
 class UserRequest(db.Model, SerializerMixin):
@@ -88,6 +124,16 @@ class UserRequest(db.Model, SerializerMixin):
     payment_services = db.relationship('PaymentService', back_populates='user_request')
     user = db.relationship('User', back_populates='user_requests')
     service = db.relationship('Service', back_populates='user_requests')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'service_id': self.service_id,
+            'description': self.description,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'admin_id': self.admin_id
+        }
 
 
 
@@ -98,6 +144,14 @@ class Blog(db.Model, SerializerMixin):
     title = db.Column(db.String(120), nullable=False)
     description = db.Column(db.Text, nullable=True)
     link = db.Column(db.String(255), nullable=True)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'link': self.link
+        }
 
 class PaymentService(db.Model, SerializerMixin):
     __tablename__ = 'payment_services'
@@ -114,3 +168,15 @@ class PaymentService(db.Model, SerializerMixin):
 
     id_admin = db.Column(db.Integer, db.ForeignKey('admins.id'), nullable=False)
     admin = db.relationship('Admin')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'service_type': self.service_type,
+            'description': self.description,
+            'image_path': self.image_path,
+            'amount': self.amount,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'request_id': self.request_id,
+            'id_admin': self.id_admin
+        }
