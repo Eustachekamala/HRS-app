@@ -30,13 +30,14 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m venv .venv
-          .venv/bin/pip3 install --upgrade pip
-          .venv/bin/pip3 install -r server/requirements.txt 
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -r server/requirements.txt  # Adjust path as necessary
+          .venv/bin/pip install honcho
 
       - name: Install Node.js dependencies
         run: |
           cd client
-          npm install  # Adjust this if you have a specific command to run
+          npm install 
 
       - name: Build Flask Docker image
         run: |
@@ -56,7 +57,7 @@ jobs:
           sleep 10
 
           # Run Honcho to manage both services
-          honcho start -f Procfile.dev
+          .venv/bin/honcho start -f Procfile.dev 
 
       - name: Clean up
         run: |
