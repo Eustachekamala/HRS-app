@@ -8,6 +8,27 @@ import Footer from '../components/Footer';
 import Services from '../pages/Services';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
+import '../index.css';
+
+// Testimonial data
+const testimonials = [
+    { quote: "Amazing service! Highly recommend!", author: "John Doe" },
+    { quote: "Professional and efficient! My repairs were completed on time.", author: "Jane Smith" },
+    { quote: "The team was friendly and knowledgeable. I felt taken care of.", author: "Bob Johnson" },
+    { quote: "Excellent quality of work! I will definitely use their services again.", author: "Alice Martinez" },
+    { quote: "Fast response time and great results! Very satisfied!", author: "David Lee" },
+];
+
+// eslint-disable-next-line react/prop-types
+const Section = ({ id, bgImage, title, children, textColor = 'text-white' }) => (
+    <section id={id} className={`section py-10 md:py-12 lg:py-16 relative overflow-hidden ${textColor}`}>
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${bgImage})` }} />
+        <div className="relative z-10 section-content bg-black bg-opacity-60 p-8 rounded-lg shadow-lg">
+            <h2 className={`text-2xl md:text-3xl lg:text-4xl font-bold text-center ${textColor}`}>{title}</h2>
+            {children}
+        </div>
+    </section>
+);
 
 const Landingpage = () => {
     const [userInfo, setUserInfo] = useState({ name: '', email: '', message: '' });
@@ -24,66 +45,74 @@ const Landingpage = () => {
     };
 
     return (
-        <div id='home' className='bg-black bg-opacity-90 min-h-screen m-0 p-0 overflow-x-hidden overflow-y-hidden'>
+        <div id='home' className='bg-black bg-opacity-90 min-h-screen flex flex-col'>
             <Navbar />
+
             {/* Hero Section */}
-            <section className="hero text-center p-8 md:p-10 lg:p-12 text-white">
-                <motion.h1
-                    className="text-3xl md:text-4xl font-bold"
-                    initial={{ opacity: 0, y: -50 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                >
-                    Your Trusted Home Repair Service
-                </motion.h1>
-                <motion.p
-                    className="mt-4 text-base md:text-lg"
-                    initial={{ opacity: 0, y: -30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                >
-                    Reliable repairs for every corner of your home.
-                </motion.p>
-                <a href="#services" className="bg-blue-600 text-white px-4 py-2 md:px-6 md:py-2 rounded mt-4 inline-block transition-transform transform hover:scale-105">Book a Service</a>
+            <section className="hero section py-10 md:py-12 lg:py-16 text-center text-white">
+                <motion.div className="section-content relative z-10">
+                    <motion.h1
+                        className="text-3xl md:text-4xl font-bold mb-4"
+                        initial={{ opacity: 0, y: -50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                    >
+                        Your Trusted Home Repair Service
+                    </motion.h1>
+                    <motion.p
+                        className="text-lg md:text-xl mb-6"
+                        initial={{ opacity: 0, y: -30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
+                    >
+                        Reliable repairs for every corner of your home.
+                    </motion.p>
+                    <a href="#services" className="bg-blue-600 text-white px-6 py-3 rounded mt-4 inline-block transition-transform transform hover:scale-105 shadow-md">
+                        Book a Service
+                    </a>
+                </motion.div>
             </section>
 
             {/* Services Section */}
-            <section id="services" className="py-8 md:py-10 lg:py-12 px-4 bg-black bg-opacity-80">
-                <h2 className="text-2xl md:text-3xl font-bold text-center text-white">Our Services</h2>
+            <Section id="services" bgImage="./public/4322372.jpg" title="Our Services">
                 <Services />
-            </section>
-
-            {/* About Us Section */}
-            <section id="about" className="py-8 md:py-10 lg:py-12 bg-gray-800">
-                <h2 className="text-2xl md:text-3xl font-bold text-center text-white">About Us</h2>
-                <p className="mt-4 text-center text-white">We are committed to providing high-quality home repair services to ensure your comfort and satisfaction.</p>
-            </section>
+            </Section>
 
             {/* Blog Section */}
-            <section id="blogs" className="py-8 md:py-10 lg:py-12 bg-gray-800"> 
+            <Section id="blogs" bgImage="/path/to/your/image4.jpg" title="Latest Blogs">
                 <Blogs />
-            </section>
+            </Section>
+
+            {/* Prototype Section */}
+            <Section id="prototype" bgImage="./public/4882066.jpg" title="Prototype Showcase">
+                <div className="mt-4 text-center text-white px-4">
+                    <p className="mb-4">Check out our latest prototype showcasing the innovative features of our home repair services.</p>
+                    <img src="/public/prototype.jpg" alt="Prototype Showcase" className="mx-auto rounded-lg shadow-lg" />
+                </div>
+            </Section>
 
             {/* Testimonials Section */}
-            <section id="testimonials" className="py-8 md:py-10 lg:py-12 bg-black bg-opacity-80 text-white">
-                <h2 className="text-2xl md:text-3xl font-bold text-center">What Our Customers Say</h2>
-                <blockquote className="text-center mt-4">
-                    <p>Amazing service! Highly recommend!</p>
-                    <footer className="mt-2">- Eustache Katembo</footer>
-                </blockquote>
-            </section>
+            <Section id="testimonials" bgImage="/public/testimonials-section-background.png" title="Testimonials">
+                <div className="mt-4 space-y-4 px-4">
+                    {testimonials.map((testimonial, index) => (
+                        <blockquote key={index} className="text-center">
+                            <p className="italic text-lg">&quot;{testimonial.quote}&quot;</p>
+                            <footer className="mt-2 font-semibold">- {testimonial.author}</footer>
+                        </blockquote>
+                    ))}
+                </div>
+            </Section>
 
             {/* Contact Section */}
-            <section id="contact" className="py-8 md:py-10 lg:py-12 bg-gray-800">
-                <h2 className="text-2xl md:text-3xl font-bold text-center text-white">Contact Us</h2>
-                <form onSubmit={handleSubmit} className="max-w-md mx-auto mt-6">
+            <Section id="contact" bgImage="/path/to/your/image6.jpg" title="Contact Us">
+                <form onSubmit={handleSubmit} className="max-w-md mx-auto mt-6 bg-white p-6 rounded-lg shadow-lg">
                     <input
                         type="text"
                         name="name"
                         placeholder="Your Name"
                         value={userInfo.name}
                         onChange={handleInputChange}
-                        className="border p-2 w-full mb-4"
+                        className="border border-gray-300 p-3 w-full mb-4 rounded"
                         required
                     />
                     <input
@@ -92,7 +121,7 @@ const Landingpage = () => {
                         placeholder="Your Email"
                         value={userInfo.email}
                         onChange={handleInputChange}
-                        className="border p-2 w-full mb-4"
+                        className="border border-gray-300 p-3 w-full mb-4 rounded"
                         required
                     />
                     <textarea
@@ -100,13 +129,15 @@ const Landingpage = () => {
                         placeholder="Your Message"
                         value={userInfo.message}
                         onChange={handleInputChange}
-                        className="border p-2 w-full mb-4"
+                        className="border border-gray-300 p-3 w-full mb-4 rounded"
                         required
                     ></textarea>
-                    <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Send Message</button>
+                    <button type="submit" className="bg-blue-600 text-white px-6 py-3 rounded w-full shadow-md hover:bg-blue-700 transition">
+                        Send Message
+                    </button>
                 </form>
                 {submitted && <ContactInfo userInfo={userInfo} />}
-            </section>
+            </Section>
 
             {/* Footer */}
             <Footer />

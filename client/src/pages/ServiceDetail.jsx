@@ -46,7 +46,7 @@ function ServiceDetail() {
                             <>
                                 <p>Image Path: {service.image_path}</p>
                                 <img
-                                    src={`http://localhost:5000/${service.image_path}`}
+                                    src={`http://localhost:5000/uploads/${service.image_path}`}
                                     alt={service.service_type}
                                     className="rounded-lg mb-4 object-cover h-48 w-full"
                                 />
