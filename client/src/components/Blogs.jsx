@@ -28,7 +28,8 @@ function Blogs() {
         setError(null);
         try {
             const response = await axios.get('http://localhost:5000/blogs');
-            setBlogs(response.data);
+            // Ensure you're setting the correct structure
+            setBlogs(response.data.blogs || []);
         } catch (error) {
             console.error('Error fetching blogs:', error);
             setError('Failed to load blogs. Please try again later.');
@@ -47,13 +48,14 @@ function Blogs() {
             {/* Display loading and error messages */}
             {loading && <p className="text-white text-center">Loading blogs...</p>}
             {error && <p className="text-red-500 text-center">{error}</p>}
+            {blogs.length === 0 && !loading && <p className="text-white text-center">No blogs available.</p>}
 
             <div className="bg-black bg-opacity-80 p-4 rounded-lg">
                 {/* Display the slider */}
                 <Slider {...settings}>
-                    {blogs.map((post, index) => (
+                    {blogs.map((post) => (
                         <motion.div
-                            key={index}
+                            key={post.id} // Use post.id for a unique key
                             className="border border-gray-700 rounded-lg p-4 bg-gray-900 text-white"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}

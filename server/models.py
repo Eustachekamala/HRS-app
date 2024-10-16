@@ -160,10 +160,10 @@ class PaymentService(db.Model, SerializerMixin):
     service_type = db.Column(db.String(120), nullable=False)
     description = db.Column(db.Text, nullable=True)
     image_path = db.Column(db.String(255), nullable=False)
-    amount = db.Column(db.Float, nullable=False)
-    create_at = db.Column(db.DateTime, server_default=func.now())
+    amount = db.Column(db.Numeric(10, 2), nullable=False)
+    created_at = db.Column(db.DateTime, server_default=func.now())
     
-    request_id = db.Column(db.Integer, db.ForeignKey('user_requests.id'), nullable=True)
+    request_id = db.Column(db.Integer, db.ForeignKey('user_requests.id'), nullable=False)
     user_request = db.relationship('UserRequest', back_populates='payment_services')
 
     id_admin = db.Column(db.Integer, db.ForeignKey('admins.id'), nullable=False)
@@ -175,8 +175,9 @@ class PaymentService(db.Model, SerializerMixin):
             'service_type': self.service_type,
             'description': self.description,
             'image_path': self.image_path,
-            'amount': self.amount,
+            'amount': float(self.amount),
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'request_id': self.request_id,
             'id_admin': self.id_admin
         }
+
