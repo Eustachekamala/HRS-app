@@ -1,18 +1,15 @@
 import logging
 import os
-<<<<<<< HEAD
 from flask import Flask, request, send_from_directory, jsonify  # type: ignore
 from flask_sqlalchemy import SQLAlchemy  # type: ignore
 from flask_migrate import Migrate  # type: ignore
 from flask_cors import CORS  # type: ignore
-from flask import Flask, render_template, redirect, url_for, session
-=======
+from flask import Flask, render_template, redirect, url_for, session # type: ignore
 from flask import Flask, request, jsonify, g  # type: ignore # Removed unused imports
 from flask_sqlalchemy import SQLAlchemy # type: ignore
 from flask_migrate import Migrate # type: ignore
 from flask_cors import CORS # type: ignore
 from flask_restful import Resource, Api # type: ignore
->>>>>>> 59f77632075eb31288070e591991851021b4d487
 from models import db, Admin, Technician, Service, UserRequest, Blog, PaymentService, User
 from werkzeug.utils import secure_filename # type: ignore
 import logging
@@ -220,133 +217,6 @@ class BlogResource(Resource):
         blogs = Blog.query.all()
         return {'blogs': [blog.to_dict() for blog in blogs]}, 200
 
-<<<<<<< HEAD
-    return jsonify({
-        'service': service.to_dict()
-    }), 200
-
-#! Get all blogs
-@app.route('/blogs', methods=['GET'])
-def get_blogs():
-    blogs = Blog.query.all()
-    return jsonify({
-        'blogs': [blog.to_dict() for blog in blogs]  # Use to_dict() for serialization
-    })
-
-#! Manage service requests
-@app.route('/services/request', methods=['POST'])
-def manage_service_request():
-    data = request.json
-    logging.info(f"Received request data: {data}")
-    
-    # Validate incoming data
-    if not data:
-        return jsonify({'error': 'No data provided'}), 400
-    
-    if 'service_id' not in data:
-        return jsonify({'error': 'Missing service_id'}), 400
-    
-    if 'description' not in data:
-        return jsonify({'error': 'Missing request description'}), 400
-    
-    # Create a new UserRequest
-    new_request = UserRequest(
-        user_id=data.get('user_id'),  # Ensure this is provided in the request
-        service_id=data['service_id'],
-        description=data['description']
-    )
-    
-    db.session.add(new_request)
-    db.session.commit()
-
-    return jsonify({'message': 'Service request created successfully!', 'request_id': new_request.id}), 201
-
-#! Get all the requests made by users
-@app.route('/requests', methods=['GET'])
-def get_requests():
-    requests = UserRequest.query.all()
-    return jsonify({
-        'requests': [req.to_dict() for req in requests]  # Use to_dict() for serialization
-    })
-
-#! Get a specific request by ID
-@app.route('/requests/<int:request_id>', methods=['GET'])
-def get_request(request_id):
-    req = UserRequest.query.get(request_id)
-    
-    if not req:
-        return jsonify({'error': 'Request not found'}), 404
-
-    return jsonify({
-        'request': req.to_dict()  # Use to_dict() for serialization
-    }), 200
-
-@app.route('/dashboard')
-def dashboard():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
-    user_id = session['user_id']
-    user = User.query.get(user_id)
-    requests = UserRequest.query.filter_by(user_id=user_id).all()
-
-    return render_template('dashboard.html', user=user, requests=requests)
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-
-    session['user_id'] = user.id
-    return redirect(url_for('dashboard'))
-    pass
-
-if __name__ == '__main__':
-    app.run(debug=True)
-    
-#! Payment for a service request
-@app.route('/payment', methods=['POST'])
-def payment():
-    data = request.json
-    logging.info(f"Received payment data: {data}")
-    
-    # Validate incoming data
-    if not data:
-        return jsonify({'error': 'No data provided'}), 400
-    
-    if 'service_id' not in data:
-        return jsonify({'error': 'Missing service_id'}), 400
-    
-    if 'payment_method' not in data:
-        return jsonify({'error': 'Missing payment_method'}), 400
-    
-    if 'amount' not in data:
-        return jsonify({'error': 'Missing amount'}), 400
-    
-    # Create a new PaymentService
-    new_payment = PaymentService(
-        service_id=data['service_id'],
-        payment_method=data['payment_method'],
-        amount=data['amount']
-    )
-    
-    db.session.add(new_payment)
-    db.session.commit()
-    
-    return jsonify({'message': 'Payment created successfully!', 'payment_id': new_payment.id}), 201
-
-
-#! Delete a specific request by ID
-@app.route('/requests/<int:request_id>', methods=['DELETE'])
-def delete_request(request_id):
-    req = UserRequest.query.get(request_id)
-    
-    if not req:
-        return jsonify({'error': 'Request not found'}), 404
-
-    db.session.delete(req)
-    db.session.commit()
-
-    return jsonify({'message': 'Request deleted successfully!'}), 200
-=======
 # Add resources to API
 api.add_resource(Index, '/')
 api.add_resource(AdminResource, '/admin', '/admins/<int:admin_id>')
@@ -356,7 +226,6 @@ api.add_resource(UploadResource, '/upload')
 api.add_resource(RequestResource, '/requests', '/requests/<int:request_id>')
 api.add_resource(PaymentResource, '/payment')
 api.add_resource(BlogResource, '/blogs')
->>>>>>> 59f77632075eb31288070e591991851021b4d487
 
 if __name__ == '__main__':
     app.run(debug=True)
