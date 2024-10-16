@@ -1,13 +1,13 @@
-# server/Dockerfile
-
+# Use a slim version of Python 3.8 for a smaller image
 FROM python:3.8-slim
 
+# Set the working directory
 WORKDIR /app
 
 # Copy the requirements file
 COPY ./server/requirements.txt .
 
-# Install dependencies, including gunicorn
+# Install dependencies
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Copy the application code
