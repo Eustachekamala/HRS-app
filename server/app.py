@@ -7,6 +7,7 @@ from flask_cors import CORS  # type: ignore
 from flask_restful import Resource, Api, reqparse  # type: ignore
 from models import db, Admin, Technician, Service, UserRequest, Blog, PaymentService, User
 
+
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 api = Api(app)
