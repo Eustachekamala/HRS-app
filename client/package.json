@@ -1,19 +1,28 @@
-{ "proxy":"http://127.0.0.1:5555",
+{
   "name": "vite-project",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "proxy": "http://127.0.0.1:5555",
   "scripts": {
     "dev": "vite",
     "dev-host": "vite --host",
-    "tailwind":"npx tailwindcss -i ./src/index.css -o ./src/App.css --watch",
+    "tailwind": "npx tailwindcss -i ./src/index.css -o ./src/App.css --watch",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "axios": "^1.7.7",
+    "framer-motion": "^11.11.9",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-icons": "^5.3.0",
+    "react-router-dom": "^6.27.0",
+    "react-slick": "^0.30.2",
+    "react-toastify": "^10.0.6",
+    "slick-carousel": "^1.8.1",
+    "vite-plugin-pwa": "^0.20.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.11.1",

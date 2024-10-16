@@ -1,175 +1,226 @@
 import logging
 import os
+<<<<<<< HEAD
 from flask import Flask, request, send_from_directory, jsonify  # type: ignore
 from flask_sqlalchemy import SQLAlchemy  # type: ignore
 from flask_migrate import Migrate  # type: ignore
 from flask_cors import CORS  # type: ignore
 from flask import Flask, render_template, redirect, url_for, session
+=======
+from flask import Flask, request, jsonify, g  # type: ignore # Removed unused imports
+from flask_sqlalchemy import SQLAlchemy # type: ignore
+from flask_migrate import Migrate # type: ignore
+from flask_cors import CORS # type: ignore
+from flask_restful import Resource, Api # type: ignore
+>>>>>>> 59f77632075eb31288070e591991851021b4d487
 from models import db, Admin, Technician, Service, UserRequest, Blog, PaymentService, User
-from flask_restful import Resource, Api  # type: ignore
+from werkzeug.utils import secure_filename # type: ignore
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app)
 api = Api(app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///home_repair_service.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = 'uploads/'  
+app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 db.init_app(app)
 migrate = Migrate(app, db)
 
+# Helper function to check if the user is an admin
+def is_admin():
+    return getattr(g, 'user', None) is not None and g.user.is_admin
+
+# Index Resource
 class Index(Resource):
     def get(self):
+        app.logger.info('Hello endpoint was reached')
+        return {"message": "Welcome to our Home Repair Service"}
+
+# Admin Resource
+class AdminResource(Resource):
+    def get(self):
+        admin = Admin.query.first()
+        if not admin:
+            return {'error': 'Admin not found'}, 404
+        return {'admin': admin.to_dict()}, 200
+
+    def delete(self, admin_id):
+        admin = Admin.query.get(admin_id)
+        if not admin:
+            return {'error': 'Admin not found'}, 404
+        db.session.delete(admin)
+        db.session.commit()
+        return {'message': 'Admin deleted successfully!'}, 200
+
+# Technician Resource
+class TechnicianResource(Resource):
+    def get(self):
+        technician = Technician.query.first()
+        if not technician:
+            return {'error': 'Technician not found'}, 404
+        return {'technician': technician.to_dict()}, 200
+
+    def post(self):
+        data = request.json
+        logging.info(f"Received technician data: {data}")
+
+        required_fields = ['username', 'password', 'email', 'phone', 'image_path', 'occupation']
+        for field in required_fields:
+            if field not in data:
+                return {'error': f'Missing {field}'}, 400
+        
+        new_technician = Technician(
+            username=data['username'],
+            password=data['password'],
+            email=data['email'],
+            phone=data['phone'],
+            image_path=data['image_path'],
+            occupation=data['occupation']
+        )
+
+        db.session.add(new_technician)
+        db.session.commit()
+        return {'message': 'Technician created successfully!', 'technician_id': new_technician.id}, 201
+
+    def delete(self, technician_id):
+        technician = Technician.query.get(technician_id)
+        if not technician:
+            return {'error': 'Technician not found'}, 404
+        db.session.delete(technician)
+        db.session.commit()
+        return {'message': 'Technician deleted successfully!'}, 200
+
+# Service Resource
+class ServiceResource(Resource):
+    def get(self, service_id=None):
+        if service_id:
+            service = Service.query.get(service_id)
+            if not service:
+                return {'error': 'Service not found'}, 404
+            return service.to_dict(), 200
+        
+        services = Service.query.all()
+        return {'services': [service.to_dict() for service in services]}, 200
+
+    def post(self):
+        data = request.json
+        service_type = data.get('service_type', '')
+        description = data.get('description', '')
+        
+        new_service = Service(
+            service_type=service_type,
+            description=description
+        )
+        db.session.add(new_service)
+        db.session.commit()
+        return {'message': 'Service created successfully!', 'service_id': new_service.id}, 201
+
+# Upload Resource
+class UploadResource(Resource):
+    def post(self):
+        if not is_admin():
+            return {'error': 'Unauthorized access'}, 403
+
+        if 'file' not in request.files:
+            return {'error': 'No file part'}, 400
+
+        file = request.files['file']
+        if file.filename == '':
+            return {'error': 'No selected file'}, 400
+
+        service_type = request.form.get('service_type', '')
+        description = request.form.get('description', '')
+
+        # Ensure a secure filename
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+        # Check if the file already exists (optional)
+        if os.path.exists(file_path):
+            return {'error': 'File already exists'}, 400
+
+        # Save the file
+        file.save(file_path)
+
+        new_service = Service(
+            service_type=service_type,
+            description=description,
+            image_path=filename
+        )
+        db.session.add(new_service)
+        db.session.commit()
+
         return {
-            "message": "Welcome to our Home Repair Service"
-        }
-    
-api.add_resource(Index, "/")
+            'message': 'Image uploaded and service created!',
+            'imagePath': filename,
+            'service_id': new_service.id
+        }, 201
 
-#! GET admin
-@app.route('/admin', methods=['GET'])
-def get_admin():
-    admin = Admin.query.first()
-    if not admin:
-        return jsonify({'error': 'Admin not found'}), 404
-    return jsonify({
-        'admin': admin.to_dict()
-    }), 200
-    
-#! GET technician
-@app.route('/technician', methods=['GET'])
-def get_technician():
-    technician = Technician.query.first()
-    if not technician:
-        return jsonify({'error': 'Technician not found'}), 404
-    return jsonify({
-        'technician': technician.to_dict()
-    }), 200
-    
-#! POST Technician
-@app.route('/technician', methods=['POST'])
-def post_technician():
-    data = request.json
-    logging.info(f"Received technician data: {data}")
-    
-    # Validate incoming data
-    if not data:
-        return jsonify({'error': 'No data provided'}), 400
-    
-    if 'username' not in data:
-        return jsonify({'error': 'Missing username'}), 400
-    
-    if 'password' not in data:
-        return jsonify({'error': 'Missing password'}), 400
-    
-    if 'email' not in data:
-        return jsonify({'error': 'Missing email'}), 400
-    
-    if 'phone' not in data:
-        return jsonify({'error': 'Missing phone'}), 400
-    
-    if 'image_path' not in data:
-        return jsonify({'error': 'Missing image_path'}), 400
-    
-    if 'occupation' not in data:
-        return jsonify({'error': 'Missing occupation'}), 400
-    
-    # Create a new Technician
-    new_technician = Technician(
-        username=data['username'],
-        password=data['password'],
-        email=data['email'],
-        phone=data['phone'],
-        image_path=data['image_path'],
-        occupation=data['occupation']
-    )
-    
-    db.session.add(new_technician)
-    db.session.commit()
-    
-#! Delete a specific technician by ID
-@app.route('/technician/<int:technician_id>', methods=['DELETE'])
-def delete_technician(technician_id):
-    technician = Technician.query.get(technician_id)
-    
-    if not technician:
-        return jsonify({'error': 'Technician not found'}), 404
-    
-    db.session.delete(technician)
-    db.session.commit()
-    
-    return jsonify({'message': 'Technician deleted successfully!'}), 200
+# Request Resource
+class RequestResource(Resource):
+    def get(self):
+        requests = UserRequest.query.all()
+        return {'requests': [req.to_dict() for req in requests]}
 
-#! Delete a specific admin by ID
-@app.route('/admins/<int:admin_id>', methods=['DELETE'])
-def delete_admin(admin_id):
-    admin = Admin.query.get(admin_id)
-    
-    if not admin:
-        return jsonify({'error': 'Admin not found'}), 404
-    
-    db.session.delete(admin)
-    db.session.commit()
-    
-    return jsonify({'message': 'Admin deleted successfully!'}), 200
+    def post(self):
+        data = request.json
+        logging.info(f"Received request data: {data}")
 
+        required_fields = ['user_id', 'service_id', 'description']
+        for field in required_fields:
+            if field not in data:
+                return {'error': f'Missing {field}'}, 400
 
+        new_request = UserRequest(
+            user_id=data['user_id'],
+            service_id=data['service_id'],
+            description=data['description']
+        )
 
-#! Upload an image for a service request
-@app.route('/upload', methods=['POST'])
-def upload_image():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
-    
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
-    
-    service_type = request.form.get('service_type', '')
-    description = request.form.get('description', '')
+        db.session.add(new_request)
+        db.session.commit()
+        return {'message': 'Service request created successfully!', 'request_id': new_request.id}, 201
 
-    # Save the file to the uploads folder
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-    file.save(file_path)
+# Payment Resource
+class PaymentResource(Resource):
+    def post(self):
+        data = request.json
+        logging.info(f"Received payment data: {data}")
 
-    # Create a new Service with no request_id initially
-    new_service = Service(
-        service_type=service_type,
-        description=description,
-        image_path=file_path
-    )
-    db.session.add(new_service)
-    db.session.commit()
+        required_fields = ['service_id', 'payment_method', 'amount']
+        for field in required_fields:
+            if field not in data:
+                return {'error': f'Missing {field}'}, 400
 
-    return jsonify({
-        'message': 'Image uploaded and service created!',
-        'imagePath': file.filename,
-        'service_id': new_service.id
-    }), 201
+        new_payment = PaymentService(
+            service_type=data.get('service_type', ''),  # Add service_type
+            description=data.get('description', ''),    # Add description
+            amount=data['amount'],
+            id_admin=data.get('id_admin')  # Include admin ID if required
+        )
 
-#! Serve uploaded files
-@app.route('/uploads/<path:filename>', methods=['GET'])
-def upload_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+        db.session.add(new_payment)
+        db.session.commit()
+        return {'message': 'Payment created successfully!', 'payment_id': new_payment.id}, 201
 
-#! Get all services
-@app.route('/services', methods=['GET'])
-def get_services():
-    services = Service.query.all()
-    return jsonify({
-        'services': [service.to_dict() for service in services]
-    })
+# Blog Resource
+class BlogResource(Resource):
+    def get(self, blog_id=None):
+        if blog_id:
+            blog = Blog.query.get(blog_id)
+            if not blog:
+                return {'error': 'Blog not found'}, 404
+            return blog.to_dict(), 200
 
-#! Get a specific service by ID
-@app.route('/services/<int:service_id>', methods=['GET'])
-def get_service(service_id):
-    service = Service.query.get(service_id)
-    
-    if not service:
-        return jsonify({'error': 'Service not found'}), 404
+        blogs = Blog.query.all()
+        return {'blogs': [blog.to_dict() for blog in blogs]}, 200
 
+<<<<<<< HEAD
     return jsonify({
         'service': service.to_dict()
     }), 200
@@ -295,6 +346,17 @@ def delete_request(request_id):
     db.session.commit()
 
     return jsonify({'message': 'Request deleted successfully!'}), 200
+=======
+# Add resources to API
+api.add_resource(Index, '/')
+api.add_resource(AdminResource, '/admin', '/admins/<int:admin_id>')
+api.add_resource(TechnicianResource, '/technician', '/technician/<int:technician_id>')
+api.add_resource(ServiceResource, '/services', '/services/<int:service_id>')
+api.add_resource(UploadResource, '/upload')
+api.add_resource(RequestResource, '/requests', '/requests/<int:request_id>')
+api.add_resource(PaymentResource, '/payment')
+api.add_resource(BlogResource, '/blogs')
+>>>>>>> 59f77632075eb31288070e591991851021b4d487
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - dev-eustache
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'  
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20' 
+
+      - name: Install Python dependencies
+        run: |
+          python -m venv .venv
+          .venv/bin/pip3 install --upgrade pip
+          .venv/bin/pip3 install -r server/requirements.txt 
+
+      - name: Install Node.js dependencies
+        run: |
+          cd client
+          npm install  # Adjust this if you have a specific command to run
+
+      - name: Build Flask Docker image
+        run: |
+          docker build -t hrs-flask-app -f server/Dockerfile .
+
+      - name: Build Vite Docker image
+        run: |
+          docker build -t hrs-vite-app -f client/Dockerfile .
+
+      - name: Run application using Honcho
+        run: |
+          # Start the containers in the background
+          docker run -d --name flask-container hrs-flask-app
+          docker run -d --name vite-container hrs-vite-app
+          
+          # Give the services a moment to start
+          sleep 10
+
+          # Run Honcho to manage both services
+          honcho start -f Procfile.dev
+
+      - name: Clean up
+        run: |
+          docker stop flask-container vite-container
+          docker rm flask-container vite-container
