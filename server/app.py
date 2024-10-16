@@ -1,6 +1,12 @@
 import logging
 import os
 from flask import Flask, request, jsonify, g # type: ignore
+from flask import Flask, request, send_from_directory, jsonify  # type: ignore
+from flask_sqlalchemy import SQLAlchemy  # type: ignore
+from flask_migrate import Migrate  # type: ignore
+from flask_cors import CORS  # type: ignore
+from flask import Flask, render_template, redirect, url_for, session # type: ignore
+from flask import Flask, request, jsonify, g  # type: ignore # Removed unused imports
 from flask_sqlalchemy import SQLAlchemy # type: ignore
 from flask_migrate import Migrate # type: ignore
 from flask_cors import CORS # type: ignore
