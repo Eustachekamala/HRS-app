@@ -4,6 +4,7 @@ from flask import Flask, request, send_from_directory, jsonify  # type: ignore
 from flask_sqlalchemy import SQLAlchemy  # type: ignore
 from flask_migrate import Migrate  # type: ignore
 from flask_cors import CORS  # type: ignore
+from flask import Flask, render_template, redirect, url_for, session
 from models import db, Admin, Technician, Service, UserRequest, Blog, PaymentService, User
 from flask_restful import Resource, Api  # type: ignore
 
@@ -228,7 +229,27 @@ def get_request(request_id):
     return jsonify({
         'request': req.to_dict()  # Use to_dict() for serialization
     }), 200
+
+@app.route('/dashboard')
+def dashboard():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
     
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    requests = UserRequest.query.filter_by(user_id=user_id).all()
+
+    return render_template('dashboard.html', user=user, requests=requests)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+
+    session['user_id'] = user.id
+    return redirect(url_for('dashboard'))
+    pass
+
+if __name__ == '__main__':
+    app.run(debug=True)
     
 #! Payment for a service request
 @app.route('/payment', methods=['POST'])
