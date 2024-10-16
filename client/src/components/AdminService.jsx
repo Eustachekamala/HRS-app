@@ -1,5 +1,3 @@
-
-// AdminServices.jsx
 import ServiceDisplay from './ServiceDisplay';
 import axios from 'axios';
 import { useState, useEffect } from 'react';
@@ -10,7 +8,7 @@ function AdminServices() {
     const [services, setServices] = useState([]);
     const [serviceById, setServiceById] = useState({});
 
-    //Fetch services from the backend
+    // Fetch services from the backend
     const fetchServices = async () => {
         setLoading(true);
         setError(null);
@@ -25,31 +23,31 @@ function AdminServices() {
         }
     };
 
-    //Fetch a service by id from the backend
- const fetchService = async (id) => {
-    setLoading(true);
-    setError(null);
-    try {
-        const response = await axios.get(`http://localhost:5000/services/${id}`);
-        
-        if (response.data && response.data.service) {
-            setServiceById(response.data.service);
-        } else {
-            throw new Error('Service not found');
+    // Fetch a service by id from the backend
+    const fetchService = async (id) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await axios.get(`http://localhost:5000/services/${id}`);
+            
+            if (response.data && response.data.id) { // Check for the service ID instead
+                setServiceById(response.data);
+            } else {
+                throw new Error('Service not found');
+            }
+        } catch (error) {
+            console.error('Error fetching service:', error);
+            if (error.response) {
+                setError(`Error: ${error.response.status} - ${error.response.data.error || 'Service not found.'}`);
+            } else if (error.request) {
+                setError('No response from the server. Please check your connection.');
+            } else {
+                setError('Error: ' + error.message);
+            }
+        } finally {
+            setLoading(false);
         }
-    } catch (error) {
-        console.error('Error fetching service:', error);
-        if (error.response) {
-            setError(`Error: ${error.response.status} - ${error.response.data.error || 'Failed to load service. Please try again later.'}`);
-        } else if (error.request) {
-            setError('No response from the server. Please check your connection.');
-        } else {
-            setError('Error: ' + error.message);
-        }
-    } finally {
-        setLoading(false);
-    }
-};
+    };
 
     useEffect(() => {
         fetchServices();
@@ -57,7 +55,8 @@ function AdminServices() {
     }, []);
 
     return (
-        <>  {/* Display the services */}
+        <>  
+            {/* Display the services */}
             {loading && <p>Loading services...</p>}
             {error && <p className="text-red-500">{error}</p>}
             <ServiceDisplay services={services} serviceById={serviceById} />

@@ -1,8 +1,8 @@
-"""Initial migrate
+"""Initial migration
 
-Revision ID: 062d00aff8a3
+Revision ID: 2914bb31a877
 Revises: 
-Create Date: 2024-10-15 15:34:09.672417
+Create Date: 2024-10-16 16:42:16.069601
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '062d00aff8a3'
+revision = '2914bb31a877'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -89,9 +89,9 @@ def upgrade():
     sa.Column('service_type', sa.String(length=120), nullable=False),
     sa.Column('description', sa.Text(), nullable=True),
     sa.Column('image_path', sa.String(length=255), nullable=False),
-    sa.Column('amount', sa.Float(), nullable=False),
-    sa.Column('create_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
-    sa.Column('request_id', sa.Integer(), nullable=True),
+    sa.Column('amount', sa.Numeric(precision=10, scale=2), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('request_id', sa.Integer(), nullable=False),
     sa.Column('id_admin', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['id_admin'], ['admins.id'], ),
     sa.ForeignKeyConstraint(['request_id'], ['user_requests.id'], ),

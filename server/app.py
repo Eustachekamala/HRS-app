@@ -1,36 +1,35 @@
 import logging
 import os
-from flask import Flask, request, send_from_directory, jsonify, g  # type: ignore
-from flask_sqlalchemy import SQLAlchemy  # type: ignore
-from flask_migrate import Migrate  # type: ignore
-from flask_cors import CORS  # type: ignore
-from flask_restful import Resource, Api, reqparse  # type: ignore
+from flask import Flask, request, jsonify, g  # type: ignore # Removed unused imports
+from flask_sqlalchemy import SQLAlchemy # type: ignore
+from flask_migrate import Migrate # type: ignore
+from flask_cors import CORS # type: ignore
+from flask_restful import Resource, Api # type: ignore
 from models import db, Admin, Technician, Service, UserRequest, Blog, PaymentService, User
-
+from werkzeug.utils import secure_filename # type: ignore
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app)
 api = Api(app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///home_repair_service.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = 'uploads/'  
+app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 db.init_app(app)
 migrate = Migrate(app, db)
 
-#! Helper function to check if the user is an admin
+# Helper function to check if the user is an admin
 def is_admin():
-    # This is a placeholder; implement your actual logic to check admin status
     return getattr(g, 'user', None) is not None and g.user.is_admin
 
-#! Index Resource
+# Index Resource
 class Index(Resource):
     def get(self):
         return {"message": "Welcome to our Home Repair Service"}
 
-#! Admin Resource
+# Admin Resource
 class AdminResource(Resource):
     def get(self):
         admin = Admin.query.first()
@@ -46,7 +45,7 @@ class AdminResource(Resource):
         db.session.commit()
         return {'message': 'Admin deleted successfully!'}, 200
 
-#! Technician Resource
+# Technician Resource
 class TechnicianResource(Resource):
     def get(self):
         technician = Technician.query.first()
@@ -84,7 +83,7 @@ class TechnicianResource(Resource):
         db.session.commit()
         return {'message': 'Technician deleted successfully!'}, 200
 
-#! Service Resource
+# Service Resource
 class ServiceResource(Resource):
     def get(self, service_id=None):
         if service_id:
@@ -108,7 +107,8 @@ class ServiceResource(Resource):
         db.session.add(new_service)
         db.session.commit()
         return {'message': 'Service created successfully!', 'service_id': new_service.id}, 201
-#! Upload Resource
+
+# Upload Resource
 class UploadResource(Resource):
     def post(self):
         if not is_admin():
@@ -124,20 +124,32 @@ class UploadResource(Resource):
         service_type = request.form.get('service_type', '')
         description = request.form.get('description', '')
 
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        # Ensure a secure filename
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+        # Check if the file already exists (optional)
+        if os.path.exists(file_path):
+            return {'error': 'File already exists'}, 400
+
+        # Save the file
         file.save(file_path)
 
         new_service = Service(
             service_type=service_type,
             description=description,
-            image_path=file_path
+            image_path=filename
         )
         db.session.add(new_service)
         db.session.commit()
 
-        return {'message': 'Image uploaded and service created!', 'imagePath': file.filename, 'service_id': new_service.id}, 201
+        return {
+            'message': 'Image uploaded and service created!',
+            'imagePath': filename,
+            'service_id': new_service.id
+        }, 201
 
-#! Request Resource
+# Request Resource
 class RequestResource(Resource):
     def get(self):
         requests = UserRequest.query.all()
@@ -147,13 +159,13 @@ class RequestResource(Resource):
         data = request.json
         logging.info(f"Received request data: {data}")
 
-        required_fields = ['service_id', 'description']
+        required_fields = ['user_id', 'service_id', 'description']
         for field in required_fields:
             if field not in data:
                 return {'error': f'Missing {field}'}, 400
 
         new_request = UserRequest(
-            user_id=data.get('user_id'),
+            user_id=data['user_id'],
             service_id=data['service_id'],
             description=data['description']
         )
@@ -162,7 +174,7 @@ class RequestResource(Resource):
         db.session.commit()
         return {'message': 'Service request created successfully!', 'request_id': new_request.id}, 201
 
-#! Payment Resource
+# Payment Resource
 class PaymentResource(Resource):
     def post(self):
         data = request.json
@@ -174,17 +186,17 @@ class PaymentResource(Resource):
                 return {'error': f'Missing {field}'}, 400
 
         new_payment = PaymentService(
-            service_id=data['service_id'],
-            payment_method=data['payment_method'],
-            amount=data['amount']
+            service_type=data.get('service_type', ''),  # Add service_type
+            description=data.get('description', ''),    # Add description
+            amount=data['amount'],
+            id_admin=data.get('id_admin')  # Include admin ID if required
         )
 
         db.session.add(new_payment)
         db.session.commit()
         return {'message': 'Payment created successfully!', 'payment_id': new_payment.id}, 201
-    
 
-#! Blogs
+# Blog Resource
 class BlogResource(Resource):
     def get(self, blog_id=None):
         if blog_id:
@@ -193,11 +205,10 @@ class BlogResource(Resource):
                 return {'error': 'Blog not found'}, 404
             return blog.to_dict(), 200
 
-        # Get all blogs
         blogs = Blog.query.all()
-        return [blog.to_dict() for blog in blogs], 200
+        return {'blogs': [blog.to_dict() for blog in blogs]}, 200
 
-#! Add resources to API
+# Add resources to API
 api.add_resource(Index, '/')
 api.add_resource(AdminResource, '/admin', '/admins/<int:admin_id>')
 api.add_resource(TechnicianResource, '/technician', '/technician/<int:technician_id>')

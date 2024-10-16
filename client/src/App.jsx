@@ -8,10 +8,10 @@ import { AuthProvider } from './configs/AuthContext';
 import ProtectedRoute from './configs/ProtectedRoute';
 // import Services from './pages/Services';
 import Landingpage from './pages/Landingpage';
-// import AdminServices from './components/AdminUploadPage';
+import AdminServices from './components/AdminUploadPage';
 import './App.css';
-// import NotFound from './pages/404';
-// import ServiceDetail from './pages/ServiceDetail';
+import NotFound from './pages/404';
+import ServiceDetail from './pages/ServiceDetail';
 
 import MakePayment from './components/MakePayment';
 import DescriptionBox from './components/DescriptionBox';
@@ -22,18 +22,16 @@ const App = () => {
             <Router>
                 <Routes>
                     <Route path='/' element={<Landingpage/>}/>
-
                     <Route path='/payment' element={<MakePayment/>}/>
-
                     <Route path='/description' element={<DescriptionBox />} />
 
-                    {/* <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<Signup />} />
-                    <Route path="/signout" element={<Signout />} />
-                    <Route path='/services' element={<Services />} />
+                    {/* <Route path="/login" element={<Login />} /> */}
+                    {/* <Route path="/signup" element={<Signup />} /> */}
+                    {/* <Route path="/signout" element={<Signout />} /> */}
+                    {/* <Route path='/services' element={<Services />} /> */}
                     <Route path='/admin' element={<AdminServices />} />
                     <Route path='/service/:id' element={<ServiceDetail />} />
-                    <Route path='*' element={<NotFound />} /> */}
+                    <Route path='*' element={<NotFound />} />
                     <Route 
                         path="/protected" 
                         element={<ProtectedRoute element={<ProtectedComponent />} />} 
