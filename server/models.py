@@ -12,7 +12,7 @@ class Admin(db.Model, SerializerMixin):
     password = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(120), nullable=False, unique=True)
     phone = db.Column(db.String(120), nullable=False)
-    image_path = db.Column(db.String(120), nullable=False)
+    image_path = db.Column(db.String(120), nullable=True)
     is_admin = db.Column(db.Boolean, nullable=False, default=True)
     create_at = db.Column(db.DateTime, server_default=func.now())
 
@@ -32,22 +32,27 @@ class Admin(db.Model, SerializerMixin):
             'services': [srv.to_dict() for srv in self.services]
         }
 
-class Technician(db.Model, SerializerMixin):
+class SerializerMixin:
+    def to_dict(self):
+        """Convert model instance to dictionary."""
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+
+class Technician(db.Model):  # Removed SerializerMixin for now
     __tablename__ = 'technicians'
     
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(120), nullable=False)
     password = db.Column(db.String(120), nullable=False)
-    email = db.Column(db.String(120), nullable=False, unique=True)
+    email = db.Column(db.String(120), nullable=False)
     phone = db.Column(db.String(120), nullable=False)
-    image_path = db.Column(db.String(120), nullable=False)
+    image_path = db.Column(db.String(120), nullable=True)
     occupation = db.Column(db.String(120), nullable=False)
-    is_admin = db.Column(db.Boolean, nullable=False, default=False)
-    create_at = db.Column(db.DateTime, server_default=func.now())
-    
-    id_admin = db.Column(db.Integer, db.ForeignKey('admins.id'), nullable=False)
+    id_admin = db.Column(db.Integer, db.ForeignKey('admins.id'), nullable=True)
+    created_at = db.Column(db.DateTime, server_default=func.now())
+
+    # Define the relationship
     admin = db.relationship('Admin', back_populates='technicians')
-    
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -56,9 +61,7 @@ class Technician(db.Model, SerializerMixin):
             'phone': self.phone,
             'image_path': self.image_path,
             'occupation': self.occupation,
-            'is_admin': self.is_admin,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'id_admin': self.id_admin  # Include admin ID if needed
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else None,
         }
 
 class Service(db.Model, SerializerMixin):

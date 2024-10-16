@@ -1,24 +1,21 @@
 import logging
 import os
 from flask import Flask, request, jsonify, g # type: ignore
-from flask import Flask, request, send_from_directory, jsonify  # type: ignore
-from flask_sqlalchemy import SQLAlchemy  # type: ignore
-from flask_migrate import Migrate  # type: ignore
-from flask_cors import CORS  # type: ignore
-from flask import Flask, render_template, redirect, url_for, session # type: ignore
-from flask import Flask, request, jsonify, g  # type: ignore # Removed unused imports
 from flask_sqlalchemy import SQLAlchemy # type: ignore
 from flask_migrate import Migrate # type: ignore
 from flask_cors import CORS # type: ignore
 from flask_restful import Resource, Api # type: ignore
-from models import db, Admin, Technician, Service, UserRequest, Blog, PaymentService, User
 from werkzeug.utils import secure_filename # type: ignore
+from models import db, Admin, Technician, Service, UserRequest, Blog, PaymentService, User
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
+
+# Enable CORS for all routes
 CORS(app)
+
 api = Api(app)
 
 # Configure application
@@ -63,10 +60,8 @@ class AdminResource(Resource):
 # Technician Resource
 class TechnicianResource(Resource):
     def get(self):
-        technician = Technician.query.first()
-        if not technician:
-            return {'error': 'Technician not found'}, 404
-        return {'technician': technician.to_dict()}, 200
+        technicians = Technician.query.all()
+        return {'technicians': [tech.to_dict() for tech in technicians]}, 200
 
     def post(self):
         data = request.json
@@ -240,6 +235,7 @@ api.add_resource(UploadResource, '/upload')
 api.add_resource(RequestResource, '/requests', '/requests/<int:request_id>')
 api.add_resource(PaymentResource, '/payment')
 api.add_resource(BlogResource, '/blogs')
+
 
 # Error handling
 @app.errorhandler(400)
