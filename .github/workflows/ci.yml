@@ -29,10 +29,8 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          python -m venv .venv
-          source .venv/bin/activate
-          .venv/bin/pip3 install --upgrade pip
-          .venv/bin/pip3 install -r server/requirements.txt
+          pip install --upgrade pip
+          pip install -r server/requirements.txt
 
       - name: Install Node.js dependencies
         run: |
@@ -49,8 +47,7 @@ jobs:
 
       - name: Run application using Honcho
         run: |
-          source .venv/bin/activate
-          .venv/bin/honcho start -f Procfile.dev
+          honcho start -f Procfile.dev
 
       - name: Clean up
         run: |
