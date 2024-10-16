@@ -1,25 +1,17 @@
-version: '3.8'
-
 services:
-  backend:
+  api:
     build:
-      context: ./backend
+      context: .
+      dockerfile: server/Dockerfile
     ports:
-      - "5555:5555"
-    volumes:
-      - ./backend/app:/server/app
+      - "5000:5000"
     environment:
-      - FLASK_ENV=development  
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
 
-  frontend:
+  web:
     build:
-      context: ./frontend
+      context: .
+      dockerfile: client/Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - ./frontend/src:/client/src
-      - ./frontend/public:/client/public
-      - ./frontend/package.json:/client/package.json
-      - ./frontend/package-lock.json:/client/package-lock.json
-    environment:
-      - CHOKIDAR_USEPOLLING=true
