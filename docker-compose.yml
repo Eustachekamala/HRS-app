@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   api:
     build:
@@ -6,8 +8,10 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - FLASK_APP=app.py
-      - FLASK_ENV=development
+      FLASK_APP: app.py
+      FLASK_ENV: development
+    volumes: 
+      - ./server:/app
 
   web:
     build:
@@ -15,3 +19,5 @@ services:
       dockerfile: client/Dockerfile
     ports:
       - "3000:3000"
+    volumes: 
+      - ./client:/app
