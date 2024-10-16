@@ -7,6 +7,9 @@ from flask_cors import CORS # type: ignore
 from flask_restful import Resource, Api # type: ignore
 from models import db, Admin, Technician, Service, UserRequest, Blog, PaymentService, User
 from werkzeug.utils import secure_filename # type: ignore
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 CORS(app)
@@ -27,6 +30,7 @@ def is_admin():
 # Index Resource
 class Index(Resource):
     def get(self):
+        app.logger.info('Hello endpoint was reached')
         return {"message": "Welcome to our Home Repair Service"}
 
 # Admin Resource

@@ -1,2 +1,2 @@
 web: cd client && npm run dev -- --host
-api: cd server && gunicorn --bind 0.0.0.0:5000 app:app
+api: cd server && gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 --log-level debug app:app

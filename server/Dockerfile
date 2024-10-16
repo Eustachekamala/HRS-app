@@ -8,8 +8,8 @@ COPY ./server/requirements.txt .
 # Install dependencies
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Copy the application code (make sure this includes models.py)
-COPY ./server /app
+# Copy the application code including models.py and other necessary files
+COPY ./server /app 
 
 # Set environment variables
 ENV FLASK_APP=app.py
