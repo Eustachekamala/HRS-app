@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
 const MakePayment = () => {
   const [amount, setAmount] = useState('');
@@ -50,44 +51,51 @@ const MakePayment = () => {
   }, [showMessage]);
 
   return (
-    <div className="p-6 max-w-md mx-auto bg-black text-white">
-      <h1 className="text-3xl font-bold mb-4">Make M-Pesa Payment</h1>
+    <motion.div
+      className="bg-gray-900 rounded-lg shadow-lg p-6 max-w-md mx-auto mt-10"
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+    >
+      <h1 className="text-3xl font-bold mb-4 text-white">Make M-Pesa Payment</h1>
       <form onSubmit={handleSubmit} className="mb-4">
         <div className="mb-2">
-          <label htmlFor="amount" className="block text-sm font-medium">Amount:</label>
+          <label htmlFor="amount" className="block text-sm font-medium text-white">Amount:</label>
           <input
             type="number"
             id="amount"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="border rounded p-2 w-full bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-700 rounded p-2 w-full bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
         <div className="mb-2">
-          <label htmlFor="phoneNumber" className="block text-sm font-medium">Phone Number:</label>
+          <label htmlFor="phoneNumber" className="block text-sm font-medium text-white">Phone Number:</label>
           <input
             type="text"
             id="phoneNumber"
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
-            className="border rounded p-2 w-full bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-700 rounded p-2 w-full bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
-        <button
+        <motion.button
           type="submit"
-          className="bg-blue-500 text-white rounded p-2 transition-transform transform hover:scale-105"
+          className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-md shadow hover:bg-blue-700 transition duration-300 ease-in-out"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           Submit Payment
-        </button>
+        </motion.button>
       </form>
       {message && (
-        <p className={`mt-4 text-sm transition-opacity duration-500 ${showMessage ? 'opacity-100' : 'opacity-0'}`}>
+        <p className={`mt-4 p-2 bg-blue-500 text-white rounded-md transition-opacity duration-500 ${showMessage ? 'opacity-100' : 'opacity-0'}`}>
           {message}
         </p>
       )}
-    </div>
+    </motion.div>
   );
 };
 
