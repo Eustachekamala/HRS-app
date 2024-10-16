@@ -1,8 +1,8 @@
-"""initial migration
+"""Initial migration
 
-Revision ID: 0b7939e0f166
+Revision ID: b377a0393143
 Revises: 
-Create Date: 2024-10-17 00:54:11.584913
+Create Date: 2024-10-17 02:13:24.632824
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '0b7939e0f166'
+revision = 'b377a0393143'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -24,9 +24,9 @@ def upgrade():
     sa.Column('password', sa.String(length=120), nullable=False),
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('phone', sa.String(length=120), nullable=False),
-    sa.Column('image_path', sa.String(length=120), nullable=False),
+    sa.Column('image_path', sa.String(length=120), nullable=True),
     sa.Column('is_admin', sa.Boolean(), nullable=False),
-    sa.Column('create_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )
@@ -63,14 +63,12 @@ def upgrade():
     sa.Column('password', sa.String(length=120), nullable=False),
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('phone', sa.String(length=120), nullable=False),
-    sa.Column('image_path', sa.String(length=120), nullable=False),
+    sa.Column('image_path', sa.String(length=120), nullable=True),
     sa.Column('occupation', sa.String(length=120), nullable=False),
-    sa.Column('is_admin', sa.Boolean(), nullable=False),
-    sa.Column('create_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
-    sa.Column('id_admin', sa.Integer(), nullable=False),
+    sa.Column('id_admin', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.ForeignKeyConstraint(['id_admin'], ['admins.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('email')
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user_requests',
     sa.Column('id', sa.Integer(), nullable=False),

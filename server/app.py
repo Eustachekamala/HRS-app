@@ -96,7 +96,7 @@ class TechnicianResource(Resource):
 # Service Resource
 class ServiceResource(Resource):
     def get(self, service_id=None):
-        if service_id:
+        if service_id is not None:
             service = Service.query.get(service_id)
             if not service:
                 return {'error': 'Service not found'}, 404
@@ -105,18 +105,30 @@ class ServiceResource(Resource):
         services = Service.query.all()
         return {'services': [service.to_dict() for service in services]}, 200
 
+
     def post(self):
         data = request.json
+        logging.info(f"Received service data: {data}")
+
         service_type = data.get('service_type', '')
         description = data.get('description', '')
         
+        if not service_type or not description:
+            return {'error': 'service_type and description are required'}, 400
+
         new_service = Service(
             service_type=service_type,
             description=description
         )
-        db.session.add(new_service)
-        db.session.commit()
-        return {'message': 'Service created successfully!', 'service_id': new_service.id}, 201
+
+        try:
+            db.session.add(new_service)
+            db.session.commit()
+            return {'message': 'Service created successfully!', 'service_id': new_service.id}, 201
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Error creating service: {e}")
+            return {'error': 'Failed to create service'}, 500
 
 # Upload Resource
 class UploadResource(Resource):
