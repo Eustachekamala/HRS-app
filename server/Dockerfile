@@ -1,23 +1,22 @@
 FROM python:3.8-slim
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the requirements file from the server directory
-COPY ./server/requirements.txt ./server/requirements.txt
+# Copy the requirements file
+COPY ./server/requirements.txt .
 
 # Install dependencies
-RUN pip3 install --no-cache-dir -r ./server/requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Copy the application code
-COPY ./server ./server
+# Copy the application code (make sure this includes models.py)
+COPY ./server /app
 
 # Set environment variables
-ENV FLASK_APP=server/app.py
+ENV FLASK_APP=app.py
 ENV FLASK_ENV=development
 
 # Expose the application port
 EXPOSE 5000
 
 # Start the application using Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "server.app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
