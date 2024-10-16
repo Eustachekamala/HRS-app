@@ -1,11 +1,11 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState } from 'react';
-// import Blogs from '../components/Blogs';
+import Blogs from '../components/Blogs';
 import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import ContactInfo from '../components/ContactInfo';
 import Footer from '../components/Footer';
-// import Services from '../pages/Services';
+import Services from '../pages/Services';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
@@ -50,7 +50,7 @@ const Landingpage = () => {
             {/* Services Section */}
             <section id="services" className="py-8 md:py-10 lg:py-12 px-4 bg-black bg-opacity-80">
                 <h2 className="text-2xl md:text-3xl font-bold text-center text-white">Our Services</h2>
-                {/* <Services /> */}
+                <Services />
             </section>
 
             {/* About Us Section */}
@@ -61,7 +61,7 @@ const Landingpage = () => {
 
             {/* Blog Section */}
             <section id="blogs" className="py-8 md:py-10 lg:py-12 bg-gray-800"> 
-                {/* <Blogs /> */}
+                <Blogs />
             </section>
 
             {/* Testimonials Section */}

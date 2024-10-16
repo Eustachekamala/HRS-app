@@ -86,9 +86,15 @@ class TechnicianResource(Resource):
 
 #! Service Resource
 class ServiceResource(Resource):
-    def get(self):
+    def get(self, service_id=None):
+        if service_id:
+            service = Service.query.get(service_id)
+            if not service:
+                return {'error': 'Service not found'}, 404
+            return service.to_dict(), 200
+        
         services = Service.query.all()
-        return {'services': [service.to_dict() for service in services]}
+        return {'services': [service.to_dict() for service in services]}, 200
 
     def post(self):
         data = request.json
@@ -102,7 +108,6 @@ class ServiceResource(Resource):
         db.session.add(new_service)
         db.session.commit()
         return {'message': 'Service created successfully!', 'service_id': new_service.id}, 201
-
 #! Upload Resource
 class UploadResource(Resource):
     def post(self):
