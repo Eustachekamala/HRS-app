@@ -1,5 +1,6 @@
 import logging
 import os
+from flask import Flask, request, jsonify, g # type: ignore
 from flask import Flask, request, send_from_directory, jsonify  # type: ignore
 from flask_sqlalchemy import SQLAlchemy  # type: ignore
 from flask_migrate import Migrate  # type: ignore
@@ -12,18 +13,23 @@ from flask_cors import CORS # type: ignore
 from flask_restful import Resource, Api # type: ignore
 from models import db, Admin, Technician, Service, UserRequest, Blog, PaymentService, User
 from werkzeug.utils import secure_filename # type: ignore
-import logging
 
+# Setup logging
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
 
+# Configure application
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///home_repair_service.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
+# Create uploads directory if it doesn't exist
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
 
 db.init_app(app)
 migrate = Migrate(app, db)
@@ -119,6 +125,11 @@ class ServiceResource(Resource):
 
 # Upload Resource
 class UploadResource(Resource):
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+    def allowed_file(self, filename):
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in self.ALLOWED_EXTENSIONS
+
     def post(self):
         if not is_admin():
             return {'error': 'Unauthorized access'}, 403
@@ -129,6 +140,9 @@ class UploadResource(Resource):
         file = request.files['file']
         if file.filename == '':
             return {'error': 'No selected file'}, 400
+
+        if not self.allowed_file(file.filename):
+            return {'error': 'File type not allowed'}, 400
 
         service_type = request.form.get('service_type', '')
         description = request.form.get('description', '')
@@ -195,10 +209,10 @@ class PaymentResource(Resource):
                 return {'error': f'Missing {field}'}, 400
 
         new_payment = PaymentService(
-            service_type=data.get('service_type', ''),  # Add service_type
-            description=data.get('description', ''),    # Add description
+            service_type=data.get('service_type', ''),
+            description=data.get('description', ''),
             amount=data['amount'],
-            id_admin=data.get('id_admin')  # Include admin ID if required
+            id_admin=data.get('id_admin')
         )
 
         db.session.add(new_payment)
@@ -226,6 +240,19 @@ api.add_resource(UploadResource, '/upload')
 api.add_resource(RequestResource, '/requests', '/requests/<int:request_id>')
 api.add_resource(PaymentResource, '/payment')
 api.add_resource(BlogResource, '/blogs')
+
+# Error handling
+@app.errorhandler(400)
+def bad_request(error):
+    return jsonify({'error': 'Bad Request'}), 400
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({'error': 'Not Found'}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return jsonify({'error': 'Internal Server Error'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
