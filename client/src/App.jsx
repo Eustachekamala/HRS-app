@@ -12,6 +12,7 @@ import Landingpage from './pages/Landingpage';
 import './App.css';
 // import NotFound from './pages/404';
 // import ServiceDetail from './pages/ServiceDetail';
+import MakePayment from './components/MakePayment';
 
 const App = () => {
     return (
@@ -19,6 +20,7 @@ const App = () => {
             <Router>
                 <Routes>
                     <Route path='/' element={<Landingpage/>}/>
+                    <Route path='/payment' element={<MakePayment/>}/>
                     {/* <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />
                     <Route path="/signout" element={<Signout />} />
