@@ -1,21 +1,20 @@
-# Use the official Node.js image from the Docker Hub
-FROM node:20-slim
+# Use the official Node.js image
+FROM node:20
 
-# Set the working directory
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy package.json and install dependencies
-COPY package.json package-lock.json ./
+# Copy package files to install dependencies
+COPY ./client/package.json ./client/package-lock.json ./
+
+# Install dependencies
 RUN npm install
 
 # Copy the rest of the frontend code
-COPY . .
+COPY ./client .
 
-# Build the app for production
-RUN npm run build
-
-# Expose the port your frontend runs on (e.g., 3000)
+# Expose the application port (Vite's default is 3000)
 EXPOSE 3000
 
-# Serve the app (adjust as needed)
-CMD ["npx", "serve", "-s", "build"]
+# Start the Vite application in development mode
+CMD ["npm", "run", "dev"]
