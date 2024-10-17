@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Define the UploadService component
+// Define the ImageUpload component
 const UploadService = ({ onUploadSuccess, onUploadError, token }) => {
     const [file, setFile] = useState(null);
     const [serviceType, setServiceType] = useState('');
@@ -37,15 +37,16 @@ const UploadService = ({ onUploadSuccess, onUploadError, token }) => {
 
         // Upload the file to the backend
         try {
-            const response = await axios.post('http://0.0.0.0:5000/uploads/', formData, {
+            const response = await axios.post('http://localhost:5000/services', formData, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data',
                 },
             });
             console.log('Upload successful:', response.data);
+            toast.success('Service created successfully!', { position: "top-center" });
             onUploadSuccess();
-            // Reset form
+            // Reset form fields
             setFile(null);
             setServiceType('');
             setDescription('');
@@ -97,7 +98,7 @@ const UploadService = ({ onUploadSuccess, onUploadError, token }) => {
 UploadService.propTypes = {
     onUploadSuccess: PropTypes.func.isRequired,
     onUploadError: PropTypes.func.isRequired,
-    token: PropTypes.string, 
+    token: PropTypes.string,
 };
 
 export default UploadService;
