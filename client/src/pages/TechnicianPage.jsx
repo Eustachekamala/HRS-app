@@ -15,9 +15,9 @@ const TechnicianPage = () => {
             try {
                 const response = await axios.get('http://0.0.0.0:5000/technician');
                 setTechnicians(response.data.technicians || []);
-            } catch (err) {
+            } catch (error) {
+                console.error('Error fetching technicians:', error);
                 setError('Failed to load technicians. Please try again later.');
-                console.error('Error fetching technicians:', err);
             } finally {
                 setLoading(false);
             }
@@ -31,10 +31,11 @@ const TechnicianPage = () => {
             <h1 className="text-3xl font-bold text-center text-white mb-4">Our Technicians</h1>
             {loading && <p className="text-center text-white">Loading technicians...</p>}
             {error && <p className="text-center text-red-500">{error}</p>}
-            {!loading && technicians.length > 0 ? (
+            {!loading && technicians.length > 0 && (
                 <TechnicianList technicians={technicians} />
-            ) : (
-                <p className="text-center text-white">{technicians.length === 0 ? 'No technicians available.' : null}</p>
+            )}
+            {!loading && technicians.length === 0 && (
+                <p className="text-center text-white">No technicians available.</p>
             )}
         </div>
     );

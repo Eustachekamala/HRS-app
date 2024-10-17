@@ -22,8 +22,8 @@ app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 # Create uploads directory if it doesn't exist
-if not os.path.exists(app.config['UPLOAD_FOLDER']):
-    os.makedirs(app.config['UPLOAD_FOLDER'])
+# if not os.path.exists(app.config['UPLOAD_FOLDER']):
+#     os.makedirs(app.config['UPLOAD_FOLDER'])
 
 db.init_app(app)
 migrate = Migrate(app, db)
@@ -56,15 +56,9 @@ class AdminResource(Resource):
 
 # Technician Resource
 class TechnicianResource(Resource):
-    def get(self, technician_id=None):
-        if technician_id is None:
-            # Fetch and return all technicians
-            technicians = Technician.query.all()
-            return [tech.to_dict() for tech in technicians], 200
-        else:
-            # Fetch and return a specific technician
-            technician = Technician.query.get_or_404(technician_id)
-            return technician.to_dict(), 200
+    def get(self):
+        technicians = Technician.query.all()
+        return {'technicians': [tech.to_dict() for tech in technicians]}, 200
 
     def post(self):
         data = request.json
@@ -142,23 +136,25 @@ class UploadImage(Resource):
         if file.filename == '':
             return {'error': 'No selected file'}, 400
         
-        service_type = request.form.get('service_type')
-        description = request.form.get('description')
+        service_type = request.form.get('service_type','')
+        description = request.form.get('description','')
 
         # Secure the filename
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        # filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(file_path)
 
         new_service = Service(service_type=service_type, description=description, image_path=file_path)
         db.session.add(new_service)
         db.session.commit()
 
-        return {'message': 'Image uploaded and service created!', 'imagePath': filename, 'service_id': new_service.id}, 201
+        return {'message': 'Image uploaded and service created!', 'imagePath': file.filename, 'service_id': new_service.id}, 201
 
 # Upload Resource
 class UploadResource(Resource):
-    def get(self, filename):
+    def get(self, filename=None):
+        if filename is None:
+            return {'error': 'No filename provided'}, 400
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 # Request Resource
@@ -223,9 +219,9 @@ class BlogResource(Resource):
 # Add resources to API
 api.add_resource(Index, '/')
 api.add_resource(AdminResource, '/admin', '/admins/<int:admin_id>')
-api.add_resource(TechnicianResource, '/technician/<int:technician_id>')
+api.add_resource(TechnicianResource, '/technician')
 api.add_resource(ServiceResource, '/services', '/services/<int:service_id>')
-api.add_resource(UploadImage, '/upload/image')
+api.add_resource(UploadImage, '/upload')
 api.add_resource(UploadResource, '/uploads/<path:filename>')
 api.add_resource(RequestResource, '/requests', '/requests/<int:request_id>')
 api.add_resource(PaymentResource, '/payment')
