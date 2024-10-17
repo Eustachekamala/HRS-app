@@ -1,9 +1,9 @@
-// eslint-disable-next-line no-unused-vars
-import React, { useState, useContext } from 'react';
+
+// import React, { useState, useContext } from 'react';
 import Blogs from '../components/Blogs';
 import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
-import ContactInfo from '../components/ContactInfo';
+// import ContactInfo from '../components/ContactInfo';
 import Footer from '../components/Footer';
 import Services from '../pages/Services';
 import { useAuth } from '../configs/AuthContext'; // Use useAuth hook
@@ -32,19 +32,19 @@ const Section = ({ id, bgImage, title, children, textColor = 'text-white' }) => 
 );
 
 const Landingpage = () => {
-    const [userInfo, setUserInfo] = useState({ name: '', email: '', message: '' });
-    const [submitted, setSubmitted] = useState(false);
+    // const [userInfo, setUserInfo] = useState({ name: '', email: '', message: '' });
+    // const [submitted, setSubmitted] = useState(false);
     const { user } = useAuth(); // Access user state from AuthContext
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setUserInfo({ ...userInfo, [name]: value });
-    };
+    // const handleInputChange = (e) => {
+    //     const { name, value } = e.target;
+    //     setUserInfo({ ...userInfo, [name]: value });
+    // };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setSubmitted(true);
-    };
+    // const handleSubmit = (e) => {
+    //     e.preventDefault();
+    //     setSubmitted(true);
+    // };
 
     const handleBookServiceClick = () => {
         if (!user) {
@@ -119,7 +119,7 @@ const Landingpage = () => {
             </Section>
 
             {/* Contact Section */}
-            <Section id="contact" bgImage="/path/to/your/image6.jpg" title="Contact Us">
+            {/* <Section id="contact" bgImage="/path/to/your/image6.jpg" title="Contact Us">
                 <form onSubmit={handleSubmit} className="max-w-md mx-auto mt-6 bg-white p-6 rounded-lg shadow-lg">
                     <input
                         type="text"
@@ -152,7 +152,7 @@ const Landingpage = () => {
                     </button>
                 </form>
                 {submitted && <ContactInfo userInfo={userInfo} />}
-            </Section>
+            </Section> */}
 
             {/* Footer */}
             <Footer />

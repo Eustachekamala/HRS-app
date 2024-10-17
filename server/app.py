@@ -12,7 +12,7 @@ from models import db, Admin, Technician, Service, UserRequest, Blog, PaymentSer
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 api = Api(app)
 
 # Configure application
