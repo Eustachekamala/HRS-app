@@ -1,11 +1,12 @@
 // eslint-disable-next-line no-unused-vars
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import Blogs from '../components/Blogs';
 import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import ContactInfo from '../components/ContactInfo';
 import Footer from '../components/Footer';
 import Services from '../pages/Services';
+import { useAuth } from '../configs/AuthContext'; // Use useAuth hook
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import '../index.css';
@@ -33,6 +34,7 @@ const Section = ({ id, bgImage, title, children, textColor = 'text-white' }) => 
 const Landingpage = () => {
     const [userInfo, setUserInfo] = useState({ name: '', email: '', message: '' });
     const [submitted, setSubmitted] = useState(false);
+    const { user } = useAuth(); // Access user state from AuthContext
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -42,6 +44,16 @@ const Landingpage = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         setSubmitted(true);
+    };
+
+    const handleBookServiceClick = () => {
+        if (!user) {
+            // If user is not logged in, redirect to sign up page
+            window.location.href = '/signup'; // Change this to your sign up route
+        } else {
+            // If user is logged in, redirect to login page
+            window.location.href = '/login'; // Change this to your login route
+        }
     };
 
     return (
@@ -67,9 +79,12 @@ const Landingpage = () => {
                     >
                         Reliable repairs for every corner of your home.
                     </motion.p>
-                    <a href="#services" className="bg-blue-600 text-white px-6 py-3 rounded mt-4 inline-block transition-transform transform hover:scale-105 shadow-md">
+                    <button 
+                        onClick={handleBookServiceClick} 
+                        className="bg-blue-600 text-white px-6 py-3 rounded mt-4 inline-block transition-transform transform hover:scale-105 shadow-md"
+                    >
                         Book a Service
-                    </a>
+                    </button>
                 </motion.div>
             </section>
 
