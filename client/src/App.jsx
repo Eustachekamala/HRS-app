@@ -6,13 +6,16 @@ import { AuthProvider } from './configs/AuthContext';
 import Services from './pages/Services';
 import Landingpage from './pages/Landingpage';
 import AdminServices from './components/AdminUploadPage';
-import './App.css';
 import NotFound from './pages/404';
 import ServiceDetail from './pages/ServiceDetail';
 import MakePayment from './components/MakePayment';
 import DescriptionBox from './components/DescriptionBox';
 import TechnicianList from './components/TechnicianList';
 import TechnicianPage from './pages/TechnicianPage';
+import Login from './pages/Login'; // Import Login component
+import Signup from './pages/Signup'; // Import Signup component
+import Signout from './pages/Signout'; // Import Signout component
+import ForgotPassword from './pages/ForgotPassword'; // Import ForgotPassword component
 import axios from 'axios';
 
 const App = () => {
@@ -50,9 +53,19 @@ const App = () => {
                     <Route path='/services' element={<Services />} />
                     <Route path='/admin' element={<AdminServices />} />
                     <Route path='/service/:id' element={<ServiceDetail />} />
+
                     <Route path='*' element={<NotFound />} />
                     {/* Uncomment if you need protected routes */}
                     {/* 
+
+                    
+                    {/* Authentication Routes */}
+                    <Route path='/login' element={<Login setUser={() => {}} />} /> {/* Pass setUser function */}
+                    <Route path='/signup' element={<Signup />} />
+                    <Route path='/forgot-password' element={<ForgotPassword />} />
+                    <Route path='/signout' element={<Signout setUser={() => {}} />} /> {/* Pass setUser function */}
+
+                    {/* Protected Routes */}
                     <Route 
                         path="/protected" 
                         element={<ProtectedRoute element={<ProtectedComponent />} />} 
@@ -61,6 +74,10 @@ const App = () => {
                         path="/services" 
                         element={<ProtectedRoute element={<Services />} />}
                     /> */}
+                    />
+
+                    {/* 404 Not Found */}
+                    <Route path='*' element={<NotFound />} />
                 </Routes>
             </Router>
         </AuthProvider>
