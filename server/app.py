@@ -12,7 +12,7 @@ from models import db, Admin, Technician, Service, UserRequest, Blog, PaymentSer
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 api = Api(app)
 
 # Configure application
@@ -94,27 +94,35 @@ class TechnicianResource(Resource):
 class ServiceResource(Resource):
     def get(self, service_id=None):
         if service_id is not None:
-            # Fetch a specific service by ID
             service = Service.query.get_or_404(service_id)
             return service.to_dict(), 200
         else:
-            # Fetch all services
             services = Service.query.all()
             return {'services': [service.to_dict() for service in services]}, 200
 
     def post(self):
-        data = request.json
-        logging.info(f"Received service data: {data}")
-
-        service_type = data.get('service_type')
-        description = data.get('description')
+        if 'file' not in request.files:
+            return {'error': 'No file part'}, 400
         
+        file = request.files['file']
+        if file.filename == '':
+            return {'error': 'No selected file'}, 400
+        
+        service_type = request.form.get('service_type')
+        description = request.form.get('description')
+
         if not service_type or not description:
             return {'error': 'service_type and description are required'}, 400
 
+        # Secure the filename
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+
         new_service = Service(
             service_type=service_type,
-            description=description
+            description=description,
+            image_path=file_path
         )
 
         try:
@@ -127,35 +135,35 @@ class ServiceResource(Resource):
             return {'error': 'Failed to create service'}, 500
 
 # Upload Image Resource
-class UploadImage(Resource):
-    def post(self):
-        if 'file' not in request.files:
-            return {'error': 'No file part'}, 400
+# class UploadImage(Resource):
+#     def post(self):
+#         if 'file' not in request.files:
+#             return {'error': 'No file part'}, 400
         
-        file = request.files['file']
-        if file.filename == '':
-            return {'error': 'No selected file'}, 400
+#         file = request.files['file']
+#         if file.filename == '':
+#             return {'error': 'No selected file'}, 400
         
-        service_type = request.form.get('service_type','')
-        description = request.form.get('description','')
+#         service_type = request.form.get('service_type','')
+#         description = request.form.get('description','')
 
-        # Secure the filename
-        # filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-        file.save(file_path)
+#         # Secure the filename
+#         # filename = secure_filename(file.filename)
+#         file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+#         file.save(file_path)
 
-        new_service = Service(service_type=service_type, description=description, image_path=file_path)
-        db.session.add(new_service)
-        db.session.commit()
+#         new_service = Service(service_type=service_type, description=description, image_path=file_path)
+#         db.session.add(new_service)
+#         db.session.commit()
 
-        return {'message': 'Image uploaded and service created!', 'imagePath': file.filename, 'service_id': new_service.id}, 201
+#         return {'message': 'Image uploaded and service created!', 'imagePath': file.filename, 'service_id': new_service.id}, 201
 
-# Upload Resource
-class UploadResource(Resource):
-    def get(self, filename=None):
-        if filename is None:
-            return {'error': 'No filename provided'}, 400
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+# # Upload Resource
+# class UploadResource(Resource):
+#     def get(self, filename=None):
+#         if filename is None:
+#             return {'error': 'No filename provided'}, 400
+#         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 # Request Resource
 class RequestResource(Resource):
@@ -221,8 +229,8 @@ api.add_resource(Index, '/')
 api.add_resource(AdminResource, '/admin', '/admins/<int:admin_id>')
 api.add_resource(TechnicianResource, '/technician')
 api.add_resource(ServiceResource, '/services', '/services/<int:service_id>')
-api.add_resource(UploadImage, '/upload')
-api.add_resource(UploadResource, '/uploads/<path:filename>')
+# api.add_resource(UploadImage, '/upload')
+# api.add_resource(UploadResource, '/uploads/<path:filename>')
 api.add_resource(RequestResource, '/requests', '/requests/<int:request_id>')
 api.add_resource(PaymentResource, '/payment')
 api.add_resource(BlogResource, '/blogs', '/blogs/<int:blog_id>')
