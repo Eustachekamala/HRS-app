@@ -1,9 +1,9 @@
 {
+  "proxy": "http://127.0.0.1:5555",
   "name": "vite-project",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "proxy": "http://127.0.0.1:5555",
   "scripts": {
     "dev": "vite",
     "dev-host": "vite --host",
