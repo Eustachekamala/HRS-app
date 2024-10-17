@@ -46,10 +46,11 @@ function ServiceDetail() {
                             <>
                                 <p>Image Path: {service.image_path}</p>
                                 <img
-                                    src={`http://localhost:5000/uploads/${service.image_path}`}
+                                    src={`http://0.0.0.0:5000/upload/${service.image_path}`}
                                     alt={service.service_type}
-                                    className="rounded-lg mb-4 object-cover h-48 w-full"
+                                    className="mt-2 border border-gray-700 rounded-lg h-72 object-cover"                            
                                 />
+
                             </>
                         )}
                         <button

@@ -37,7 +37,7 @@ const UploadService = ({ onUploadSuccess, onUploadError, token }) => {
 
         // Upload the file to the backend
         try {
-            const response = await axios.post('http://0.0.0.0:5000/upload/image', formData, {
+            const response = await axios.post('http://0.0.0.0:5000/uploads/', formData, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data',
@@ -97,7 +97,7 @@ const UploadService = ({ onUploadSuccess, onUploadError, token }) => {
 UploadService.propTypes = {
     onUploadSuccess: PropTypes.func.isRequired,
     onUploadError: PropTypes.func.isRequired,
-    token: PropTypes.string, // Optional token prop for authorization
+    token: PropTypes.string, 
 };
 
 export default UploadService;

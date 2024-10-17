@@ -24,11 +24,11 @@ function AdminServices() {
     };
 
     // Fetch a service by id from the backend
-    const fetchService = async (serviceId) => {
+    const fetchService = async (id) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get(`http://0.0.0.0:5000/services/${serviceId}`);
+            const response = await axios.get(`http://0.0.0.0:5000/services/${id}`);
             
             if (response.data) { 
                 setServiceById(response.data);

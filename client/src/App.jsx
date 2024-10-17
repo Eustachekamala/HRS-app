@@ -16,24 +16,20 @@ import TechnicianPage from './pages/TechnicianPage';
 import axios from 'axios';
 
 const App = () => {
-    const [technicians, setTechnicians] = useState([]);
+    const [technician, setTechnician] = useState(null);
 
     useEffect(() => {
-        const fetchTechnicians = async () => {
+        const fetchTechnician = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/technician');
-                if (Array.isArray(response.data.technicians)) {
-                    setTechnicians(response.data.technicians);
-                } else {
-                    console.error('Expected an array, but got:', response.data);
-                }
+                const response = await axios.get('http://0.0.0.0:5000/technician');
+                setTechnician(response.data);
             } catch (error) {
-                console.error('Error fetching technicians:', error);
-                setTechnicians([]);
+                console.error('Error fetching technician:', error);
+                setTechnician(null);
             }
         };
 
-        fetchTechnicians();
+        fetchTechnician();
     }, []);
 
     return (
@@ -43,8 +39,8 @@ const App = () => {
                     <Route path='/' element={<Landingpage />} />
                     <Route path='/payment' element={<MakePayment />} />
                     <Route path='/description' element={<DescriptionBox />} />
-                    <Route path='/technicians' element={<TechnicianList technicians={technicians} />} />
-                    <Route path='/technician' element={<TechnicianPage />} />
+                    <Route path='/technicians' element={technician ? <TechnicianList technicians={[technician]} /> : <p>Loading...</p>} />
+                    <Route path='/technician' element={<TechnicianPage technician={technician} />} />
                     <Route path='/services' element={<Services />} />
                     <Route path='/admin' element={<AdminServices />} />
                     <Route path='/service/:id' element={<ServiceDetail />} />

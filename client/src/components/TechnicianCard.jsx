@@ -12,7 +12,7 @@ const TechnicianList = ({ technicians = [] }) => {
             {technicians.map(technician => (
                 <div key={technician.id} className="bg-gray-800 rounded-lg p-4 shadow-lg">
                     <img
-                        src={`http://0.0.0.0:5000/uploads/${technician.image_path}`}
+                        src={`http://0.0.0.0:5000/upload/${technician.image_path}`}
                         alt={technician.username}
                         className="rounded-lg mb-2 object-cover h-48 w-full"
                     />
