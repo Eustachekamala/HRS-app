@@ -8,6 +8,10 @@ export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     const login = (userData) => {
+        setUser({
+            token: userData.token, 
+            adminId: userData.adminId,
+        });
         setUser(userData);
         setIsAuthenticated(true);
     };
@@ -27,6 +31,13 @@ export const AuthProvider = ({ children }) => {
 AuthProvider.propTypes = {
     children: PropTypes.node.isRequired,
 };
+
+// Custom hook to use the AuthContext
+// eslint-disable-next-line react-refresh/only-export-components
+export const useAuth = () => useContext(AuthContext);
+
+// Exporting the context for potential direct use
+export { AuthContext };
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
