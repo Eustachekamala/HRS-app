@@ -5,10 +5,10 @@ import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Define the ImageUpload component
+// Define the UploadService component
 const UploadService = ({ onUploadSuccess, onUploadError, token }) => {
     const [file, setFile] = useState(null);
-    const [service_type, setService_type] = useState('');
+    const [serviceType, setServiceType] = useState('');
     const [description, setDescription] = useState('');
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -20,7 +20,7 @@ const UploadService = ({ onUploadSuccess, onUploadError, token }) => {
 
     // Handle upload
     const handleUpload = async () => {
-        if (!file || !service_type.trim() || !description.trim()) {
+        if (!file || !serviceType.trim() || !description.trim()) {
             toast.warning('Please fill in all fields and select a file to upload.', { position: "top-center" });
             setError('Please fill in all fields and select a file');
             return;
@@ -32,12 +32,12 @@ const UploadService = ({ onUploadSuccess, onUploadError, token }) => {
         // Create a FormData object
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('service_type', service_type);
+        formData.append('service_type', serviceType);
         formData.append('description', description);
 
         // Upload the file to the backend
         try {
-            const response = await axios.post('http://localhost:5000/upload', formData, {
+            const response = await axios.post('http://0.0.0.0:5000/upload/image', formData, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data',
@@ -45,14 +45,15 @@ const UploadService = ({ onUploadSuccess, onUploadError, token }) => {
             });
             console.log('Upload successful:', response.data);
             onUploadSuccess();
+            // Reset form
             setFile(null);
-            setService_type('');
+            setServiceType('');
             setDescription('');
         } catch (err) {
             console.error('Upload failed:', err.response ? err.response.data : err.message);
             onUploadError(err.message);
             setError('Failed to upload image. Please try again.');
-            // toast.error('Failed to upload image. Please try again.', { position: "top-center" });
+            toast.error('Failed to upload image. Please try again.', { position: "top-center" });
         } finally {
             setLoading(false);
         }
@@ -65,8 +66,8 @@ const UploadService = ({ onUploadSuccess, onUploadError, token }) => {
             <input
                 type="text"
                 placeholder="Service Name"
-                value={service_type}
-                onChange={(e) => setService_type(e.target.value)}
+                value={serviceType}
+                onChange={(e) => setServiceType(e.target.value)}
                 className="border border-gray-300 bg-gray-700 rounded-md p-2 mb-4 w-full"
             />
             <textarea
@@ -96,7 +97,7 @@ const UploadService = ({ onUploadSuccess, onUploadError, token }) => {
 UploadService.propTypes = {
     onUploadSuccess: PropTypes.func.isRequired,
     onUploadError: PropTypes.func.isRequired,
-    token: PropTypes.string, // Pass the token as a prop if needed
+    token: PropTypes.string, // Optional token prop for authorization
 };
 
 export default UploadService;

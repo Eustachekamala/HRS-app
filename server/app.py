@@ -1,21 +1,18 @@
 import logging
 import os
-from flask import Flask, request, jsonify, g # type: ignore
-from flask_sqlalchemy import SQLAlchemy # type: ignore
-from flask_migrate import Migrate # type: ignore
-from flask_cors import CORS # type: ignore
-from flask_restful import Resource, Api # type: ignore
-from werkzeug.utils import secure_filename # type: ignore
-from models import db, Admin, Technician, Service, UserRequest, Blog, PaymentService, User
+from flask import Flask, request, jsonify, g, send_from_directory  # type: ignore
+from flask_sqlalchemy import SQLAlchemy  # type: ignore
+from flask_migrate import Migrate  # type: ignore
+from flask_cors import CORS  # type: ignore
+from flask_restful import Resource, Api  # type: ignore
+from werkzeug.utils import secure_filename  # type: ignore
+from models import db, Admin, Technician, Service, UserRequest, Blog, PaymentService
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
-
-# Enable CORS for all routes
 CORS(app)
-
 api = Api(app)
 
 # Configure application
@@ -59,9 +56,15 @@ class AdminResource(Resource):
 
 # Technician Resource
 class TechnicianResource(Resource):
-    def get(self):
-        technicians = Technician.query.all()
-        return {'technicians': [tech.to_dict() for tech in technicians]}, 200
+    def get(self, technician_id=None):
+        if technician_id is None:
+            # Fetch and return all technicians
+            technicians = Technician.query.all()
+            return [tech.to_dict() for tech in technicians], 200
+        else:
+            # Fetch and return a specific technician
+            technician = Technician.query.get_or_404(technician_id)
+            return technician.to_dict(), 200
 
     def post(self):
         data = request.json
@@ -97,21 +100,20 @@ class TechnicianResource(Resource):
 class ServiceResource(Resource):
     def get(self, service_id=None):
         if service_id is not None:
-            service = Service.query.get(service_id)
-            if not service:
-                return {'error': 'Service not found'}, 404
+            # Fetch a specific service by ID
+            service = Service.query.get_or_404(service_id)
             return service.to_dict(), 200
-        
-        services = Service.query.all()
-        return {'services': [service.to_dict() for service in services]}, 200
-
+        else:
+            # Fetch all services
+            services = Service.query.all()
+            return {'services': [service.to_dict() for service in services]}, 200
 
     def post(self):
         data = request.json
         logging.info(f"Received service data: {data}")
 
-        service_type = data.get('service_type', '')
-        description = data.get('description', '')
+        service_type = data.get('service_type')
+        description = data.get('description')
         
         if not service_type or not description:
             return {'error': 'service_type and description are required'}, 400
@@ -127,63 +129,43 @@ class ServiceResource(Resource):
             return {'message': 'Service created successfully!', 'service_id': new_service.id}, 201
         except Exception as e:
             db.session.rollback()
-            app.logger.error(f"Error creating service: {e}")
+            logging.error(f"Error creating service: {e}")
             return {'error': 'Failed to create service'}, 500
 
-# Upload Resource
-class UploadResource(Resource):
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-    def allowed_file(self, filename):
-        return '.' in filename and filename.rsplit('.', 1)[1].lower() in self.ALLOWED_EXTENSIONS
-
+# Upload Image Resource
+class UploadImage(Resource):
     def post(self):
-        if not is_admin():
-            return {'error': 'Unauthorized access'}, 403
-
         if 'file' not in request.files:
             return {'error': 'No file part'}, 400
-
+        
         file = request.files['file']
         if file.filename == '':
             return {'error': 'No selected file'}, 400
+        
+        service_type = request.form.get('service_type')
+        description = request.form.get('description')
 
-        if not self.allowed_file(file.filename):
-            return {'error': 'File type not allowed'}, 400
-
-        service_type = request.form.get('service_type', '')
-        description = request.form.get('description', '')
-
-        # Ensure a secure filename
+        # Secure the filename
         filename = secure_filename(file.filename)
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-
-        # Check if the file already exists (optional)
-        if os.path.exists(file_path):
-            return {'error': 'File already exists'}, 400
-
-        # Save the file
         file.save(file_path)
 
-        new_service = Service(
-            service_type=service_type,
-            description=description,
-            image_path=filename
-        )
+        new_service = Service(service_type=service_type, description=description, image_path=file_path)
         db.session.add(new_service)
         db.session.commit()
 
-        return {
-            'message': 'Image uploaded and service created!',
-            'imagePath': filename,
-            'service_id': new_service.id
-        }, 201
+        return {'message': 'Image uploaded and service created!', 'imagePath': filename, 'service_id': new_service.id}, 201
+
+# Upload Resource
+class UploadResource(Resource):
+    def get(self, filename):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 # Request Resource
 class RequestResource(Resource):
     def get(self):
         requests = UserRequest.query.all()
-        return {'requests': [req.to_dict() for req in requests]}
+        return {'requests': [req.to_dict() for req in requests]}, 200
 
     def post(self):
         data = request.json
@@ -216,8 +198,8 @@ class PaymentResource(Resource):
                 return {'error': f'Missing {field}'}, 400
 
         new_payment = PaymentService(
-            service_type=data.get('service_type', ''),
-            description=data.get('description', ''),
+            service_id=data['service_id'],
+            payment_method=data['payment_method'],
             amount=data['amount'],
             id_admin=data.get('id_admin')
         )
@@ -241,13 +223,13 @@ class BlogResource(Resource):
 # Add resources to API
 api.add_resource(Index, '/')
 api.add_resource(AdminResource, '/admin', '/admins/<int:admin_id>')
-api.add_resource(TechnicianResource, '/technician', '/technician/<int:technician_id>')
+api.add_resource(TechnicianResource, '/technician/<int:technician_id>')
 api.add_resource(ServiceResource, '/services', '/services/<int:service_id>')
-api.add_resource(UploadResource, '/upload')
+api.add_resource(UploadImage, '/upload/image')
+api.add_resource(UploadResource, '/uploads/<path:filename>')
 api.add_resource(RequestResource, '/requests', '/requests/<int:request_id>')
 api.add_resource(PaymentResource, '/payment')
-api.add_resource(BlogResource, '/blogs')
-
+api.add_resource(BlogResource, '/blogs', '/blogs/<int:blog_id>')
 
 # Error handling
 @app.errorhandler(400)
