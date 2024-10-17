@@ -13,7 +13,7 @@ function AdminServices() {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get('http://localhost:5000/services');
+            const response = await axios.get('http://0.0.0.0:5000/services');
             setServices(response.data.services || []);
         } catch (error) {
             console.error('Error fetching services:', error);
@@ -24,13 +24,13 @@ function AdminServices() {
     };
 
     // Fetch a service by id from the backend
-    const fetchService = async (id) => {
+    const fetchService = async (serviceId) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get(`http://localhost:5000/services/${id}`);
+            const response = await axios.get(`http://0.0.0.0:5000/services/${serviceId}`);
             
-            if (response.data && response.data.id) { // Check for the service ID instead
+            if (response.data) { 
                 setServiceById(response.data);
             } else {
                 throw new Error('Service not found');

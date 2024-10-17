@@ -35,24 +35,28 @@ def seed_technicians():
 
 def seed_user_requests():
     if not UserRequest.query.first():
-        example_admin_id = Admin.query.first().id
-        
+        example_admin = Admin.query.first()
+        if not example_admin:
+            print("No Admin found, UserRequest cannot be created.")
+            return
+
+        # Adjust user_id and service_id as needed
         example_request = UserRequest(
-            user_id=1,
-            service_id=1,
+            user_id=1,  # Ensure this user exists
+            service_id=1,  # Ensure this service exists
             description='I need help with plumbing.',
-            admin_id=example_admin_id
+            admin_id=example_admin.id
         )
         db.session.add(example_request)
-        db.session.commit()
 
         example_service_request = Service(
             service_type='Plumbing',
             description="Our plumbing services cover a wide range of needs to ensure that your home runs smoothly. Whether you're dealing with a leaky faucet, a clogged drain, or a complete plumbing installation, our team of experienced plumbers is here to help.",
             image_path='uploads/plomberie.jpg',
-            id_admin=example_admin_id
+            id_admin=example_admin.id
         )
         db.session.add(example_service_request)
+        
         db.session.commit()
         print("Sample UserRequest and Service created!")
     else:

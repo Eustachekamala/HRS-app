@@ -27,7 +27,7 @@ function Blogs() {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get('http://localhost:5000/blogs');
+            const response = await axios.get('http://0.0.0.0:5000/blogs');
             // Ensure you're setting the correct structure
             setBlogs(response.data.blogs || []);
         } catch (error) {

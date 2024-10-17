@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
@@ -5,14 +6,14 @@ const MakePayment = () => {
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [showMessage, setShowMessage] = useState(false); // State for message visibility
+  const [showMessage, setShowMessage] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
 
     try {
-      const response = await fetch('http://localhost:8000/mpesa/payments/', {
+      const response = await fetch('http://0.0.0.0:5000/payments/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
