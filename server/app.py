@@ -110,9 +110,13 @@ class ServiceResource(Resource):
         
         service_type = request.form.get('service_type')
         description = request.form.get('description')
-
+        id_admin = request.form.get('id_admin')
+        
         if not service_type or not description:
             return {'error': 'service_type and description are required'}, 400
+        
+        if id_admin is None:
+            return {'error': 'Admin ID is required'}, 400
 
         # Secure the filename
         filename = secure_filename(file.filename)
@@ -122,7 +126,8 @@ class ServiceResource(Resource):
         new_service = Service(
             service_type=service_type,
             description=description,
-            image_path=file_path
+            image_path=file_path,
+            id_admin=id_admin
         )
 
         try:

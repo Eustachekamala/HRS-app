@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './configs/AuthContext';
-import ProtectedRoute from './configs/ProtectedRoute';
+// import ProtectedRoute from './configs/ProtectedRoute'; // Uncomment if using this
 import Services from './pages/Services';
 import Landingpage from './pages/Landingpage';
 import AdminServices from './components/AdminUploadPage';
@@ -17,6 +17,7 @@ import axios from 'axios';
 
 const App = () => {
     const [technician, setTechnician] = useState(null);
+    const [loading, setLoading] = useState(true); // Loading state
 
     useEffect(() => {
         const fetchTechnician = async () => {
@@ -26,6 +27,8 @@ const App = () => {
             } catch (error) {
                 console.error('Error fetching technician:', error);
                 setTechnician(null);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -39,12 +42,17 @@ const App = () => {
                     <Route path='/' element={<Landingpage />} />
                     <Route path='/payment' element={<MakePayment />} />
                     <Route path='/description' element={<DescriptionBox />} />
-                    <Route path='/technicians' element={technician ? <TechnicianList technicians={[technician]} /> : <p>Loading...</p>} />
+                    <Route 
+                        path='/technicians' 
+                        element={loading ? <p>Loading technicians...</p> : <TechnicianList technicians={[technician]} />} 
+                    />
                     <Route path='/technician' element={<TechnicianPage technician={technician} />} />
                     <Route path='/services' element={<Services />} />
                     <Route path='/admin' element={<AdminServices />} />
                     <Route path='/service/:id' element={<ServiceDetail />} />
                     <Route path='*' element={<NotFound />} />
+                    {/* Uncomment if you need protected routes */}
+                    {/* 
                     <Route 
                         path="/protected" 
                         element={<ProtectedRoute element={<ProtectedComponent />} />} 
@@ -52,13 +60,14 @@ const App = () => {
                     <Route 
                         path="/services" 
                         element={<ProtectedRoute element={<Services />} />}
-                    />
+                    /> */}
                 </Routes>
             </Router>
         </AuthProvider>
     );
 };
 
-const ProtectedComponent = () => <h2>Protected Component</h2>;
+// Uncomment this if you have a protected component
+// const ProtectedComponent = () => <h2>Protected Component</h2>;
 
 export default App;
