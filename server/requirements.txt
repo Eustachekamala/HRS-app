@@ -16,6 +16,7 @@ fastapi==0.114.2
 filelock==3.15.4
 Flask==3.0.3
 Flask-Cors==5.0.0
+Flask-JWT-Extended==4.6.0
 Flask-Migrate==4.0.7
 Flask-RESTful==0.3.10
 Flask-SQLAlchemy==3.1.1
@@ -50,6 +51,7 @@ pure_eval==0.2.3
 pydantic==2.9.1
 pydantic_core==2.23.3
 Pygments==2.18.0
+PyJWT==2.9.0
 pytest==8.3.3
 python-dotenv==1.0.1
 pytz==2024.2

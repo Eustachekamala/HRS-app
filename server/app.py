@@ -7,6 +7,7 @@ from flask_cors import CORS  # type: ignore
 from flask_restful import Resource, Api  # type: ignore
 from werkzeug.utils import secure_filename  # type: ignore
 from models import db, Admin, Technician, Service, UserRequest, Blog, PaymentService
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
