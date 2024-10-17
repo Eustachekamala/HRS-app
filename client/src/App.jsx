@@ -66,15 +66,14 @@ const App = () => {
                     <Route path='/signout' element={<Signout setUser={() => {}} />} /> {/* Pass setUser function */}
 
                     {/* Protected Routes */}
-                    <Route 
+                    {/* <Route 
                         path="/protected" 
                         element={<ProtectedRoute element={<ProtectedComponent />} />} 
-                    />
-                    <Route 
+                    /> */}
+                    {/* <Route 
                         path="/services" 
                         element={<ProtectedRoute element={<Services />} />}
                     /> */}
-                    />
 
                     {/* 404 Not Found */}
                     <Route path='*' element={<NotFound />} />

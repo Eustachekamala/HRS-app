@@ -1,10 +1,11 @@
+// eslint-disable-next-line no-unused-vars
 import React, { createContext, useState, useContext } from 'react';
 import PropTypes from 'prop-types';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null); // User object will include role and other details
+    const [user, setUser] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     const login = (userData) => {
@@ -32,9 +33,6 @@ AuthProvider.propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-// Custom hook to use the AuthContext
-// eslint-disable-next-line react-refresh/only-export-components
-export const useAuth = () => useContext(AuthContext);
 
 // Exporting the context for potential direct use
 export { AuthContext };
