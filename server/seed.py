@@ -1,64 +1,81 @@
 from app import app, db
-from models import Service, Blog, UserRequest, Admin, Technician
+from models import Service, Blog, ClientRequest, Client, PaymentService, Admin, Technician
 
-def seed_admin():
-    if not Admin.query.first():
+def seed_users():
+    if not Admin.query.first():  # Check if any Admin exists
         example_admin = Admin(
             username='admin',
-            password='admin123',
-            email='admin@example.com',
-            phone='+254-719-405-100',
-            image_path='uploads/default_admin.jpg'
+            email='admin@gmail.com',
+            phone='+254-719-403-222',
+            password='securepassword',
+            image_path='uploads/admin.jpg',
+            role='admin'
         )
         db.session.add(example_admin)
-        db.session.commit()
-        print("Sample Admin created!")
 
-def seed_technicians():
-    if not Technician.query.first():
-        example_admin = Admin.query.first()
-        if example_admin:
-            example_technician = Technician(
-                username='Jared',
-                password='jared123',
-                email='jared@example.com',
-                phone='+254-719-405-000',
-                image_path='uploads/jared.jpg',
-                occupation='Plumber',
-                id_admin=example_admin.id 
-            )
-            db.session.add(example_technician)
-            db.session.commit()
-            print("Sample Technician created!")
-        else:
-            print("No Admin found, Technician cannot be created.")
+    if not Technician.query.first():  # Check if any Technician exists
+        example_technician = Technician(
+            username='Jared',
+            password='jared123',
+            email='jared@example.com',
+            phone='+254-719-405-000',
+            image_path='uploads/jared.jpg',
+            role='technician',
+            occupation='Plumber'
+        )
+        db.session.add(example_technician)
+
+    if not Client.query.first():  # Check if any Client exists
+        example_customer = Client(
+            username='customer1',
+            password='customer123',
+            email='customer@example.com',
+            phone='+254-719-405-111',
+            role='customer'
+        )
+        db.session.add(example_customer)
+
+    db.session.commit()
+    print("Sample users created!")
 
 def seed_user_requests():
-    if not UserRequest.query.first():
-        example_admin = Admin.query.first()
-        if not example_admin:
-            print("No Admin found, UserRequest cannot be created.")
+    if not ClientRequest.query.first():  # Check if any UserRequest exists
+        # Use the first client created as an example for requests
+        example_user = Client.query.first()
+        if not example_user:
+            print("No Client found, UserRequest cannot be created.")
             return
 
-        # Adjust user_id and service_id as needed
-        example_request = UserRequest(
-            user_id=1,  # Ensure this user exists
-            service_id=1,  # Ensure this service exists
-            description='I need help with plumbing.',
-            admin_id=example_admin.id
+        # Create a sample service
+        example_service = Service(
+            service_type='Plumbing',
+            description="Our plumbing services cover a wide range of needs.",
+            image_path='uploads/plomberie.jpg',
+        )
+        db.session.add(example_service)
+        db.session.commit()  # Commit to get the service ID
+
+        # Creating a user request
+        example_request = ClientRequest(
+            user_id=example_user.id,  # Use the first user ID
+            service_id=example_service.id,  # Use the service ID created above
+            description='I need help with plumbing.'
         )
         db.session.add(example_request)
+        db.session.commit()  # Commit to get the user request ID
 
-        example_service_request = Service(
-            service_type='Plumbing',
-            description="Our plumbing services cover a wide range of needs to ensure that your home runs smoothly. Whether you're dealing with a leaky faucet, a clogged drain, or a complete plumbing installation, our team of experienced plumbers is here to help.",
-            image_path='uploads/plomberie.jpg',
-            id_admin=example_admin.id
+        # Create a sample payment service
+        example_payment = PaymentService(
+            service_id=example_service.id,  # Use service ID
+            customer_id=example_user.id,     # Use customer ID
+            user_request_id=example_request.id,  # Assign the user request ID
+            amount=100.00,                   # Example amount
+            phone='+254-719-405-222'
         )
-        db.session.add(example_service_request)
-        
+        db.session.add(example_payment)
+
         db.session.commit()
-        print("Sample UserRequest and Service created!")
+        print("Sample UserRequest, Service, and PaymentService created!")
     else:
         print("UserRequest already exists, skipping creation.")
 
@@ -91,10 +108,9 @@ def seed_blogs():
 def seed_db():
     with app.app_context():
         db.create_all()
-        seed_admin()
-        seed_technicians()
-        seed_user_requests()
-        seed_blogs()
+        seed_users()         # Seed users first
+        seed_user_requests()  # Seed user requests after users
+        seed_blogs()         # Seed blogs last
 
 if __name__ == '__main__':
     seed_db()

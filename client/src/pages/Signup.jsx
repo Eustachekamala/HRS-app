@@ -1,7 +1,5 @@
-// eslint-disable-next-line no-unused-vars
 import React, { useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { signup } from '../api';
 
 const Signup = () => {
@@ -9,15 +7,21 @@ const Signup = () => {
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
     const [phone, setPhone] = useState('');
-    const [role, setRole] = useState('user'); // Default role can be 'user'
+    const [role, setRole] = useState('user');
     const [error, setError] = useState('');
-    // const navigate = useNavigate();
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await signup(email, password, username);
-            // Handle successful signup (e.g., redirect or show message)
+            // Send the role along with other signup data
+            const data = await signup(email, password, username, phone, role);
+            
+            if (data.is_admin) {
+                navigate('/admin'); // Redirect to admin page if admin
+            } else {
+                navigate('/services'); // Redirect to services page if user
+            }
         } catch (err) {
             setError(err.response?.data?.error || 'Signup failed');
         }
@@ -62,9 +66,13 @@ const Signup = () => {
                         className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full"
                     />
                     <div className='flex flex-col items-center justify-center'>
-                        {/* Optional Role Selection */}
-                        <select value={role} onChange={(e) => setRole(e.target.value)} className="border text-blue-500 border-gray-300 p-3 w-full mb-4 rounded">
-                            <option value="user">User</option>
+                        {/* Role Selection */}
+                        <select 
+                            value={role} 
+                            onChange={(e) => setRole(e.target.value)} 
+                            className="border text-blue-500 border-gray-300 p-3 w-full mb-4 rounded"
+                        >
+                            <option value="user">User </option>
                             <option value="admin">Admin</option>
                         </select>
                         <button type="submit" className="bg-blue-600 text-white px-6 py-3 rounded w-full shadow-md hover:bg-blue-700 transition duration-200">

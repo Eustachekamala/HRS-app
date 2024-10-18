@@ -1,8 +1,7 @@
-// eslint-disable-next-line no-unused-vars
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './configs/AuthContext';
-// import ProtectedRoute from './configs/ProtectedRoute'; // Uncomment if using this
+import ProtectedRoute from './configs/ProtectedRoute';
 import Services from './pages/Services';
 import Landingpage from './pages/Landingpage';
 import AdminServices from './components/AdminUploadPage';
@@ -12,30 +11,46 @@ import MakePayment from './components/MakePayment';
 import DescriptionBox from './components/DescriptionBox';
 import TechnicianList from './components/TechnicianList';
 import TechnicianPage from './pages/TechnicianPage';
-import Login from './pages/Login'; // Import Login component
-import Signup from './pages/Signup'; // Import Signup component
-import Signout from './pages/Signout'; // Import Signout component
-import ForgotPassword from './pages/ForgotPassword'; // Import ForgotPassword component
+import Login from './pages/Login'; 
+import Signup from './pages/Signup'; 
+import Signout from './pages/Signout'; 
+import ForgotPassword from './pages/ForgotPassword';
 import axios from 'axios';
 
 const App = () => {
-    const [technician, setTechnician] = useState(null);
-    const [loading, setLoading] = useState(true); // Loading state
+    const [technicians, setTechnicians] = useState([]); // Changed to array
+    const [loading, setLoading] = useState(true);
+
+    // Function to get token from local storage
+    const getToken = () => {
+        return localStorage.getItem('token');
+    };
 
     useEffect(() => {
-        const fetchTechnician = async () => {
+        const fetchTechnicians = async () => { // Updated to plural
+            const token = getToken();
+
+            if (!token) {
+                setLoading(false);
+                return;
+            }
+
             try {
-                const response = await axios.get('http://0.0.0.0:5000/technician');
-                setTechnician(response.data);
+                const response = await axios.get('http://0.0.0.0:5000/technician', {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                setTechnicians(response.data); // Assuming the API returns an array of technicians
             } catch (error) {
-                console.error('Error fetching technician:', error);
-                setTechnician(null);
+                console.error('Error fetching technicians:', error);
+                setTechnicians([]); // Resetting to an empty array on error
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchTechnician();
+        fetchTechnicians();
     }, []);
 
     return (
@@ -47,33 +62,24 @@ const App = () => {
                     <Route path='/description' element={<DescriptionBox />} />
                     <Route 
                         path='/technicians' 
-                        element={loading ? <p>Loading technicians...</p> : <TechnicianList technicians={[technician]} />} 
+                        element={loading ? <p>Loading technicians...</p> : <TechnicianList technicians={technicians} />} 
                     />
-                    <Route path='/technician' element={<TechnicianPage technician={technician} />} />
+                    <Route path='/technician' element={<TechnicianPage technician={technicians[0]} />} /> {/* Display the first technician or handle as needed */}
                     <Route path='/services' element={<Services />} />
-                    <Route path='/admin' element={<AdminServices />} />
+
+                    {/* Admin Protected Route */}
+                    <Route 
+                        path='/admin' 
+                        element={<ProtectedRoute element={<AdminServices />} allowedRoles={['admin']} />} 
+                    />
+
                     <Route path='/service/:id' element={<ServiceDetail />} />
 
-                    <Route path='*' element={<NotFound />} />
-                    {/* Uncomment if you need protected routes */}
-                    {/* 
-
-                    
                     {/* Authentication Routes */}
-                    <Route path='/login' element={<Login setUser={() => {}} />} /> {/* Pass setUser function */}
+                    <Route path='/login' element={<Login />} />
                     <Route path='/signup' element={<Signup />} />
                     <Route path='/forgot-password' element={<ForgotPassword />} />
-                    <Route path='/signout' element={<Signout setUser={() => {}} />} /> {/* Pass setUser function */}
-
-                    {/* Protected Routes */}
-                    {/* <Route 
-                        path="/protected" 
-                        element={<ProtectedRoute element={<ProtectedComponent />} />} 
-                    /> */}
-                    {/* <Route 
-                        path="/services" 
-                        element={<ProtectedRoute element={<Services />} />}
-                    /> */}
+                    <Route path='/signout' element={<Signout />} />
 
                     {/* 404 Not Found */}
                     <Route path='*' element={<NotFound />} />
@@ -82,8 +88,5 @@ const App = () => {
         </AuthProvider>
     );
 };
-
-// Uncomment this if you have a protected component
-// const ProtectedComponent = () => <h2>Protected Component</h2>;
 
 export default App;

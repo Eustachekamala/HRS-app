@@ -8,12 +8,28 @@ function AdminServices() {
     const [services, setServices] = useState([]);
     const [serviceById, setServiceById] = useState({});
 
+    // Helper function to get token from local storage
+    const getToken = () => localStorage.getItem('token');
+
     // Fetch services from the backend
     const fetchServices = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.error('No token found');
+            setError('Unauthorized access. Please log in.');
+            return;
+        }
+        
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get('http://0.0.0.0:5000/services');
+            const token = getToken(); // Get the token
+            
+            const response = await axios.get('http://0.0.0.0:5000/services', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
             setServices(response.data.services || []);
         } catch (error) {
             console.error('Error fetching services:', error);
@@ -28,7 +44,13 @@ function AdminServices() {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get(`http://0.0.0.0:5000/services/${id}`);
+            const token = getToken(); // Get the token
+            
+            const response = await axios.get(`http://0.0.0.0:5000/services/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
             
             if (response.data) { 
                 setServiceById(response.data);
