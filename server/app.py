@@ -5,15 +5,24 @@ from flask_sqlalchemy import SQLAlchemy  # type: ignore
 from flask_migrate import Migrate  # type: ignore
 from flask_cors import CORS  # type: ignore
 from flask_restful import Resource, Api  # type: ignore
+import jwt
 from werkzeug.utils import secure_filename  # type: ignore
-from models import db, Admin, Technician, Service, UserRequest, Blog, PaymentService
+from werkzeug.security import generate_password_hash, check_password_hash
+from models import db, Admin, Technician, Service, UserRequest, Blog, PaymentService, User
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+
+jwt = JWTManager(app)
 api = Api(app)
 
 # Configure application
@@ -23,23 +32,23 @@ app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 # Create uploads directory if it doesn't exist
-# if not os.path.exists(app.config['UPLOAD_FOLDER']):
-#     os.makedirs(app.config['UPLOAD_FOLDER'])
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
 
 db.init_app(app)
 migrate = Migrate(app, db)
 
-# Helper function to check if the user is an admin
+#! Helper function to check if the user is an admin
 def is_admin():
     return getattr(g, 'user', None) is not None and g.user.is_admin
 
-# Index Resource
+#! Index Resource
 class Index(Resource):
     def get(self):
         app.logger.info('Hello endpoint was reached')
         return {"message": "Welcome to our Home Repair Service"}
 
-# Admin Resource
+#! Admin Resource
 class AdminResource(Resource):
     def get(self):
         admin = Admin.query.first()
@@ -55,7 +64,7 @@ class AdminResource(Resource):
         db.session.commit()
         return {'message': 'Admin deleted successfully!'}, 200
 
-# Technician Resource
+#! Technician Resource
 class TechnicianResource(Resource):
     def get(self):
         technicians = Technician.query.all()
@@ -90,8 +99,130 @@ class TechnicianResource(Resource):
         db.session.delete(technician)
         db.session.commit()
         return {'message': 'Technician deleted successfully!'}, 200
+    
+#! User Resource
+class UserResource(Resource):
+    def get(self, user_id=None):
+        if user_id is not None:
+            user = User.query.get_or_404(user_id)
+            return user.to_dict(), 200
+        else:
+            users = User.query.all()
+            return {'users': [user.to_dict() for user in users]}, 200
+        
+    def post(self):
+        data = request.json
+        logging.info(f"Received user data: {data}")
+        
+        required_fields = ['username', 'email', 'phone', 'password']
+        for field in required_fields:
+            if field not in data:
+                return {'error': f'Missing {field}'}, 400
+        
+        new_user = User(
+            username=data['username'],
+            email=data['email'],
+            phone=data['phone'],
+            password=data['password']
+        )
+        
+        db.session.add(new_user)
+        db.session.commit()
+        return {'message': 'User created successfully!', 'user_id': new_user.id}, 201
+    
+    def delete(self, user_id):
+        user = User.query.get(user_id)
+        if not user:
+            return {'error': 'User not found'}, 404
+        db.session.delete(user)
+        db.session.commit()
+        return {'message': 'User deleted successfully!'}, 200
+    
+#! Login Resource
+class LoginResource(Resource):
+    def post(self):
+        data = request.json
+        email = data.get('email')
+        password = data.get('password')
 
-# Service Resource
+        user = User.query.filter_by(email=email).first()
+
+        if user and check_password_hash(user.password, password):
+            access_token = create_access_token(identity={'id': user.id, 'role': 'user'})
+            return {'access_token': access_token}, 200
+
+        return {'error': 'Invalid credentials'}, 401
+    
+#! Signup Resource
+class SignupResource(Resource):
+    def post(self):
+        data = request.json
+        email = data.get('email')
+        password = data.get('password')
+        username = data.get('username')
+        phone = data.get('phone')
+        
+        if User.query.filter_by(email=email).first():
+            return {'error': 'Email already exists.'}, 400
+        
+        hashed_password = generate_password_hash(password)
+        
+        new_user = User(
+            email=email,
+            password=hashed_password,
+            username=username,
+            phone=phone,
+            google_id=None,
+            is_admin=False
+        )
+        
+        db.session.add(new_user)
+        db.session.commit()
+        
+        return {'message': 'User created successfully!'}, 201
+    
+    def delete(self, user_id):
+        user = User.query.get(user_id)
+        if not user:
+            return {'error': 'User not found'}, 404
+        db.session.delete(user)
+        db.session.commit()
+        return {'message': 'User deleted successfully!'}, 200
+          
+
+#! Google Login Resource
+class GoogleLoginResource(Resource):
+    def post(self):
+        data = request.json
+        google_id = data.get('google_id')
+        email = data.get('email')
+        username = data.get('username')
+
+        user = User.query.filter_by(google_id=google_id).first()
+
+        if not user:
+            # Create a new user if they don't exist
+            new_user = User(
+                google_id=google_id,
+                email=email,
+                username=username
+            )
+            db.session.add(new_user)
+            db.session.commit()
+            user = new_user
+
+        access_token = create_access_token(identity={'id': user.id, 'role': 'user'})
+        return {'access_token': access_token}, 200
+        
+#! Protected Resource
+class ProtectedResource(Resource):
+    @jwt_required()
+    def get(self):
+        current_user = get_jwt_identity()
+        return {'message': f'Welcome user {current_user["id"]}'}, 200
+    
+
+#! Service Resource
 class ServiceResource(Resource):
     def get(self, service_id=None):
         if service_id is not None:
@@ -140,38 +271,8 @@ class ServiceResource(Resource):
             logging.error(f"Error creating service: {e}")
             return {'error': 'Failed to create service'}, 500
 
-# Upload Image Resource
-# class UploadImage(Resource):
-#     def post(self):
-#         if 'file' not in request.files:
-#             return {'error': 'No file part'}, 400
-        
-#         file = request.files['file']
-#         if file.filename == '':
-#             return {'error': 'No selected file'}, 400
-        
-#         service_type = request.form.get('service_type','')
-#         description = request.form.get('description','')
 
-#         # Secure the filename
-#         # filename = secure_filename(file.filename)
-#         file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-#         file.save(file_path)
-
-#         new_service = Service(service_type=service_type, description=description, image_path=file_path)
-#         db.session.add(new_service)
-#         db.session.commit()
-
-#         return {'message': 'Image uploaded and service created!', 'imagePath': file.filename, 'service_id': new_service.id}, 201
-
-# # Upload Resource
-# class UploadResource(Resource):
-#     def get(self, filename=None):
-#         if filename is None:
-#             return {'error': 'No filename provided'}, 400
-#         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
-# Request Resource
+#! Request Resource
 class RequestResource(Resource):
     def get(self):
         requests = UserRequest.query.all()
@@ -196,7 +297,7 @@ class RequestResource(Resource):
         db.session.commit()
         return {'message': 'Service request created successfully!', 'request_id': new_request.id}, 201
 
-# Payment Resource
+#! Payment Resource
 class PaymentResource(Resource):
     def post(self):
         data = request.json
@@ -218,7 +319,7 @@ class PaymentResource(Resource):
         db.session.commit()
         return {'message': 'Payment created successfully!', 'payment_id': new_payment.id}, 201
 
-# Blog Resource
+#! Blog Resource
 class BlogResource(Resource):
     def get(self, blog_id=None):
         if blog_id:
@@ -235,11 +336,13 @@ api.add_resource(Index, '/')
 api.add_resource(AdminResource, '/admin', '/admins/<int:admin_id>')
 api.add_resource(TechnicianResource, '/technician')
 api.add_resource(ServiceResource, '/services', '/services/<int:service_id>')
-# api.add_resource(UploadImage, '/upload')
-# api.add_resource(UploadResource, '/uploads/<path:filename>')
 api.add_resource(RequestResource, '/requests', '/requests/<int:request_id>')
 api.add_resource(PaymentResource, '/payment')
 api.add_resource(BlogResource, '/blogs', '/blogs/<int:blog_id>')
+api.add_resource(UserResource, '/users', '/users/<int:user_id>')
+api.add_resource(LoginResource, '/login')
+api.add_resource(SignupResource, '/signup')
+api.add_resource(GoogleLoginResource, '/auth/google')
 
 # Error handling
 @app.errorhandler(400)

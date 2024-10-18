@@ -89,17 +89,17 @@ const Landingpage = () => {
             </section>
 
             {/* Services Section */}
-            <Section id="services" bgImage="./public/4322372.jpg" title="Our Services">
+            <Section id="services" bgImage="4322372.jpg" title="Our Services">
                 <Services />
             </Section>
 
             {/* Blog Section */}
-            <Section id="blogs" bgImage="/path/to/your/image4.jpg" title="Latest Blogs">
+            <Section id="blogs" bgImage="image4.jpg" title="Latest Blogs">
                 <Blogs />
             </Section>
 
             {/* Prototype Section */}
-            <Section id="prototype" bgImage="./public/4882066.jpg" title="Prototype Showcase">
+            <Section id="prototype" bgImage="4882066.jpg" title="Prototype Showcase">
                 <div className="mt-4 text-center text-white px-4">
                     <p className="mb-4">Check out our latest prototype showcasing the innovative features of our home repair services.</p>
                     <img src="/public/prototype.jpg" alt="Prototype Showcase" className="mx-auto rounded-lg shadow-lg" />
@@ -107,7 +107,7 @@ const Landingpage = () => {
             </Section>
 
             {/* Testimonials Section */}
-            <Section id="testimonials" bgImage="/public/testimonials-section-background.png" title="Testimonials">
+            <Section id="testimonials" bgImage="testimonials-section-background.png" title="Testimonials">
                 <div className="mt-4 space-y-4 px-4">
                     {testimonials.map((testimonial, index) => (
                         <blockquote key={index} className="text-center">

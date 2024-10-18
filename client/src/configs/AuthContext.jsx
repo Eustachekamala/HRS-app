@@ -1,48 +1,34 @@
 // eslint-disable-next-line no-unused-vars
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import PropTypes from 'prop-types';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [token, setToken] = useState(null);
 
-    const login = (userData) => {
-        setUser({
-            token: userData.token, 
-            adminId: userData.adminId,
-        });
+    const loginUser = (userData, token) => {
         setUser(userData);
-        setIsAuthenticated(true);
+        setToken(token);
+        localStorage.setItem('token', token);  // Store token in local storage
     };
 
-    const logout = () => {
+    const logoutUser = () => {
         setUser(null);
-        setIsAuthenticated(false);
+        setToken(null);
+        localStorage.removeItem('token');  // Remove token from local storage
     };
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>
+        <AuthContext.Provider value={{ user, token, loginUser, logoutUser }}>
             {children}
         </AuthContext.Provider>
     );
 };
 
 AuthProvider.propTypes = {
-    children: PropTypes.node.isRequired,
+    children: PropTypes.element.isRequired,
 };
 
-
-// Exporting the context for potential direct use
-export { AuthContext };
-
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    
-    if (!context) {
-        throw new Error("useAuth must be used within an AuthProvider");
-    }
-    
-    return context;
-};
+export const useAuth = () => useContext(AuthContext);

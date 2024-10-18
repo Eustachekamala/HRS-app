@@ -38,7 +38,7 @@ class Technician(BaseModel, SerializerMixin):
     username = db.Column(db.String(120), nullable=False)
     password = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(120), nullable=False)
-    phone = db.Column(db.String(120), nullable=False)
+    phone = db.Column(db.String(120), nullable=True)
     image_path = db.Column(db.String(120), nullable=True)
     occupation = db.Column(db.String(120), nullable=False)
     id_admin = db.Column(db.Integer, db.ForeignKey('admins.id'), nullable=True)
@@ -63,13 +63,16 @@ class User(BaseModel, SerializerMixin):
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(120), nullable=False)
-    email = db.Column(db.String(120), nullable=False, unique=True)
-    phone = db.Column(db.String(120), nullable=False)
-    password = db.Column(db.String(120), nullable=False)
+    username = db.Column(db.String(80), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    phone = db.Column(db.String(15), nullable=True)
+    password = db.Column(db.String(128), nullable=False)
+    google_id = db.Column(db.String(128), nullable=True)
+    is_admin = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, server_default=func.now())
     
     user_requests = db.relationship('UserRequest', back_populates='user')
+    
 
 class UserRequest(BaseModel, SerializerMixin):
     __tablename__ = 'user_requests'

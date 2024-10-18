@@ -3,15 +3,15 @@ import React, { useContext } from 'react';
 import UploadService from './UploadService';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { AuthContext } from '../configs/AuthContext';
+// import { AuthContext } from '../configs/AuthContext';
 
 const AdminUploadPage = () => {
-    const { user } = useContext(AuthContext);
+    // const { user } = useContext(AuthContext);
 
 
     // Safely access userToken and adminId
-    const userToken = user?.token; 
-    const adminId = user?.adminId;
+    // const userToken = user?.token; 
+    // const adminId = user?.adminId;
 
 
     // Handle upload success
@@ -31,8 +31,8 @@ const AdminUploadPage = () => {
             <UploadService 
                 onUploadSuccess={handleUploadSuccess} 
                 onUploadError={handleUploadError} 
-                token={userToken} 
-                adminId={adminId} 
+                // token={userToken} 
+                // adminId={adminId} 
             />
         {/* ) : (
             <p className="text-red-500">Loading admin information...</p> */}

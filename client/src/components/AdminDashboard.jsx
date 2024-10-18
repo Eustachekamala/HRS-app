@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from 'react';
 import TechnicianList from './TechnicianList';
 import axios from 'axios';
@@ -9,17 +10,17 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         // Fetch technicians
-        axios.get('/api/technicians').then(response => {
+        axios.get('/technicians').then(response => {
             setTechnicians(response.data);
         });
 
         // Fetch user requests
-        axios.get('/api/user-requests').then(response => {
+        axios.get('/user-requests').then(response => {
             setUserRequests(response.data);
         });
 
         // Fetch statistics (e.g., number of requests, active technicians)
-        axios.get('/api/statistics').then(response => {
+        axios.get('/statistics').then(response => {
             setStatistics(response.data);
         });
     }, []);

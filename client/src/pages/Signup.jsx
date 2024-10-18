@@ -1,26 +1,25 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+// import { useNavigate } from 'react-router-dom';
+// import axios from 'axios';
+import { signup } from '../api';
 
 const Signup = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [username, setUsername] = useState('');
+    const [phone, setPhone] = useState('');
     const [role, setRole] = useState('user'); // Default role can be 'user'
     const [error, setError] = useState('');
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(''); // Reset error state
-
         try {
-            await axios.post('/api/signup', { email, password, role }); // Include role in signup request
-            alert("Signup successful! Please log in.");
-            navigate('/login');
+            await signup(email, password, username);
+            // Handle successful signup (e.g., redirect or show message)
         } catch (err) {
-            console.error("Signup failed:", err);
-            setError('Signup failed. Please try again.'); // Set error message
+            setError(err.response?.data?.error || 'Signup failed');
         }
     };
 
@@ -30,6 +29,14 @@ const Signup = () => {
                 <h2 className="text-2xl font-bold text-white text-center mb-4">Create an Account</h2>
                 {error && <p className="text-red-500 text-sm text-center">{error}</p>}
                 <form onSubmit={handleSubmit} className="mt-4">
+                    <input
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Username"
+                        required
+                        className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full"
+                    />
                     <input 
                         type="email" 
                         placeholder="Email" 
@@ -44,6 +51,14 @@ const Signup = () => {
                         value={password} 
                         onChange={(e) => setPassword(e.target.value)} 
                         required 
+                        className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full"
+                    />
+                    <input 
+                        type="tel" 
+                        placeholder="Phone Number" 
+                        value={phone} 
+                        onChange={(e) => setPhone(e.target.value)} 
+                        required
                         className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full"
                     />
                     <div className='flex flex-col items-center justify-center'>

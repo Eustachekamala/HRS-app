@@ -1,56 +1,48 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+// import { useNavigate } from 'react-router-dom';
+// import axios from 'axios';
 import { useAuth } from '../configs/AuthContext';
-import { GoogleLogin } from '@react-oauth/google';
+// import { GoogleLogin } from '@react-oauth/google';
+import { login } from '../api';
 
 const Login = () => {
+    const { loginUser } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const navigate = useNavigate();
-    const { login } = useAuth(); 
+    // const navigate = useNavigate();
+    // const { login } = useAuth(); 
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-
         try {
-            const response = await axios.post('/api/login', { email, password });
-            const userData = response.data.user; // Ensure this includes role info
-            login(userData); // Set user in AuthContext
-            
-            // Redirect based on user role
-            if (userData.role === 'admin') {
-                navigate('/admin/dashboard'); // Redirect to admin dashboard
-            } else {
-                navigate('/services'); // Redirect to services for regular users
-            }
+            const data = await login(email, password);
+            loginUser(data.user, data.access_token);  // Assuming data includes user and token
+            // Redirect or show success message
         } catch (err) {
-            console.error("Login failed:", err);
-            setError('Invalid email or password. Please try again.');
+            setError(err.response?.data?.error || 'Login failed');
         }
     };
 
-    const responseGoogle = async (credentialResponse) => {
-        try {
-            const { credential } = credentialResponse;
-            const res = await axios.post('/api/auth/google', { idToken: credential });
-            const userData = res.data.user;
-            login(userData);
+    // const responseGoogle = async (credentialResponse) => {
+    //     try {
+    //         const { credential } = credentialResponse;
+    //         const res = await axios.post('/api/auth/google', { idToken: credential });
+    //         const userData = res.data.user;
+    //         login(userData);
             
-            // Redirect based on user role
-            if (userData.role === 'admin') {
-                navigate('/admin/dashboard'); // Redirect to admin dashboard
-            } else {
-                navigate('/services'); // Redirect to services for regular users
-            }
-        } catch (error) {
-            console.error("Google login failed:", error);
-            setError('Google login failed. Please try again.');
-        }
-    };
+    //         // Redirect based on user role
+    //         if (userData.role === 'admin') {
+    //             navigate('/admin/dashboard'); // Redirect to admin dashboard
+    //         } else {
+    //             navigate('/services'); // Redirect to services for regular users
+    //         }
+    //     } catch (error) {
+    //         console.error("Google login failed:", error);
+    //         setError('Google login failed. Please try again.');
+    //     }
+    // };
 
     return (
         <div className='flex flex-col text-white justify-center items-center h-screen bg-gray-950'>
@@ -78,18 +70,18 @@ const Login = () => {
                             Login
                         </button>
                         {/* Google Login Button */}
-                        <div className="mt-4 text-center">
+                        {/* <div className="mt-4 text-center">
                             <GoogleLogin
                                 onSuccess={responseGoogle}
                                 onError={() => console.log('Login Failed')}
                                 logoAlignment="left"
                                 style={{ marginTop: '10px' }}
                             />
-                        </div>
+                        </div> */}
                     </div>
-                    <p className="mt-4 text-center">
+                    {/* <p className="mt-4 text-center">
                         <a href="/forgot-password" className="text-blue-300 hover:underline">Forgot Password?</a>
-                    </p>
+                    </p> */}
                     <p className="mt-4 text-center text-gray-300">
                         Don&apos;t have an account? 
                         <a href="/signup" className="text-blue-300 hover:underline"> Sign up</a>
