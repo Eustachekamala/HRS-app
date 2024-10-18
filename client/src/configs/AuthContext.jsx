@@ -1,34 +1,57 @@
-// eslint-disable-next-line no-unused-vars
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import * as jwt_decode from 'jwt-decode'; 
+import { fetchServices } from '../apiService';
 
 const AuthContext = createContext();
 
+const isTokenExpired = (token) => {
+    const decoded = jwt_decode(token);
+    return decoded.exp * 1000 < Date.now();
+};
+
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [token, setToken] = useState(null);
 
-    const loginUser = (userData, token) => {
-        setUser(userData);
-        setToken(token);
-        localStorage.setItem('token', token);  // Store token in local storage
+    const setUserFromToken = (token) => {
+        setUser(jwt_decode(token));
+        localStorage.setItem('token', token);
     };
 
     const logoutUser = () => {
         setUser(null);
-        setToken(null);
-        localStorage.removeItem('token');  // Remove token from local storage
+        localStorage.removeItem('token');
+    };
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token && !isTokenExpired(token)) {
+            setUser(jwt_decode(token));
+        } else {
+            logoutUser();
+        }
+    }, []);
+
+    // Example function to fetch services
+    const getServices = async () => {
+        try {
+            const services = await fetchServices();
+            return services;
+        } catch (error) {
+            console.error("Failed to fetch services:", error);
+            // Handle error accordingly
+        }
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, loginUser, logoutUser }}>
+        <AuthContext.Provider value={{ user, setUserFromToken, logoutUser, getServices }}>
             {children}
         </AuthContext.Provider>
     );
 };
 
 AuthProvider.propTypes = {
-    children: PropTypes.element.isRequired,
+    children: PropTypes.node.isRequired,
 };
 
 export const useAuth = () => useContext(AuthContext);
