@@ -13,18 +13,17 @@ function AdminServices() {
 
     // Fetch services from the backend
     const fetchServices = async () => {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         if (!token) {
             console.error('No token found');
             setError('Unauthorized access. Please log in.');
+            setLoading(false);
             return;
         }
-        
+
         setLoading(true);
         setError(null);
         try {
-            const token = getToken(); // Get the token
-            
             const response = await axios.get('http://0.0.0.0:5000/services', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -41,11 +40,16 @@ function AdminServices() {
 
     // Fetch a service by id from the backend
     const fetchService = async (id) => {
+        const token = getToken();
+        if (!token) {
+            console.error('No token found');
+            setError('Unauthorized access. Please log in.');
+            return;
+        }
+
         setLoading(true);
         setError(null);
         try {
-            const token = getToken(); // Get the token
-            
             const response = await axios.get(`http://0.0.0.0:5000/services/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
