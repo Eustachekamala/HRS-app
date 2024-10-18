@@ -66,7 +66,7 @@ class Technician(User):
 
 
 class Client(User):
-    __tablename__ = 'clients'  # Changed to avoid confusion with 'users'
+    __tablename__ = 'clients'
 
 class Service(BaseModel, SerializerMixin):
     __tablename__ = 'services'

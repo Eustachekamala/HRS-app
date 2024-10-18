@@ -6,14 +6,15 @@ const API_URL = 'http://localhost:5000';
 const getToken = () => localStorage.getItem('token');
 
 // Signup function
-export const signup = async (email, password, username, phone) => {
+export const signup = async (email, password, username, phone, role, adminCode = null) => {
     try {
         const response = await axios.post(`${API_URL}/signup`, {
             email,
             password,
             username,
             phone,
-            is_admin: false,
+            role,
+            admin_code: adminCode, // Include admin code if provided
         });
 
         return response.data;
@@ -44,28 +45,7 @@ export const login = async (email, password) => {
     }
 };
 
-// Google Login function
-export const googleLogin = async (googleId, email, username) => {
-    try {
-        const response = await axios.post(`${API_URL}/auth/google`, {
-            google_id: googleId,
-            email,
-            username,
-        });
-
-        // Store the token in local storage after Google login
-        const { access_token } = response.data;
-        if (access_token) {
-            localStorage.setItem('token', access_token);
-        }
-
-        return response.data;
-    } catch (error) {
-        console.error('Google login error:', error.response?.data || error.message);
-        throw error; // Propagate error for further handling if needed
-    }
-};
-
+// Function to get protected data
 export const getProtectedData = async () => {
     try {
         const response = await axios.get(`${API_URL}/protected_route`, {

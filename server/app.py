@@ -248,6 +248,27 @@ class SignupResource(Resource):
 class ServiceResource(Resource):
     @role_required('admin', 'technician')
     def get(self, service_id=None):
+        # JWT validation
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({"message": "Token is missing!"}), 401
+    
+        try:
+            token = token.split(" ")[1]
+            logging.info(f"Decoded token: {token}")
+            decoded = jwt.decode(token, 'your_secret_key', algorithms=['HS256'])
+        except IndexError:
+            return jsonify({"message": "Invalid token format!"}), 401
+        except jwt.ExpiredSignatureError:
+            return jsonify({"message": "Token has expired!"}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({"message": "Invalid token!"}), 401
+        except ValueError as e:
+            return jsonify({"message": str(e)}), 400
+        except Exception as e:
+            logging.error(f"Error processing request: {e}")
+            return {"error": "An error occurred"}, 500
+
         if service_id is not None:
             service = Service.query.get_or_404(service_id)
             service_schema = ServiceSchema()
@@ -263,6 +284,20 @@ class ServiceResource(Resource):
 
     @role_required('admin')
     def post(self):
+        # JWT validation
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({"message": "Token is missing!"}), 401
+
+        try:
+            decoded = jwt.decode(token, 'your_secret_key', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return jsonify({"message": "Token has expired!"}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({"message": "Invalid token!"}), 401
+        except ValueError as e:
+            return jsonify({"message": str(e)}), 400
+
         if 'file' not in request.files:
             return {'error': 'No file part'}, 400
         
