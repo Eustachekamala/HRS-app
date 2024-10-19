@@ -29,7 +29,7 @@ const ServiceCard = ({ service }) => {
             )}
             {service.image_path && (
                 <img
-                    src={`http://0.0.0.0:5000/upload/${service.image_path}`}
+                    src={`http://0.0.0.0:5000/uploads/${service.image_path}`}
                     alt={service.service_type}
                     className="mt-2 border border-gray-700 rounded-lg h-72 object-cover"
                 />
@@ -48,7 +48,7 @@ ServiceCard.propTypes = {
     service: PropTypes.shape({
         id: PropTypes.number.isRequired,
         service_type: PropTypes.string.isRequired,
-        description: PropTypes.string,
+        description: PropTypes.string.isRequired,
         image_path: PropTypes.string,
     }).isRequired,
 };

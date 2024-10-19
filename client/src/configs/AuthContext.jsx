@@ -1,13 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import * as jwt_decode from 'jwt-decode'; 
-import { fetchServices } from '../apiService';
+import * as jwt_decode from 'jwt-decode';
+import { fetchServices } from '../api';
 
 const AuthContext = createContext();
 
 const isTokenExpired = (token) => {
-    const decoded = jwt_decode(token);
-    return decoded.exp * 1000 < Date.now();
+    try {
+        const decoded = jwt_decode(token);
+        return decoded.exp * 1000 < Date.now();
+    } catch (error) {
+        console.error("Error decoding token:", error);
+        return true; // Treat as expired if there's an error
+    }
 };
 
 export const AuthProvider = ({ children }) => {
@@ -32,14 +37,14 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
-    // Example function to fetch services
     const getServices = async () => {
         try {
             const services = await fetchServices();
             return services;
         } catch (error) {
             console.error("Failed to fetch services:", error);
-            // Handle error accordingly
+            // Handle error accordingly, perhaps return null or an empty array
+            return [];
         }
     };
 
