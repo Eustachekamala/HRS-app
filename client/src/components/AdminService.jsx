@@ -1,6 +1,7 @@
 import ServiceDisplay from './ServiceDisplay';
 import axios from 'axios';
 import { useState, useEffect } from 'react';
+import { fetchServices as fetchServicesFromAPI } from '../api';
 
 function AdminServices() {
     const [loading, setLoading] = useState(true);
@@ -8,28 +9,14 @@ function AdminServices() {
     const [services, setServices] = useState([]);
     const [serviceById, setServiceById] = useState({});
 
-    // Helper function to get token from local storage
-    const getToken = () => localStorage.getItem('token');
-
     // Fetch services from the backend
     const fetchServices = async () => {
-        const token = getToken();
-        if (!token) {
-            console.error('No token found');
-            setError('Unauthorized access. Please log in.');
-            setLoading(false);
-            return;
-        }
-
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get('http://0.0.0.0:5000/services', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-            setServices(response.data.services || []);
+            const response = await fetchServicesFromAPI();
+            console.log("API response :",response)
+            setServices(response.services || []);
         } catch (error) {
             console.error('Error fetching services:', error);
             setError('Failed to load services. Please try again later.');
@@ -40,21 +27,10 @@ function AdminServices() {
 
     // Fetch a service by id from the backend
     const fetchService = async (id) => {
-        const token = getToken();
-        if (!token) {
-            console.error('No token found');
-            setError('Unauthorized access. Please log in.');
-            return;
-        }
-
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get(`http://0.0.0.0:5000/services/${id}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
+            const response = await axios.get(`http://0.0.0.0:5000/services/${id}`);
             
             if (response.data) { 
                 setServiceById(response.data);

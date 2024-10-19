@@ -1,3 +1,4 @@
+from datetime import timedelta
 from functools import wraps
 import logging
 import os
@@ -6,11 +7,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_restful import Resource, Api
-from jwt import DecodeError
+from jwt import DecodeError, ExpiredSignatureError
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, Admin, Technician, Service, ClientRequest, Blog, PaymentService, Client
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from models import db, Admin, Technician, Service, ClientRequest, Blog, PaymentService, Client, User
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt, jwt_required, get_jwt_identity
 from dotenv import load_dotenv
 from marshmallow import Schema, fields  # type: ignore
 
@@ -36,6 +37,12 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 db.init_app(app)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
+
+# Error handler for expired tokens
+@app.errorhandler(ExpiredSignatureError)
+def handle_expired_token(error):
+    logging.warning("Attempted access with expired token.")
+    return jsonify({'error': 'Token has expired. Please log in again.'}), 401
 
 # Role-based access control decorator
 def role_required(*required_roles):
@@ -77,18 +84,18 @@ class Index(Resource):
 class AdminResource(Resource):
     @role_required('admin')
     def get(self):
-        admin = Admin.query.first()
-        if not admin:
+        user = Admin.query.filter_by(role='admin').first()
+        if not user:
             return {'error': 'Admin not found'}, 404
         
         admin_schema = AdminSchema()
-        admin_data = admin_schema.dump(admin)
+        admin_data = admin_schema.dump(user)
         logging.info(f"Response data: {admin_data}")
         return {'admin': admin_data}, 200
 
     @role_required('admin')
     def delete(self, admin_id):
-        admin = Admin.query.get(admin_id)
+        admin = User.query.get(admin_id)
         if not admin:
             return {'error': 'Admin not found'}, 404
         db.session.delete(admin)
@@ -96,14 +103,19 @@ class AdminResource(Resource):
         return {'message': 'Admin deleted successfully!'}, 200
 
 class TechnicianResource(Resource):
-    @role_required('admin')
-    def get(self, technician_id=None):
-        if technician_id:
-            technician = Technician.query.get_or_404(technician_id)
-            return technician.to_dict(), 200
-        else:
+    # @role_required('admin', 'technician')
+    def get(self):
+        try:
             technicians = Technician.query.all()
-            return {'technicians': [tech.to_dict() for tech in technicians]}, 200
+            if not technicians:
+                return jsonify({"message": "No technicians found."}), 404
+            
+            technicians_data = [tech.to_dict() for tech in technicians]
+            return {'technicians': technicians_data}, 200
+            
+        except Exception as e:
+            logging.error(f"Error retrieving technicians: {e}")
+            return {'error': 'Failed to retrieve technicians'}, 500
 
     @role_required('admin')
     def post(self):
@@ -163,8 +175,8 @@ class UserResource(Resource):
         return {'message': 'User created successfully!', 'user_id': new_user.id}, 201
     
     @role_required('admin')
-    def delete(self, user_id):
-        user = Client.query.get(user_id)
+    def delete(self, customer_id):
+        user = User.query.get(customer_id)
         if not user:
             return {'error': 'User not found'}, 404
         db.session.delete(user)
@@ -172,7 +184,7 @@ class UserResource(Resource):
         return {'message': 'User deleted successfully!'}, 200
 
 class CustomerResource(Resource):
-    @role_required('customer', 'admin', 'technician')
+    @role_required('customer', 'admin')
     def get(self, customer_id=None):
         if customer_id:
             customer = Client.query.get_or_404(customer_id)
@@ -203,22 +215,46 @@ class LoginResource(Resource):
         data = request.json
         email = data.get('email')
         password = data.get('password')
+        
+         # Check if email and password are provided
+        if not email or not password:
+            return {'error': 'Email and password are required.'}, 400
 
-        user = Client.query.filter_by(email=email).first()
+        # Check all subclasses
+        user = (Admin.query.filter_by(email=email).first() or
+                Technician.query.filter_by(email=email).first() or
+                Client.query.filter_by(email=email).first())
+
         if user and check_password_hash(user.password, password):
-            access_token = create_access_token(identity={'id': user.id, 'is_admin': user.is_admin})
-            app.logger.info(f"Generated access token for user: {user.id}.")
+            access_token = create_access_token(identity={'id': user.id, 'role': user.role}, expires_delta=timedelta(days=1))
             return {'access_token': access_token}, 200
 
-        app.logger.warning(f"Invalid credentials for user: {email}")
         return {'error': 'Invalid credentials'}, 401
+
 
 class ProtectedResource(Resource):
     @jwt_required()
     def get(self):
+        # Get the claims from the JWT
+        claims = get_jwt()
+        user_role = claims['role']
         current_user = get_jwt_identity()
-        return {'message': f'Welcome user {current_user["id"]}'}, 200
 
+        # Welcome message based on the user's role
+        if user_role == 'admin':
+            return jsonify(message=f"Welcome, Admin {current_user['id']}!"), 200
+        elif user_role == 'technician':
+            return jsonify(message=f"Welcome, Technician {current_user['id']}!"), 200
+        elif user_role == 'client':
+            return jsonify(message=f"Welcome, Client {current_user['id']}!"), 200
+        else:
+            return jsonify(message="Role not recognized."), 403
+
+class refreshTokenResource(Resource):
+    def post(self):
+        current_user = get_jwt_identity()
+        new_access_token = create_access_token(identity=current_user, expires_delta=False)
+        return {'access_token': new_access_token}, 200
 class SignupResource(Resource):
     def post(self):
         data = request.json
@@ -246,58 +282,24 @@ class SignupResource(Resource):
         return {'message': 'User created successfully!'}, 201
 
 class ServiceResource(Resource):
-    @role_required('admin', 'technician')
+    # @role_required('admin', 'technician')
     def get(self, service_id=None):
-        # JWT validation
-        token = request.headers.get('Authorization')
-        if not token:
-            return jsonify({"message": "Token is missing!"}), 401
-    
-        try:
-            token = token.split(" ")[1]
-            logging.info(f"Decoded token: {token}")
-            decoded = jwt.decode(token, 'your_secret_key', algorithms=['HS256'])
-        except IndexError:
-            return jsonify({"message": "Invalid token format!"}), 401
-        except jwt.ExpiredSignatureError:
-            return jsonify({"message": "Token has expired!"}), 401
-        except jwt.InvalidTokenError:
-            return jsonify({"message": "Invalid token!"}), 401
-        except ValueError as e:
-            return jsonify({"message": str(e)}), 400
-        except Exception as e:
-            logging.error(f"Error processing request: {e}")
-            return {"error": "An error occurred"}, 500
-
         if service_id is not None:
             service = Service.query.get_or_404(service_id)
             service_schema = ServiceSchema()
             response = service_schema.dump(service)
-            logging.info(f"Returning single service: {response}")
             return response, 200
         else:
             services = Service.query.all()
             services_schema = ServiceSchema(many=True)
             services_data = services_schema.dump(services)
-            logging.info(f"Returning all services: {services_data}")
             return {'services': services_data}, 200
 
     @role_required('admin')
     def post(self):
-        # JWT validation
-        token = request.headers.get('Authorization')
-        if not token:
-            return jsonify({"message": "Token is missing!"}), 401
-
-        try:
-            decoded = jwt.decode(token, 'your_secret_key', algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            return jsonify({"message": "Token has expired!"}), 401
-        except jwt.InvalidTokenError:
-            return jsonify({"message": "Invalid token!"}), 401
-        except ValueError as e:
-            return jsonify({"message": str(e)}), 400
-
+        # JWT validation handled by the decorator
+        current_user = get_jwt_identity()  # Optional: get user details if needed
+        
         if 'file' not in request.files:
             return {'error': 'No file part'}, 400
         
@@ -400,15 +402,19 @@ class PaymentResource(Resource):
         return {'message': 'Payment created successfully!', 'payment_id': new_payment.id}, 201
 
 class BlogResource(Resource):
-    def get(self, blog_id=None):
-        if blog_id:
-            blog = Blog.query.get(blog_id)
-            if not blog:
-                return {'error': 'Blog not found'}, 404
-            return blog.to_dict(), 200
-
-        blogs = Blog.query.all()
-        return {'blogs': [blog.to_dict() for blog in blogs]}, 200
+    # @jwt_required()
+    def get(self):
+        try:
+            blogs = Blog.query.all()
+            if not blogs:
+                return jsonify({"message": "No blogs found."}), 404
+            
+            blogs_data = [blog.to_dict() for blog in blogs]
+            return {'blogs': blogs_data}, 200
+            
+        except Exception as e:
+            logging.error(f"Error retrieving blogs: {e}")
+            return {'error': 'Failed to retrieve blogs'}, 500
 
 # Add resources to API
 api = Api(app)
@@ -424,6 +430,7 @@ api.add_resource(LoginResource, '/login')
 api.add_resource(SignupResource, '/signup')
 api.add_resource(ProtectedResource, '/protected_route')
 api.add_resource(CustomerResource, '/customers', '/customers/<int:customer_id>')
+api.add_resource(refreshTokenResource, '/refresh_token')
 
 # Error handling
 @app.errorhandler(400)
