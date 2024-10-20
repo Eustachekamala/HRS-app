@@ -2,7 +2,7 @@ from datetime import timedelta
 from functools import wraps
 import logging
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
@@ -11,7 +11,7 @@ from jwt import DecodeError, ExpiredSignatureError
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, Admin, Technician, Service, ClientRequest, Blog, PaymentService, Client, User
-from flask_jwt_extended import JWTManager, create_access_token, get_jwt, jwt_required, get_jwt_identity
+from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, get_jwt, jwt_required, get_jwt_identity
 from dotenv import load_dotenv
 from marshmallow import Schema, fields  # type: ignore
 
@@ -215,19 +215,35 @@ class LoginResource(Resource):
         data = request.json
         email = data.get('email')
         password = data.get('password')
-        
-         # Check if email and password are provided
+
         if not email or not password:
             return {'error': 'Email and password are required.'}, 400
 
-        # Check all subclasses
         user = (Admin.query.filter_by(email=email).first() or
                 Technician.query.filter_by(email=email).first() or
                 Client.query.filter_by(email=email).first())
 
         if user and check_password_hash(user.password, password):
             access_token = create_access_token(identity={'id': user.id, 'role': user.role}, expires_delta=timedelta(days=1))
-            return {'access_token': access_token}, 200
+            refresh_token = create_refresh_token(identity={'id': user.id, 'role': user.role})
+            
+            print('Generated access token:', access_token,"\n")
+            print('Generated refresh token:', refresh_token)
+            
+             # Redirect URL based on user role
+            if user.role == 'admin':
+                redirect_url = url_for('adminresource')  # Use the correct endpoint name
+            elif user.role == 'technician':
+                redirect_url = url_for('technicianresource')  # Check the correct endpoint name
+            else:
+                redirect_url = url_for('serviceresource')  # Check the correct endpoint name
+            
+            return {
+                'access_token': access_token,
+                'refresh_token': refresh_token,
+                'customers': [user.to_dict()],
+                "redirect": redirect_url
+            }, 200
 
         return {'error': 'Invalid credentials'}, 401
 
@@ -420,7 +436,7 @@ class BlogResource(Resource):
 api = Api(app)
 api.add_resource(Index, '/')
 api.add_resource(AdminResource, '/admin', '/admins/<int:admin_id>')
-api.add_resource(TechnicianResource, '/technician')
+api.add_resource(TechnicianResource, '/technicians')
 api.add_resource(ServiceResource, '/services', '/services/<int:service_id>')
 api.add_resource(RequestResource, '/requests', '/requests/<int:request_id>')
 api.add_resource(PaymentResource, '/payment')

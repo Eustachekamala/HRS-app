@@ -20,7 +20,7 @@ const AdminDashboard = () => {
         });
 
         // Fetch statistics (e.g., number of requests, active technicians)
-        axios.get('/statistics').then(response => {
+        axios.get('/payment').then(response => {
             setStatistics(response.data);
         });
     }, []);

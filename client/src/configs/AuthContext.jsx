@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import * as jwt_decode from 'jwt-decode';
+import jwtDecode from 'jwt-decode'; // Use the correct import
 import { fetchServices } from '../api';
 
 const AuthContext = createContext();
 
 const isTokenExpired = (token) => {
     try {
-        const decoded = jwt_decode(token);
+        const decoded = jwtDecode(token); // Call the function correctly
         return decoded.exp * 1000 < Date.now();
     } catch (error) {
         console.error("Error decoding token:", error);
@@ -18,9 +18,12 @@ const isTokenExpired = (token) => {
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
 
-    const setUserFromToken = (token) => {
-        setUser(jwt_decode(token));
-        localStorage.setItem('token', token);
+    const loginUser = (token) => {
+        if (token) {
+            const decodedUser = jwtDecode(token); // Correct usage
+            setUser(decodedUser);
+            localStorage.setItem('token', token);
+        }
     };
 
     const logoutUser = () => {
@@ -31,7 +34,7 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token && !isTokenExpired(token)) {
-            setUser(jwt_decode(token));
+            setUser(jwtDecode(token)); // Correct usage
         } else {
             logoutUser();
         }
@@ -43,13 +46,12 @@ export const AuthProvider = ({ children }) => {
             return services;
         } catch (error) {
             console.error("Failed to fetch services:", error);
-            // Handle error accordingly, perhaps return null or an empty array
             return [];
         }
     };
 
     return (
-        <AuthContext.Provider value={{ user, setUserFromToken, logoutUser, getServices }}>
+        <AuthContext.Provider value={{ user, loginUser, logoutUser, getServices }}>
             {children}
         </AuthContext.Provider>
     );
