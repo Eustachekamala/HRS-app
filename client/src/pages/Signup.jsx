@@ -16,12 +16,16 @@ const Signup = () => {
         e.preventDefault();
         try {
             // Send the role and admin code (if applicable) along with other signup data
-            const data = await signup(email, password, username, phone, role, role === 'admin' ? adminCode : null);
+            const { success, error } = await signup(email, password, username, phone, role, role === 'admin' ? adminCode : null);
             
-            if (data.is_admin) {
-                navigate('/admin'); // Redirect to admin page if admin
+            if (success) {
+                if ( role === 'admin') {
+                    navigate('/admin'); // Redirect to admin page if admin
+                } else {
+                    navigate('/services'); // Redirect to services page if user
+                }
             } else {
-                navigate('/services'); // Redirect to services page if user
+                setError(error || 'Signup failed');
             }
         } catch (err) {
             setError(err.response?.data?.error || 'Signup failed');

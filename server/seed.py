@@ -1,5 +1,5 @@
 from app import app, db
-from models import Service, Blog, ClientRequest, Client, PaymentService, Admin, Technician
+from models import Service, Blog, ClientRequest, Users, PaymentService, Admin, Technician
 
 def seed_users():
     if not Admin.query.first():  # Check if any Admin exists
@@ -25,8 +25,8 @@ def seed_users():
         )
         db.session.add(example_technician)
 
-    if not Client.query.first():  # Check if any Client exists
-        example_customer = Client(
+    if not Users.query.first():  # Check if any Users exists
+        example_customer = Users(
             username='customer1',
             password='customer123',
             email='customer@example.com',
@@ -41,9 +41,9 @@ def seed_users():
 def seed_user_requests():
     if not ClientRequest.query.first():  # Check if any UserRequest exists
         # Use the first client created as an example for requests
-        example_user = Client.query.first()
+        example_user = Users.query.first()
         if not example_user:
-            print("No Client found, UserRequest cannot be created.")
+            print("No Users found, UserRequest cannot be created.")
             return
 
         # Create a sample service
@@ -113,4 +113,4 @@ def seed_db():
         seed_blogs()         # Seed blogs last
 
 if __name__ == '__main__':
-    seed_db()
+    seed_db() 

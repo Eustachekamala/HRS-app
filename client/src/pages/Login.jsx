@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../configs/AuthContext';
-import { login } from '../api';
+import { login, refreshAccessToken } from '../api';
 import jwtDecode from 'jwt-decode';
 
 const Login = () => {
@@ -11,9 +11,9 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+        e.preventDefault();
+        setError('');
+        setLoading(true);
 
     try {
         const data = await login(email, password);
@@ -34,12 +34,15 @@ const Login = () => {
         const decoded = jwtDecode(token);
         console.log('Decoded Token:', decoded);
 
-        // Check expiration
+        // Check expiration and not before
         const currentTime = Math.floor(Date.now() / 1000);
         if (decoded.exp < currentTime) {
             console.error('Token has expired');
-            // Handle token expiration (e.g., refresh token)
             throw new Error('Token has expired. Please log in again.');
+        }
+        if (decoded.nbf && decoded.nbf > currentTime) {
+            console.error('Token is not yet valid');
+            throw new Error('Token is not yet valid. Please wait until it is active.');
         }
 
         const user = data.customers[0];
@@ -64,8 +67,6 @@ const Login = () => {
         setLoading(false);
     }
 };
-
-
 
     return (
         <div className='flex flex-col text-white justify-center items-center h-screen bg-gray-950'>

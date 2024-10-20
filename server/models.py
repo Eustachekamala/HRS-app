@@ -62,8 +62,8 @@ class Technician(User):
 
     user_requests = db.relationship('ClientRequest', back_populates='technician', cascade='all, delete-orphan')
 
-class Client(User):
-    __tablename__ = 'clients'
+class Users(User):
+    __tablename__ = 'users'
 
     user_requests = db.relationship('ClientRequest', back_populates='user', cascade='all, delete-orphan')
 
@@ -80,14 +80,14 @@ class ClientRequest(BaseModel):
     __tablename__ = 'user_requests'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('clients.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     service_id = db.Column(db.Integer, db.ForeignKey('services.id'), nullable=False)
     admin_id = db.Column(db.Integer, db.ForeignKey('admins.id'), nullable=True)
     technician_id = db.Column(db.Integer, db.ForeignKey('technicians.id'), nullable=True)
     description = db.Column(Text, nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
 
-    user = db.relationship('Client', back_populates='user_requests')
+    user = db.relationship('Users', back_populates='user_requests')
     service = db.relationship('Service', back_populates='user_requests')
     admin = db.relationship('Admin', back_populates='user_requests', lazy='joined')
     technician = db.relationship('Technician', back_populates='user_requests', lazy='joined')
@@ -106,7 +106,7 @@ class PaymentService(BaseModel):
     __tablename__ = 'payment_services'
     id = db.Column(db.Integer, primary_key=True)
     service_id = db.Column(db.Integer, db.ForeignKey('services.id'), nullable=False)
-    customer_id = db.Column(db.Integer, db.ForeignKey('clients.id'), nullable=False)
+    customer_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     user_request_id = db.Column(db.Integer, db.ForeignKey('user_requests.id'), nullable=False)
     phone = db.Column(String(15), nullable=True)
     amount = db.Column(Numeric(10, 2), nullable=False)
