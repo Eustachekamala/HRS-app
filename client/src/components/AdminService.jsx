@@ -1,6 +1,7 @@
 import ServiceDisplay from './ServiceDisplay';
 import axios from 'axios';
 import { useState, useEffect } from 'react';
+import { fetchServices as fetchServicesFromAPI } from '../api';
 
 function AdminServices() {
     const [loading, setLoading] = useState(true);
@@ -13,8 +14,12 @@ function AdminServices() {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get('http://0.0.0.0:5000/services');
-            setServices(response.data.services || []);
+            const { success, data, error } = await fetchServicesFromAPI();
+            if (success) {
+                setServices(data);
+            } else {
+                setError(error);
+            }   
         } catch (error) {
             console.error('Error fetching services:', error);
             setError('Failed to load services. Please try again later.');
@@ -28,13 +33,14 @@ function AdminServices() {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get(`http://0.0.0.0:5000/services/${id}`);
+            const { success, data, error } = await axios.get(`http://0.0.0.0:5000/services/${id}`);
             
-            if (response.data) { 
-                setServiceById(response.data);
+            if (success) {
+                setServiceById(data);
             } else {
-                throw new Error('Service not found');
+                setError(error);
             }
+            
         } catch (error) {
             console.error('Error fetching service:', error);
             if (error.response) {

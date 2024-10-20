@@ -1,11 +1,12 @@
-// eslint-disable-next-line no-unused-vars
-import React, { useState } from 'react';
+
+// import React, { useState, useContext } from 'react';
 import Blogs from '../components/Blogs';
 import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
-import ContactInfo from '../components/ContactInfo';
+// import ContactInfo from '../components/ContactInfo';
 import Footer from '../components/Footer';
 import Services from '../pages/Services';
+import { useAuth } from '../configs/AuthContext'; // Use useAuth hook
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import '../index.css';
@@ -31,17 +32,28 @@ const Section = ({ id, bgImage, title, children, textColor = 'text-white' }) => 
 );
 
 const Landingpage = () => {
-    const [userInfo, setUserInfo] = useState({ name: '', email: '', message: '' });
-    const [submitted, setSubmitted] = useState(false);
+    // const [userInfo, setUserInfo] = useState({ name: '', email: '', message: '' });
+    // const [submitted, setSubmitted] = useState(false);
+    const { user } = useAuth(); // Access user state from AuthContext
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setUserInfo({ ...userInfo, [name]: value });
-    };
+    // const handleInputChange = (e) => {
+    //     const { name, value } = e.target;
+    //     setUserInfo({ ...userInfo, [name]: value });
+    // };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setSubmitted(true);
+    // const handleSubmit = (e) => {
+    //     e.preventDefault();
+    //     setSubmitted(true);
+    // };
+
+    const handleBookServiceClick = () => {
+        if (!user) {
+            // If user is not logged in, redirect to sign up page
+            window.location.href = '/signup'; // Change this to your sign up route
+        } else {
+            // If user is logged in, redirect to login page
+            window.location.href = '/login'; // Change this to your login route
+        }
     };
 
     return (
@@ -67,24 +79,27 @@ const Landingpage = () => {
                     >
                         Reliable repairs for every corner of your home.
                     </motion.p>
-                    <a href="#services" className="bg-blue-600 text-white px-6 py-3 rounded mt-4 inline-block transition-transform transform hover:scale-105 shadow-md">
+                    <button 
+                        onClick={handleBookServiceClick} 
+                        className="bg-blue-600 text-white px-6 py-3 rounded mt-4 inline-block transition-transform transform hover:scale-105 shadow-md"
+                    >
                         Book a Service
-                    </a>
+                    </button>
                 </motion.div>
             </section>
 
             {/* Services Section */}
-            <Section id="services" bgImage="./public/4322372.jpg" title="Our Services">
+            <Section id="services" bgImage="4322372.jpg" title="Our Services">
                 <Services />
             </Section>
 
             {/* Blog Section */}
-            <Section id="blogs" bgImage="/path/to/your/image4.jpg" title="Latest Blogs">
+            <Section id="blogs" bgImage="image4.jpg" title="Latest Blogs">
                 <Blogs />
             </Section>
 
             {/* Prototype Section */}
-            <Section id="prototype" bgImage="./public/4882066.jpg" title="Prototype Showcase">
+            <Section id="prototype" bgImage="4882066.jpg" title="Prototype Showcase">
                 <div className="mt-4 text-center text-white px-4">
                     <p className="mb-4">Check out our latest prototype showcasing the innovative features of our home repair services.</p>
                     <img src="/public/prototype.jpg" alt="Prototype Showcase" className="mx-auto rounded-lg shadow-lg" />
@@ -92,7 +107,7 @@ const Landingpage = () => {
             </Section>
 
             {/* Testimonials Section */}
-            <Section id="testimonials" bgImage="/public/testimonials-section-background.png" title="Testimonials">
+            <Section id="testimonials" bgImage="testimonials-section-background.png" title="Testimonials">
                 <div className="mt-4 space-y-4 px-4">
                     {testimonials.map((testimonial, index) => (
                         <blockquote key={index} className="text-center">
@@ -104,7 +119,7 @@ const Landingpage = () => {
             </Section>
 
             {/* Contact Section */}
-            <Section id="contact" bgImage="/path/to/your/image6.jpg" title="Contact Us">
+            {/* <Section id="contact" bgImage="/path/to/your/image6.jpg" title="Contact Us">
                 <form onSubmit={handleSubmit} className="max-w-md mx-auto mt-6 bg-white p-6 rounded-lg shadow-lg">
                     <input
                         type="text"
@@ -137,7 +152,7 @@ const Landingpage = () => {
                     </button>
                 </form>
                 {submitted && <ContactInfo userInfo={userInfo} />}
-            </Section>
+            </Section> */}
 
             {/* Footer */}
             <Footer />

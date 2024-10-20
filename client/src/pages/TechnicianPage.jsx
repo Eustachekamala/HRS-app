@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-vars
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import TechnicianList from '../components/TechnicianList';
@@ -13,10 +12,17 @@ const TechnicianPage = () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.get('http://0.0.0.0:5000/technician');
+                const response = await axios.get('http://0.0.0.0:5000/technician', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    },
+                });
+
+                // Assuming the API response structure
                 setTechnicians(response.data.technicians || []);
-            } catch (error) {
-                console.error('Error fetching technicians:', error);
+            } catch (err) {
+                console.error('Error fetching technicians:', err);
                 setError('Failed to load technicians. Please try again later.');
             } finally {
                 setLoading(false);

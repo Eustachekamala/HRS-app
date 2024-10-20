@@ -74,3 +74,6 @@ coverage.xml
 # Operating system files
 .DS_Store
 Thumbs.db
+
+# Ignore .env files
+.env

@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Define the UploadService component
-const UploadService = ({ onUploadSuccess, onUploadError, token }) => {
+const UploadService = ({ onUploadSuccess, onUploadError, userToken, adminId }) => {
     const [file, setFile] = useState(null);
     const [serviceType, setServiceType] = useState('');
     const [description, setDescription] = useState('');
@@ -20,7 +20,7 @@ const UploadService = ({ onUploadSuccess, onUploadError, token }) => {
 
     // Handle upload
     const handleUpload = async () => {
-        if (!file || !serviceType.trim() || !description.trim()) {
+        if (!file || !serviceType.trim() || !description.trim() || !adminId) {
             toast.warning('Please fill in all fields and select a file to upload.', { position: "top-center" });
             setError('Please fill in all fields and select a file');
             return;
@@ -34,18 +34,20 @@ const UploadService = ({ onUploadSuccess, onUploadError, token }) => {
         formData.append('file', file);
         formData.append('service_type', serviceType);
         formData.append('description', description);
+        formData.append('id_admin', adminId);
 
         // Upload the file to the backend
         try {
-            const response = await axios.post('http://0.0.0.0:5000/uploads/', formData, {
+            const response = await axios.post('http://localhost:5000/upload', formData, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    'Authorization': `Bearer ${userToken}`,
                     'Content-Type': 'multipart/form-data',
                 },
             });
             console.log('Upload successful:', response.data);
+            toast.success('Service created successfully!', { position: "top-center" });
             onUploadSuccess();
-            // Reset form
+            // Reset form fields
             setFile(null);
             setServiceType('');
             setDescription('');
@@ -97,7 +99,8 @@ const UploadService = ({ onUploadSuccess, onUploadError, token }) => {
 UploadService.propTypes = {
     onUploadSuccess: PropTypes.func.isRequired,
     onUploadError: PropTypes.func.isRequired,
-    token: PropTypes.string, 
+    userToken: PropTypes.string.isRequired,
+    adminId: PropTypes.string.isRequired,
 };
 
 export default UploadService;
