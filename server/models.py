@@ -19,7 +19,7 @@ class Admin(db.Model, SerializerMixin):
     create_at = db.Column(db.DateTime, server_default=func.now())
 =======
 from datetime import datetime
-from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.ext.declarative import declared_attr # type: ignore
 
 db = SQLAlchemy()
 
