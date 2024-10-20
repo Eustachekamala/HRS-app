@@ -2,7 +2,7 @@ from flask_sqlalchemy import SQLAlchemy  # type: ignore
 from sqlalchemy import func, String, Text, Numeric  # type: ignore
 from sqlalchemy_serializer import SerializerMixin  # type: ignore
 from datetime import datetime
-from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.ext.declarative import declared_attr # type: ignore
 
 db = SQLAlchemy()
 

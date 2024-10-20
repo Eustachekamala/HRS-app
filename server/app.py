@@ -2,16 +2,16 @@ from datetime import datetime, timedelta
 from functools import wraps
 import logging 
 import os
-from flask import Flask, request, jsonify, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_cors import CORS
-from flask_restful import Resource, Api
+from flask import Flask, request, jsonify, redirect, url_for # type: ignore
+from flask_sqlalchemy import SQLAlchemy # type: ignore
+from flask_migrate import Migrate # type: ignore
+from flask_cors import CORS # type: ignore
+from flask_restful import Resource, Api # type: ignore
 from jwt import DecodeError, ExpiredSignatureError
-from werkzeug.utils import secure_filename
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename # type: ignore
+from werkzeug.security import generate_password_hash, check_password_hash # type: ignore
 from models import db, Admin, Technician, Service, ClientRequest, Blog, PaymentService, Users , User
-from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, get_jwt, jwt_required, get_jwt_identity
+from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, get_jwt, jwt_required, get_jwt_identity # type: ignore
 from dotenv import load_dotenv
 from marshmallow import Schema, fields  # type: ignore
 
@@ -28,7 +28,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///home_repair_service.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY','d0125980dce744babe622a0f6e40caf6')
 
 # Create uploads directory if it doesn't exist
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -38,6 +38,15 @@ db.init_app(app)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
 
+blacklist = set()
+
+
+@jwt.token_in_blocklist_loader
+def check_if_token_is_blacklisted(jwt_header, jwt_payload):
+    jti = jwt_payload['jti']
+    return jti in blacklist
+
+
 # Error handler for expired tokens
 @app.errorhandler(ExpiredSignatureError)
 def handle_expired_token(error):
@@ -46,7 +55,6 @@ def handle_expired_token(error):
 
 # Role-based access control decorator
 def role_required(*required_roles):
-    """Decorator to check user role."""
     def decorator(fn):
         @wraps(fn)
         @jwt_required()
@@ -282,9 +290,14 @@ class ProtectedResource(Resource):
 class RefreshTokenResource(Resource):
     @jwt_required(refresh=True)
     def post(self):
+        # Get the identity of the current user
         current_user = get_jwt_identity()
+
+        # Create a new access token with a 1-day expiration
         new_access_token = create_access_token(identity=current_user, expires_delta=timedelta(days=1))
-        return {'access_token': new_access_token}, 200
+
+        # Return the new access token as a JSON response
+        return jsonify({'access_token': new_access_token}), 200
 
 class SignupResource(Resource):
     def post(self):
@@ -324,6 +337,15 @@ class SignupResource(Resource):
             'access_token': access_token,
             'refresh_token': refresh_token
         }, 201
+        
+        
+class LogoutResource(Resource):
+    @jwt_required()
+    def post(self):
+        jti = get_jwt()["jti"]  # Get the token identifier (JTI)
+        blacklist.add(jti)  # Add JTI to the blacklist
+        return {"msg": "Successfully logged out"}, 200
+
 
 class ServiceResource(Resource):
     # @role_required('admin', 'technician')
@@ -475,6 +497,7 @@ api.add_resource(SignupResource, '/signup')
 api.add_resource(ProtectedResource, '/protected_route')
 api.add_resource(CustomerResource, '/customers', '/customers/<int:customer_id>')
 api.add_resource(RefreshTokenResource, '/refresh_token')
+api.add_resource(LogoutResource, '/logout')
 
 # Error handling
 @app.errorhandler(400)
