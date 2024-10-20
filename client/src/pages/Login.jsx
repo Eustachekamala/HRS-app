@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../configs/AuthContext';
-import { login, refreshAccessToken } from '../api';
+import { login, validateAndRefreshToken } from '../api';
 import jwtDecode from 'jwt-decode';
 
 const Login = () => {
@@ -11,38 +11,41 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
     try {
         const data = await login(email, password);
         console.log('API Response:', JSON.stringify(data, null, 2));
 
-        // Check for customers in the response
         if (!data.customers || data.customers.length === 0) {
             throw new Error('No customer data found in the response.');
         }
 
-        // Extract the access token from the API response
+        // Use access token from login response
         const token = data.access_token || localStorage.getItem('access_token');
         if (!token) {
             throw new Error('No access token found.');
         }
 
-        // Decode the token
-        const decoded = jwtDecode(token);
+        // Validate and possibly refresh the token
+        const validToken = await validateAndRefreshToken();
+
+        if (!validToken) {
+            throw new Error('Failed to validate access token.');
+        }
+
+        // Log the token before decoding
+        console.log('Token to decode:', validToken);
+        
+        // Decode the token once
+        const decoded = jwtDecode(validToken);
         console.log('Decoded Token:', decoded);
 
-        // Check expiration and not before
         const currentTime = Math.floor(Date.now() / 1000);
         if (decoded.exp < currentTime) {
-            console.error('Token has expired');
             throw new Error('Token has expired. Please log in again.');
-        }
-        if (decoded.nbf && decoded.nbf > currentTime) {
-            console.error('Token is not yet valid');
-            throw new Error('Token is not yet valid. Please wait until it is active.');
         }
 
         const user = data.customers[0];
@@ -53,13 +56,11 @@ const Login = () => {
         }
 
         // Store user role and navigate accordingly
-        loginUser(user, user.role);
-        localStorage.setItem('access_token', token); // Store token in local storage
+        loginUser(user);
+        localStorage.setItem('access_token', validToken);
 
-        // Use the redirect_url from the API response, if available
-        const redirectUrl = data.redirect_url || (user.role === 'admin' ? '/admin-dashboard' : user.role === 'technician' ? '/technician' : '/services');
-
-        window.location.href = redirectUrl; // Redirect to the determined URL
+        const redirectUrl = data.redirect || (user.role === 'admin' ? '/admin-dashboard' : '/services');
+        window.location.href = redirectUrl;
     } catch (err) {
         console.error('Login Error:', err);
         setError(err.message || 'Login failed. Please try again.');
