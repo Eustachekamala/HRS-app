@@ -38,7 +38,7 @@ const TechnicianPage = () => {
             {loading && <p className="text-center text-white">Loading technicians...</p>}
             {error && <p className="text-center text-red-500">{error}</p>}
             {!loading && technicians.length > 0 && (
-                <TechnicianList technicians={technicians} />
+                <TechnicianList technicians={technicians}  />
             )}
             {!loading && technicians.length === 0 && (
                 <p className="text-center text-white">No technicians available.</p>
