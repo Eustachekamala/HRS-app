@@ -1,6 +1,6 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from functools import wraps
-import logging
+import logging 
 import os
 from flask import Flask, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -10,7 +10,7 @@ from flask_restful import Resource, Api
 from jwt import DecodeError, ExpiredSignatureError
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, Admin, Technician, Service, ClientRequest, Blog, PaymentService, Client, User
+from models import db, Admin, Technician, Service, ClientRequest, Blog, PaymentService, Users , User
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, get_jwt, jwt_required, get_jwt_identity
 from dotenv import load_dotenv
 from marshmallow import Schema, fields  # type: ignore
@@ -52,7 +52,7 @@ def role_required(*required_roles):
         @jwt_required()
         def wrapper(*args, **kwargs):
             current_user = get_jwt_identity()
-            user = Client.query.get(current_user['id'])
+            user = Users.query.get(current_user['id'])
             if user is None or user.role not in required_roles:
                 return jsonify(msg='Access forbidden: insufficient permissions'), 403
             return fn(*args, **kwargs)
@@ -162,7 +162,7 @@ class UserResource(Resource):
 
         hashed_password = generate_password_hash(data['password'])
         
-        new_user = Client(
+        new_user = Users(
             username=data['username'],
             email=data['email'],
             phone=data['phone'],
@@ -187,15 +187,15 @@ class CustomerResource(Resource):
     @role_required('customer', 'admin')
     def get(self, customer_id=None):
         if customer_id:
-            customer = Client.query.get_or_404(customer_id)
+            customer = Users.query.get_or_404(customer_id)
             return customer.to_dict(), 200
         else:
-            customers = Client.query.filter_by(role='customer').all()
+            customers = Users.query.filter_by(role='customer').all()
             return {'customers': [customer.to_dict() for customer in customers]}, 200
 
     @role_required('customer')
     def put(self, customer_id):
-        customer = Client.query.get_or_404(customer_id)
+        customer = Users.query.get_or_404(customer_id)
         if customer.id != get_jwt_identity()['id']:
             return {'error': 'You can only update your own account.'}, 403
 
@@ -221,8 +221,11 @@ class LoginResource(Resource):
 
         user = (Admin.query.filter_by(email=email).first() or
                 Technician.query.filter_by(email=email).first() or
-                Client.query.filter_by(email=email).first())
-
+                Users.query.filter_by(email=email).first())
+        
+        
+        logging.info(f'User ID: {user.id}, Role: {user.role}')
+        
         if user and check_password_hash(user.password, password):
             access_token = create_access_token(identity={'id': user.id, 'role': user.role}, expires_delta=timedelta(days=1))
             refresh_token = create_refresh_token(identity={'id': user.id, 'role': user.role})
@@ -247,14 +250,23 @@ class LoginResource(Resource):
 
         return {'error': 'Invalid credentials'}, 401
 
-
 class ProtectedResource(Resource):
     @jwt_required()
     def get(self):
         # Get the claims from the JWT
         claims = get_jwt()
-        user_role = claims['role']
+        user_role = claims['sub']['role']  # Access role from the 'sub' claim
         current_user = get_jwt_identity()
+
+        # Check expiration and not before claims
+        current_time = datetime.utcnow().timestamp()
+        exp = claims['exp']
+        nbf = claims.get('nbf')
+
+        if current_time > exp:
+            return jsonify(error="Token has expired."), 401
+        if nbf and current_time < nbf:
+            return jsonify(error="Token is not yet valid."), 403
 
         # Welcome message based on the user's role
         if user_role == 'admin':
@@ -262,15 +274,18 @@ class ProtectedResource(Resource):
         elif user_role == 'technician':
             return jsonify(message=f"Welcome, Technician {current_user['id']}!"), 200
         elif user_role == 'client':
-            return jsonify(message=f"Welcome, Client {current_user['id']}!"), 200
+            return jsonify(message=f"Welcome, Users {current_user['id']}!"), 200
         else:
             return jsonify(message="Role not recognized."), 403
 
-class refreshTokenResource(Resource):
+
+class RefreshTokenResource(Resource):
+    @jwt_required(refresh=True)
     def post(self):
         current_user = get_jwt_identity()
-        new_access_token = create_access_token(identity=current_user, expires_delta=False)
+        new_access_token = create_access_token(identity=current_user, expires_delta=timedelta(days=1))
         return {'access_token': new_access_token}, 200
+
 class SignupResource(Resource):
     def post(self):
         data = request.json
@@ -280,12 +295,15 @@ class SignupResource(Resource):
         phone = data.get('phone')
         role = data.get('role')
 
-        if Client.query.filter_by(email=email).first():
+        # Check if the email already exists
+        if Users.query.filter_by(email=email).first():
             return {'error': 'Email already exists.'}, 400
 
+        # Hash the password
         hashed_password = generate_password_hash(password)
 
-        new_user = Client(
+        # Create a new user
+        new_user = Users(
             username=username,
             email=email,
             password=hashed_password,
@@ -293,9 +311,19 @@ class SignupResource(Resource):
             role=role
         )
         
+        # Add and commit the new user to the database
         db.session.add(new_user)
         db.session.commit()
-        return {'message': 'User created successfully!'}, 201
+
+        # Generate JWT tokens
+        access_token = create_access_token(identity={'id': new_user.id, 'role': new_user.role})
+        refresh_token = create_refresh_token(identity={'id': new_user.id, 'role': new_user.role})
+
+        return {
+            'message': 'User created successfully!',
+            'access_token': access_token,
+            'refresh_token': refresh_token
+        }, 201
 
 class ServiceResource(Resource):
     # @role_required('admin', 'technician')
@@ -446,7 +474,7 @@ api.add_resource(LoginResource, '/login')
 api.add_resource(SignupResource, '/signup')
 api.add_resource(ProtectedResource, '/protected_route')
 api.add_resource(CustomerResource, '/customers', '/customers/<int:customer_id>')
-api.add_resource(refreshTokenResource, '/refresh_token')
+api.add_resource(RefreshTokenResource, '/refresh_token')
 
 # Error handling
 @app.errorhandler(400)
