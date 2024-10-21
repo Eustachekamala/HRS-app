@@ -17,6 +17,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup'; 
 import ForgotPassword from './pages/ForgotPassword';
 import { fetchTechnicians } from './api';
+import AddTechnician from './components/AddTechnician';
 
 const App = () => {
     const [technicianId, setTechnicianId] = useState(null);
@@ -26,9 +27,9 @@ const App = () => {
     // Fetch technician data from the API
     const fetchTechnicianData = async () => {
         try {
-            const technicians = await fetchTechnicians(); // Use the fetchTechnicians function from api.js
+            const technicians = await fetchTechnicians();
             if (technicians && technicians.length > 0) {
-                setTechnicianId(technicians[0].id); // Assuming the ID is in the first object
+                setTechnicianId(technicians[0].id);
             } else {
                 setError('No technicians found.');
             }
@@ -64,6 +65,7 @@ const App = () => {
                     <Route path='/technician-list' element={<TechnicianListPage />} />
                     <Route path='/technician/:id' element={<TechnicianDetailPage />} />
                     <Route path='/service/:id' element={<ServiceDetail />} />
+                    <Route path='/add-technician' element={<AddTechnician />} />
 
                     {/* Admin Protected Route */}
                     <Route 
