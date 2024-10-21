@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './configs/AuthContext'; 
 import ProtectedRoute from './configs/ProtectedRoute';
@@ -8,15 +8,50 @@ import NotFound from './pages/404';
 import ServiceDetail from './pages/ServiceDetail';
 import MakePayment from './components/MakePayment';
 import DescriptionBox from './components/DescriptionBox';
-import TechnicianPanel from './components/TechnicianPanel';
+import TechnicianPanel from './components/TechnicianPannel';
+// import TechnicianDetail from './pages/TechnicianDetail';
 import TechnicianDetailPage from './pages/TechnicianDetailPage';
 import AdminDashboard from './components/AdminDashboard';
 import TechnicianListPage from './pages/TechniciansListPage';
 import Login from './pages/Login'; 
 import Signup from './pages/Signup'; 
 import ForgotPassword from './pages/ForgotPassword';
+import { fetchTechnicians } from './api';
 
 const App = () => {
+    const [technicianId, setTechnicianId] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // Fetch technician data from the API
+    const fetchTechnicianData = async () => {
+        try {
+            const technicians = await fetchTechnicians(); // Use the fetchTechnicians function from api.js
+            if (technicians && technicians.length > 0) {
+                setTechnicianId(technicians[0].id); // Assuming the ID is in the first object
+            } else {
+                setError('No technicians found.');
+            }
+        } catch (error) {
+            console.error('Error fetching technician data:', error);
+            setError('Failed to load technician data.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchTechnicianData();
+    }, []);
+
+    if (loading) {
+        return <p>Loading...</p>;
+    }
+
+    if (error) {
+        return <p className="text-red-500">{error}</p>;
+    }
+
     return (
         <AuthProvider>
             <Router>
@@ -25,7 +60,7 @@ const App = () => {
                     <Route path='/services' element={<Services />} />
                     <Route path='/payment' element={<MakePayment />} />
                     <Route path='/description' element={<DescriptionBox />} />
-                    <Route path='/technician-panel' element={<TechnicianPanel />} />
+                    <Route path='/technician-panel' element={<TechnicianPanel technicianId={technicianId} />} />
                     <Route path='/technician-list' element={<TechnicianListPage />} />
                     <Route path='/technician/:id' element={<TechnicianDetailPage />} />
                     <Route path='/service/:id' element={<ServiceDetail />} />
