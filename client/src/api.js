@@ -13,28 +13,40 @@ const getAccessToken = () => localStorage.getItem('access_token');
 const getRefreshToken = () => localStorage.getItem('refresh_token');
 
 // Function to refresh the token
+
 export const refreshAccessToken = async () => {
     const refreshToken = getRefreshToken();
+    
+    // Check if the refresh token exists
     if (!refreshToken) {
         console.error("No refresh token found");
         throw new Error("No refresh token found");
     }
 
     try {
-        const response = await apiClient.post('/refresh_token', { token: refreshToken });
+        // Send a request to refresh the access token
+        const response = await apiClient.post('/refresh_token', { token: refreshToken }, {
+            headers: {
+                'Authorization': `Bearer ${refreshToken}`, // Include the refresh token in the headers
+                'Content-Type': 'application/json',
+            },
+        });
+
+        // Extract the new access token from the response
         const { access_token } = response.data;
         if (access_token) {
+            // Store the new access token in local storage
             localStorage.setItem('access_token', access_token);
             return access_token;
         } else {
             throw new Error('Failed to refresh access token.');
         }
     } catch (error) {
+        // Log the error message and propagate the error
         console.error('Error refreshing access token:', error.message);
         throw error; // Propagate error for handling
     }
 };
-
 // Add a response interceptor to handle token refresh
 apiClient.interceptors.response.use(
     response => response,
@@ -78,6 +90,8 @@ export const login = async (email, password) => {
 };
 
 // Validate and refresh token utility function
+// api.js
+
 export const validateAndRefreshToken = async () => {
     const token = getAccessToken();
     if (!token) {
@@ -88,16 +102,29 @@ export const validateAndRefreshToken = async () => {
     try {
         const decoded = jwtDecode(token);
         const currentTime = Math.floor(Date.now() / 1000);
+
         if (decoded.exp < currentTime) {
             console.error('Token has expired. Attempting to refresh...');
-            return await refreshAccessToken(); // Refresh the token
+            const newToken = await refreshAccessToken(); // Refresh the token
+            if (newToken) {
+                console.log('Token refreshed successfully.');
+                return newToken; // Return the new valid token
+            } else {
+                console.error('Failed to refresh the token.');
+                return null; // Return null if refreshing fails
+            }
         }
+
+        console.log('Token is valid.');
         return token; // Return the valid token
     } catch (error) {
         console.error('Token decoding error:', error);
-        return null;
+        return null; // Return null on decoding errors
     }
 };
+
+// Export other functions as needed
+export const otherFunction = () => { /*...*/ };
 
 // Function to fetch protected data
 export const getProtectedData = async () => {
