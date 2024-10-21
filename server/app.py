@@ -314,7 +314,7 @@ class RefreshTokenResource(Resource):
         new_access_token = create_access_token(identity=current_user, expires_delta=timedelta(days=1))
 
         # Return the new access token as a JSON response
-        return jsonify({'access_token': new_access_token}), 200
+        return {'access_token': new_access_token}, 200  # Return
 
 class SignupResource(Resource):
     def post(self):

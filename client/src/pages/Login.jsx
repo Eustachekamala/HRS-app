@@ -11,63 +11,64 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+        e.preventDefault();
+        setError('');
+        setLoading(true);
 
-    try {
-        const data = await login(email, password);
-        console.log('API Response:', JSON.stringify(data, null, 2));
+        try {
+            const data = await login(email, password);
+            console.log('API Response:', JSON.stringify(data, null, 2));
 
-        if (!data.customers || data.customers.length === 0) {
-            throw new Error('No customer data found in the response.');
+            if (!data.access_token) {
+                throw new Error('No access token returned from login.');
+            }
+
+            const token = data.access_token;
+            console.log('Access Token:', token);
+
+            const validToken = await validateAndRefreshToken();
+            console.log('Valid Token:', validToken);
+
+            if (!validToken) {
+                throw new Error('Failed to validate access token.');
+            }
+
+            let decoded;
+            try {
+                decoded = jwtDecode(validToken);
+                console.log('Decoded Token:', decoded);
+            } catch (error) {
+                throw new Error('Failed to decode token: ' + error.message);
+            }
+
+            const currentTime = Math.floor(Date.now() / 1000);
+            if (decoded.exp < currentTime) {
+                throw new Error('Token has expired. Please log in again.');
+            }
+
+            if (!data.customers || data.customers.length === 0) {
+                throw new Error('No user data returned from the API.');
+            }
+            
+            const user = data.customers[0];
+            console.log('User Object:', user);
+
+            if (!user || !user.role) {
+                throw new Error('User role is not defined in the response.');
+            }
+
+            loginUser(user);
+            localStorage.setItem('access_token', validToken);
+
+            const redirectUrl = data.redirect || (user.role === 'admin' ? '/admin-dashboard' : '/services');
+            window.location.href = redirectUrl;
+        } catch (err) {
+            console.error('Login Error:', err);
+            setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
+        } finally {
+            setLoading(false);
         }
-
-        // Use access token from login response
-        const token = data.access_token || localStorage.getItem('access_token');
-        if (!token) {
-            throw new Error('No access token found.');
-        }
-
-        // Validate and possibly refresh the token
-        const validToken = await validateAndRefreshToken();
-
-        if (!validToken) {
-            throw new Error('Failed to validate access token.');
-        }
-
-        // Log the token before decoding
-        console.log('Token to decode:', validToken);
-        
-        // Decode the token once
-        const decoded = jwtDecode(validToken);
-        console.log('Decoded Token:', decoded);
-
-        const currentTime = Math.floor(Date.now() / 1000);
-        if (decoded.exp < currentTime) {
-            throw new Error('Token has expired. Please log in again.');
-        }
-
-        const user = data.customers[0];
-        console.log('User Object:', user);
-
-        if (!user || !user.role) {
-            throw new Error('User role is not defined in the response.');
-        }
-
-        // Store user role and navigate accordingly
-        loginUser(user);
-        localStorage.setItem('access_token', validToken);
-
-        const redirectUrl = data.redirect || (user.role === 'admin' ? '/admin-dashboard' : '/services');
-        window.location.href = redirectUrl;
-    } catch (err) {
-        console.error('Login Error:', err);
-        setError(err.message || 'Login failed. Please try again.');
-    } finally {
-        setLoading(false);
-    }
-};
+    };
 
     return (
         <div className='flex flex-col text-white justify-center items-center h-screen bg-gray-950'>
@@ -100,7 +101,7 @@ const Login = () => {
                     <button 
                         type="submit" 
                         className={`bg-blue-600 text-white px-6 py-3 rounded w-full shadow-md hover:bg-blue-700 transition ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        disabled={loading} // Disable button while loading
+                        disabled={loading}
                     >
                         {loading ? 'Logging in...' : 'Login'}
                     </button>
