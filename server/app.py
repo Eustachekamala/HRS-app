@@ -14,6 +14,13 @@ from models import db, Admin, Technician, Service, ClientRequest, Blog, PaymentS
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, get_jwt, jwt_required, get_jwt_identity # type: ignore
 from dotenv import load_dotenv
 from marshmallow import Schema, fields  # type: ignore
+from flask_cors import CORS
+from flask_jwt_extended import JWTManager
+
+
+
+app = Flask(__name__)
+CORS(app)
 
 load_dotenv()
 
@@ -28,11 +35,15 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///home_repair_service.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY','d0125980dce744babe622a0f6e40caf6')
+app.config['JWT_SECRET_KEY'] = 'your-secret-key'  # Change this to a secure secret key
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
 
 # Create uploads directory if it doesn't exist
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
+
+
 
 db.init_app(app)
 migrate = Migrate(app, db)
@@ -220,44 +231,76 @@ class CustomerResource(Resource):
 
 class LoginResource(Resource):
     def post(self):
-        data = request.json
-        email = data.get('email')
-        password = data.get('password')
+        try:
+            data = request.json
+            email = data.get('email')
+            password = data.get('password')
 
-        if not email or not password:
-            return {'error': 'Email and password are required.'}, 400
+            if not email or not password:
+                return {'error': 'Email and password are required.'}, 400
 
-        user = (Admin.query.filter_by(email=email).first() or
-                Technician.query.filter_by(email=email).first() or
-                Users.query.filter_by(email=email).first())
-        
-        
-        logging.info(f'User ID: {user.id}, Role: {user.role}')
-        
-        if user and check_password_hash(user.password, password):
-            access_token = create_access_token(identity={'id': user.id, 'role': user.role}, expires_delta=timedelta(days=1))
-            refresh_token = create_refresh_token(identity={'id': user.id, 'role': user.role})
-            
-            print('Generated access token:', access_token,"\n")
-            print('Generated refresh token:', refresh_token)
-            
-             # Redirect URL based on user role
-            if user.role == 'admin':
-                redirect_url = url_for('adminresource')  # Use the correct endpoint name
-            elif user.role == 'technician':
-                redirect_url = url_for('technicianresource')  # Check the correct endpoint name
-            else:
-                redirect_url = url_for('serviceresource')  # Check the correct endpoint name
-            
-            return {
-                'access_token': access_token,
-                'refresh_token': refresh_token,
-                'customers': [user.to_dict()],
-                "redirect": redirect_url
-            }, 200
+            # Try to find user in any of the user tables
+            user = (Admin.query.filter_by(email=email).first() or
+                   Technician.query.filter_by(email=email).first() or
+                   Users.query.filter_by(email=email).first())
 
-        return {'error': 'Invalid credentials'}, 401
+            if not user:
+                return {'error': 'User not found.'}, 404
 
+            logging.info(f'Login attempt - User ID: {user.id}, Role: {user.role}')
+
+            if check_password_hash(user.password, password):
+                # Create token identity with consistent structure
+                token_identity = {
+                    'id': user.id,
+                    'role': user.role,
+                    'email': user.email
+                }
+
+                # Create tokens with consistent claims
+                access_token = create_access_token(
+                    identity=token_identity,
+                    expires_delta=timedelta(days=1),
+                    additional_claims={'role': user.role}
+                )
+                
+                refresh_token = create_refresh_token(
+                    identity=token_identity,
+                    additional_claims={'role': user.role}
+                )
+
+                logging.info(f'Generated access token: {access_token}')
+                logging.info(f'Generated refresh token: {refresh_token}')
+
+                # Determine redirect URL based on role
+                if user.role == 'admin':
+                    redirect_url = url_for('admin_dashboard') if 'admin_dashboard' in app.view_functions else None
+                elif user.role == 'technician':
+                    redirect_url = url_for('technician_dashboard') if 'technician_dashboard' in app.view_functions else None
+                else:
+                    redirect_url = url_for('service_dashboard') if 'service_dashboard' in app.view_functions else None
+
+                # Convert user object to dictionary with consistent structure
+                user_dict = {
+                    'id': user.id,
+                    'email': user.email,
+                    'role': user.role,
+                    'username': getattr(user, 'username', None),
+                    'phone': getattr(user, 'phone', None)
+                }
+
+                return {
+                    'access_token': access_token,
+                    'refresh_token': refresh_token,
+                    'customers': [user_dict],
+                    'redirect': redirect_url
+                }, 200
+
+            return {'error': 'Invalid credentials'}, 401
+
+        except Exception as e:
+            logging.error(f'Login error: {str(e)}')
+            return {'error': 'An error occurred during login.'}, 500
 class ProtectedResource(Resource):
     @jwt_required()
     def get(self):
@@ -298,46 +341,84 @@ class RefreshTokenResource(Resource):
 
         # Return the new access token as a JSON response
         return jsonify({'access_token': new_access_token}), 200
-
 class SignupResource(Resource):
     def post(self):
-        data = request.json
-        email = data.get('email')
-        password = data.get('password')
-        username = data.get('username')
-        phone = data.get('phone')
-        role = data.get('role')
+        try:
+            data = request.json
+            email = data.get('email')
+            password = data.get('password')
+            username = data.get('username')
+            phone = data.get('phone')
+            role = data.get('role')
+            admin_code = data.get('adminCode')
 
-        # Check if the email already exists
-        if Users.query.filter_by(email=email).first():
-            return {'error': 'Email already exists.'}, 400
+            # Validate required fields
+            if not all([email, password, username, role]):
+                return {'error': 'Missing required fields.'}, 400
 
-        # Hash the password
-        hashed_password = generate_password_hash(password)
+            # Check if email exists
+            if Users.query.filter_by(email=email).first():
+                return {'error': 'Email already exists.'}, 400
 
-        # Create a new user
-        new_user = Users(
-            username=username,
-            email=email,
-            password=hashed_password,
-            phone=phone,
-            role=role
-        )
-        
-        # Add and commit the new user to the database
-        db.session.add(new_user)
-        db.session.commit()
+            # Validate admin signup
+            if role == 'admin':
+                if not admin_code or admin_code != 'your_admin_code':
+                    return {'error': 'Invalid admin code.'}, 400
 
-        # Generate JWT tokens
-        access_token = create_access_token(identity={'id': new_user.id, 'role': new_user.role})
-        refresh_token = create_refresh_token(identity={'id': new_user.id, 'role': new_user.role})
+            # Create new user
+            hashed_password = generate_password_hash(password)
+            new_user = Users(
+                username=username,
+                email=email,
+                password=hashed_password,
+                phone=phone,
+                role=role
+            )
 
-        return {
-            'message': 'User created successfully!',
-            'access_token': access_token,
-            'refresh_token': refresh_token
-        }, 201
-        
+            # Save to database
+            db.session.add(new_user)
+            db.session.commit()
+
+            # Create token identity with consistent structure
+            token_identity = {
+                'id': new_user.id,
+                'role': new_user.role,
+                'email': new_user.email
+            }
+
+            # Generate tokens with consistent claims
+            access_token = create_access_token(
+                identity=token_identity,
+                expires_delta=timedelta(days=1),
+                additional_claims={'role': new_user.role}
+            )
+            
+            refresh_token = create_refresh_token(
+                identity=token_identity,
+                additional_claims={'role': new_user.role}
+            )
+
+            # Convert user object to dictionary
+            user_dict = {
+                'id': new_user.id,
+                'email': new_user.email,
+                'role': new_user.role,
+                'username': new_user.username,
+                'phone': new_user.phone
+            }
+
+            return {
+                'message': 'User created successfully!',
+                'access_token': access_token,
+                'refresh_token': refresh_token,
+                'customers': [user_dict]
+            }, 201
+
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f'Signup error: {str(e)}')
+            return {'error': 'An error occurred during signup.'}, 500
+
         
 class LogoutResource(Resource):
     @jwt_required()
@@ -345,7 +426,6 @@ class LogoutResource(Resource):
         jti = get_jwt()["jti"]  # Get the token identifier (JTI)
         blacklist.add(jti)  # Add JTI to the blacklist
         return {"msg": "Successfully logged out"}, 200
-
 
 class ServiceResource(Resource):
     # @role_required('admin', 'technician')
@@ -366,6 +446,7 @@ class ServiceResource(Resource):
         # JWT validation handled by the decorator
         current_user = get_jwt_identity()  # Optional: get user details if needed
         
+        # Validate the presence of a file
         if 'file' not in request.files:
             return {'error': 'No file part'}, 400
         
@@ -373,6 +454,7 @@ class ServiceResource(Resource):
         if file.filename == '':
             return {'error': 'No selected file'}, 400
         
+        # Validate required form fields
         service_type = request.form.get('service_type')
         description = request.form.get('description')
         id_admin = request.form.get('id_admin')
@@ -383,22 +465,27 @@ class ServiceResource(Resource):
         if id_admin is None:
             return {'error': 'Admin ID is required'}, 400
 
+        # Secure the filename and save the file
         filename = secure_filename(file.filename)
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
-
-        new_service = Service(
-            service_type=service_type,
-            description=description,
-            image_path=file_path,
-            id_admin=id_admin
-        )
-
+        
         try:
+            file.save(file_path)
+
+            # Create and save the new service
+            new_service = Service(
+                service_type=service_type,
+                description=description,
+                image_path=file_path,
+                id_admin=id_admin
+            )
+
             db.session.add(new_service)
             db.session.commit()
+
             service_schema = ServiceSchema()
             return {'message': 'Service created successfully!', 'service': service_schema.dump(new_service)}, 201
+        
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error creating service: {e}")

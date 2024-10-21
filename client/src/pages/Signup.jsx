@@ -10,25 +10,31 @@ const Signup = () => {
     const [role, setRole] = useState('user'); // Default role is set here
     const [adminCode, setAdminCode] = useState(''); // State for Admin-specific input
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false); // Loading state
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true); // Set loading to true
+        setError(''); // Reset error before submission
+
         try {
             // Send the role and admin code (if applicable) along with other signup data
-            const { success, error } = await signup(email, password, username, phone, role, role === 'admin' ? adminCode : null);
+            const response = await signup(email, password, username, phone, role, role === 'admin' ? adminCode : null);
+            console.log(response); // Log response for debugging
             
+            const { success, error } = response; // Destructure response
+
             if (success) {
-                if ( role === 'admin') {
-                    navigate('/admin'); // Redirect to admin page if admin
-                } else {
-                    navigate('/services'); // Redirect to services page if user
-                }
+                // After successful signup, navigate to login page
+                navigate('/login'); 
             } else {
                 setError(error || 'Signup failed');
             }
         } catch (err) {
             setError(err.response?.data?.error || 'Signup failed');
+        } finally {
+            setLoading(false); // Set loading to false after API call
         }
     };
 
@@ -94,12 +100,16 @@ const Signup = () => {
                                 value={adminCode} 
                                 onChange={(e) => setAdminCode(e.target.value)} 
                                 className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full"
-                                required // Set required if you want to enforce this field
+                                required 
                             />
                         )}
 
-                        <button type="submit" className="bg-blue-600 text-white px-6 py-3 rounded w-full shadow-md hover:bg-blue-700 transition duration-200">
-                            Signup
+                        <button 
+                            type="submit" 
+                            className={`bg-blue-600 text-white px-6 py-3 rounded w-full shadow-md hover:bg-blue-700 transition duration-200 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={loading} // Disable button while loading
+                        >
+                            {loading ? 'Signing up...' : 'Signup'}
                         </button>
                     </div>
                 </form>
