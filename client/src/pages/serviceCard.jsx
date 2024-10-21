@@ -1,20 +1,16 @@
-// eslint-disable-next-line no-unused-vars
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-// import { useNavigate } from 'react-router-dom';
 
 const ServiceCard = ({ service }) => {
     const [isExpanded, setIsExpanded] = useState(false);
-    // const navigate = useNavigate();
     const descriptionLimit = 100;
 
     const toggleExpand = () => {
         setIsExpanded((prev) => !prev);
     };
 
-    // const handleRequestService = () => {
-    //     navigate(`/service/${service.id}`);
-    // };
+    // Ensure image_path does not have 'uploads/' prefix
+    const imageUrl = `http://localhost:5000/uploads/${service.image_path.replace(/^uploads\//, '')}`;
 
     return (
         <div className="flex flex-col justify-between border border-gray-700 rounded-lg shadow-md p-4 bg-gray-800">
@@ -29,17 +25,15 @@ const ServiceCard = ({ service }) => {
             )}
             {service.image_path && (
                 <img
-                    src={`http://0.0.0.0:5000/uploads/${service.image_path}`}
+                    src={imageUrl}
                     alt={service.service_type}
                     className="mt-2 border border-gray-700 rounded-lg h-72 object-cover"
+                    onError={(e) => {
+                        e.target.onerror = null; // Prevents looping
+                        // e.target.src = 'path/to/placeholder/image.jpg'; // Set a placeholder image
+                    }}
                 />
             )}
-            {/* <button
-                onClick={handleRequestService}
-                className="mt-4 w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500"
-            >
-                Request Service
-            </button> */}
         </div>
     );
 };

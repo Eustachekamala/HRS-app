@@ -5,6 +5,7 @@ import { fetchServices } from '../api';
 
 const AuthContext = createContext();
 
+// Utility function to check if the token is expired
 const isTokenExpired = (token) => {
     try {
         const decoded = jwtDecode(token);
@@ -15,6 +16,7 @@ const isTokenExpired = (token) => {
     }
 };
 
+// AuthProvider component to manage authentication state
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -44,7 +46,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        validateToken();
+        validateToken(); // Call the validation function on mount
     }, []);
 
     const getServices = async () => {
@@ -72,4 +74,7 @@ AuthProvider.propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-export const useAuth = () => useContext(AuthContext);
+// Custom hook for easier access to the AuthContext
+export const useAuth = () => {
+    return useContext(AuthContext);
+};

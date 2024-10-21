@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 import logging 
 import os
-from flask import Flask, request, jsonify, redirect, url_for # type: ignore
+from flask import Flask, request, jsonify, redirect, url_for, send_from_directory # type: ignore
 from flask_sqlalchemy import SQLAlchemy # type: ignore
 from flask_migrate import Migrate # type: ignore
 from flask_cors import CORS # type: ignore
@@ -39,6 +39,11 @@ migrate = Migrate(app, db)
 jwt = JWTManager(app)
 
 blacklist = set()
+
+# Route to serve uploaded files
+class Upload(Resource):
+    def get(self, filename):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
 @jwt.token_in_blocklist_loader
@@ -112,7 +117,9 @@ class AdminResource(Resource):
 
 class TechnicianResource(Resource):
     # @role_required('admin', 'technician')
+    @jwt_required()
     def get(self):
+        print(request.headers)
         try:
             technicians = Technician.query.all()
             if not technicians:
@@ -194,12 +201,17 @@ class UserResource(Resource):
 class CustomerResource(Resource):
     @role_required('customer', 'admin')
     def get(self, customer_id=None):
-        if customer_id:
-            customer = Users.query.get_or_404(customer_id)
-            return customer.to_dict(), 200
-        else:
-            customers = Users.query.filter_by(role='customer').all()
-            return {'customers': [customer.to_dict() for customer in customers]}, 200
+        try:
+            if customer_id:
+                customer = Users.query.get_or_404(customer_id)
+                return jsonify(customer.to_dict()), 200
+            else:
+                customers = Users.query.filter_by(role='customer').all()
+                return jsonify({'customers': [customer.to_dict() for customer in customers]}), 200
+        except Exception as e:
+            # Log the error for debugging (you may want to use logging instead)
+            print(f"Error fetching customers: {str(e)}")
+            return jsonify({'message': 'Internal Server Error'}), 500
 
     @role_required('customer')
     def put(self, customer_id):
@@ -231,23 +243,28 @@ class LoginResource(Resource):
                 Technician.query.filter_by(email=email).first() or
                 Users.query.filter_by(email=email).first())
         
+        # Check if user was found
+        if user is None:
+            logging.warning(f"User not found: {email}")
+            return {'error': 'Invalid credentials'}, 401
         
         logging.info(f'User ID: {user.id}, Role: {user.role}')
         
-        if user and check_password_hash(user.password, password):
+        # Verify password
+        if check_password_hash(user.password, password):
             access_token = create_access_token(identity={'id': user.id, 'role': user.role}, expires_delta=timedelta(days=1))
             refresh_token = create_refresh_token(identity={'id': user.id, 'role': user.role})
             
-            print('Generated access token:', access_token,"\n")
+            print('Generated access token:', access_token)
             print('Generated refresh token:', refresh_token)
             
-             # Redirect URL based on user role
+            # Redirect URL based on user role
             if user.role == 'admin':
                 redirect_url = url_for('adminresource')  # Use the correct endpoint name
             elif user.role == 'technician':
-                redirect_url = url_for('technicianresource')  # Check the correct endpoint name
+                redirect_url = url_for('technicianresource')  # Use the correct endpoint name
             else:
-                redirect_url = url_for('serviceresource')  # Check the correct endpoint name
+                redirect_url = url_for('serviceresource')  # Use the correct endpoint name
             
             return {
                 'access_token': access_token,
@@ -297,7 +314,7 @@ class RefreshTokenResource(Resource):
         new_access_token = create_access_token(identity=current_user, expires_delta=timedelta(days=1))
 
         # Return the new access token as a JSON response
-        return jsonify({'access_token': new_access_token}), 200
+        return {'access_token': new_access_token}, 200  # Return
 
 class SignupResource(Resource):
     def post(self):
@@ -360,6 +377,12 @@ class ServiceResource(Resource):
             services_schema = ServiceSchema(many=True)
             services_data = services_schema.dump(services)
             return {'services': services_data}, 200
+        
+# To get all requests for a technician
+class TechnicianRequests(Resource):
+    def get(self, technician_id):
+        requests = ClientRequest.query.filter_by(technician_id=technician_id).all()
+        return jsonify([{'id': r.id, 'description': r.description, 'status': r.status} for r in requests])
 
     @role_required('admin')
     def post(self):
@@ -435,17 +458,22 @@ class RequestResource(Resource):
         return {'message': 'Service request created successfully!', 'request_id': new_request.id}, 201
 
 class PaymentResource(Resource):
-    @role_required('admin')
+    # @role_required('admin')
+    @jwt_required()
     def get(self, request_id=None):
-        if request_id is not None:
-            request = ClientRequest.query.get_or_404(request_id)
-            payment_data = request.to_dict()
-            logging.info(f"Payment data: {payment_data}")
-            return payment_data, 200
-        else:
-            requests = ClientRequest.query.all()
-            return {'requests': [req.to_dict() for req in requests]}, 200
-    
+        try:
+            if request_id is not None:
+                request = ClientRequest.query.get_or_404(request_id)
+                payment_data = request.to_dict()
+                logging.info(f"Payment data: {payment_data}")
+                return jsonify(payment_data), 200 
+            else:
+                requests = ClientRequest.query.all()
+                return jsonify({'requests': [req.to_dict() for req in requests]}), 200
+        except Exception as e:
+            logging.error(f"Error fetching payment data: {str(e)}")
+            return jsonify({'message': 'Internal Server Error'}), 500
+
     @role_required('admin')
     def post(self):
         data = request.json
@@ -454,18 +482,20 @@ class PaymentResource(Resource):
         required_fields = ['service_id', 'payment_method', 'amount']
         for field in required_fields:
             if field not in data:
-                return {'error': f'Missing {field}'}, 400
+                return jsonify({'error': f'Missing {field}'}), 400  # Use jsonify
 
         new_payment = PaymentService(
             service_id=data['service_id'],
-            payment_method=data['payment_method'],
+            customer_id=data['customer_id'],
+            user_request_id=data['user_request_id'],
             amount=data['amount'],
-            id_admin=data.get('id_admin')
+            phone=data['phone'],
+            # payment_method=data['payment_method'],
         )
 
         db.session.add(new_payment)
         db.session.commit()
-        return {'message': 'Payment created successfully!', 'payment_id': new_payment.id}, 201
+        return jsonify({'message': 'Payment created successfully!', 'payment_id': new_payment.id}), 201  # Use jsonify
 
 class BlogResource(Resource):
     # @jwt_required()
@@ -498,6 +528,8 @@ api.add_resource(ProtectedResource, '/protected_route')
 api.add_resource(CustomerResource, '/customers', '/customers/<int:customer_id>')
 api.add_resource(RefreshTokenResource, '/refresh_token')
 api.add_resource(LogoutResource, '/logout')
+api.add_resource(Upload, '/uploads/<path:filename>')
+api.add_resource(TechnicianRequests, '/api/technician/<int:technician_id>/requests')
 
 # Error handling
 @app.errorhandler(400)

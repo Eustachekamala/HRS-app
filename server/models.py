@@ -6,7 +6,7 @@ from sqlalchemy.ext.declarative import declared_attr # type: ignore
 
 db = SQLAlchemy()
 
-class BaseModel(db.Model):
+class BaseModel(db.Model, SerializerMixin):
     """Base model with serialization capabilities."""
     __abstract__ = True
 

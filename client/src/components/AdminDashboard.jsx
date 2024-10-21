@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom'; 
-import TechnicianList from './TechnicianList';
-import axios from 'axios';
-import PropTypes from 'prop-types';
+import {
+    fetchUsers,
+    fetchTechnicians,
+    fetchRequests,
+    fetchPaymentServices
+} from '../api';
 
 const AdminDashboard = ({ userRole }) => {
+    const [users, setUsers] = useState([]);
     const [technicians, setTechnicians] = useState([]);
-    const [userRequests, setUserRequests] = useState([]);
-    const [statistics, setStatistics] = useState({});
+    const [requests, setRequests] = useState([]);
+    const [paymentServices, setPaymentServices] = useState([]);
     const navigate = useNavigate(); 
 
     useEffect(() => {
@@ -19,14 +23,17 @@ const AdminDashboard = ({ userRole }) => {
 
         const fetchData = async () => {
             try {
-                const [techResponse, requestsResponse, statsResponse] = await Promise.all([
-                    axios.get('/technicians'),
-                    axios.get('/requests'),
-                    axios.get('/payment'),
+                const [usersData, techniciansData, requestsData, paymentData] = await Promise.all([
+                    fetchUsers(),
+                    fetchTechnicians(),
+                    fetchRequests(),
+                    fetchPaymentServices(),
                 ]);
-                setTechnicians(techResponse.data);
-                setUserRequests(requestsResponse.data);
-                setStatistics(statsResponse.data);
+
+                setUsers(usersData);
+                setTechnicians(techniciansData);
+                setRequests(requestsData);
+                setPaymentServices(paymentData);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -36,33 +43,55 @@ const AdminDashboard = ({ userRole }) => {
     }, [userRole, navigate]);
 
     return (
-        <div>
-            <h1>Admin Dashboard</h1>
-            <section>
-                <h2>Statistics</h2>
-                <p>Total Requests: {statistics.totalRequests}</p>
-                <p>Active Technicians: {statistics.activeTechnicians}</p>
-            </section>
-
-            <section>
-                <h2>Manage Technicians</h2>
-                <TechnicianList technicians={technicians} />
-            </section>
-
-            <section>
-                <h2>View User Requests</h2>
-                <ul>
-                    {userRequests.map((request) => (
-                        <li key={request.id}>
-                            {request.description} - {request.user.username}
-                        </li>
-                    ))}
-                </ul>
-            </section>
+        <div className="bg-gray-900 text-white min-h-screen p-6">
+            <h1 className="text-3xl font-bold text-center mb-6">Admin Dashboard</h1>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-gray-800 p-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <h2 className="text-xl font-semibold">Users</h2>
+                    <p className="text-lg">Total: {users.length}</p>
+                    <ul className="mt-2">
+                        {users.slice(0, 5).map(user => (
+                            <li key={user.id} className="text-gray-300">{user.username} - {user.email}</li>
+                        ))}
+                    </ul>
+                    <a href="/admin/users" className="text-blue-400 hover:underline mt-2 block">View All</a>
+                </div>
+                <div className="bg-gray-800 p-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <h2 className="text-xl font-semibold">Technicians</h2>
+                    <p className="text-lg">Total: {technicians.length}</p>
+                    <ul className="mt-2">
+                        {technicians.slice(0, 5).map(tech => (
+                            <li key={tech.id} className="text-gray-300">{tech.username} - {tech.occupation}</li>
+                        ))}
+                    </ul>
+                    <a href="/admin/technicians" className="text-blue-400 hover:underline mt-2 block">View All</a>
+                </div>
+                <div className="bg-gray-800 p-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <h2 className="text-xl font-semibold">Requests</h2>
+                    <p className="text-lg">Total: {requests.length}</p>
+                    <ul className="mt-2">
+                        {requests.slice(0, 5).map(request => (
+                            <li key={request.id} className="text-gray-300">{request.title} - {request.status}</li>
+                        ))}
+                    </ul>
+                    <a href="/admin/requests" className="text-blue-400 hover:underline mt-2 block">View All</a>
+                </div>
+                <div className="bg-gray-800 p-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <h2 className="text-xl font-semibold">Payment Services</h2>
+                    <p className="text-lg">Total: {paymentServices.length}</p>
+                    <ul className="mt-2">
+                        {paymentServices.slice(0, 5).map(service => (
+                            <li key={service.id} className="text-gray-300">{service.name} - {service.status}</li>
+                        ))}
+                    </ul>
+                    <a href="/admin/payments" className="text-blue-400 hover:underline mt-2 block">View All</a>
+                </div>
+            </div>
         </div>
     );
 };
 
+// PropTypes can be uncommented if you need to enforce prop types
 // AdminDashboard.propTypes = {
 //     userRole: PropTypes.string.isRequired, 
 // };
