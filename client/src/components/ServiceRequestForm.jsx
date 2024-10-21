@@ -23,7 +23,7 @@ const ServiceRequestForm = () => {
         })
         .then(response => {
             setSuccessMessage('Service request created successfully');
-            setServiceType(''); // Clear input fields after success
+            setServiceType('');
             setDescription('');
         })
         .catch(error => {

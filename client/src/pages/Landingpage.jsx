@@ -17,6 +17,7 @@ const testimonials = [
     { quote: "The team was friendly and knowledgeable. I felt taken care of.", author: "Bob Johnson" },
     { quote: "Excellent quality of work! I will definitely use their services again.", author: "Alice Martinez" },
     { quote: "Fast response time and great results! Very satisfied!", author: "David Lee" },
+    { quote: "Their team is always friendly and knowledgeable. I felt taken care of.", author: "Victoria Lee" },
 ];
 
 // eslint-disable-next-line react/prop-types

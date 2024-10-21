@@ -12,12 +12,14 @@ import TechnicianPanel from './components/TechnicianPannel';
 // import TechnicianDetail from './pages/TechnicianDetail';
 import TechnicianDetailPage from './pages/TechnicianDetailPage';
 import AdminDashboard from './components/AdminDashboard';
+import AdminUploadPage from './components/AdminUploadPage';
 import TechnicianListPage from './pages/TechniciansListPage';
 import Login from './pages/Login'; 
 import Signup from './pages/Signup'; 
 import ForgotPassword from './pages/ForgotPassword';
 import { fetchTechnicians } from './api';
-import AddTechnician from './components/AddTechnician';
+import AddTechnician from './components/AddTechnician'
+import ServiceRequestForm from './components/ServiceRequestForm';
 
 const App = () => {
     const [technicianId, setTechnicianId] = useState(null);
@@ -66,6 +68,8 @@ const App = () => {
                     <Route path='/technician/:id' element={<TechnicianDetailPage />} />
                     <Route path='/service/:id' element={<ServiceDetail />} />
                     <Route path='/add-technician' element={<AddTechnician />} />
+                    <Route path='/admin-upload' element={<AdminUploadPage />} />
+                    <Route path='/service-request' element={<ServiceRequestForm />} />
 
                     {/* Admin Protected Route */}
                     <Route 

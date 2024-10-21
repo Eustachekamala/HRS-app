@@ -22,7 +22,6 @@ const UploadService = ({ onUploadSuccess, onUploadError, userToken, adminId }) =
     const handleUpload = async () => {
         if (!file || !serviceType.trim() || !description.trim() || !adminId) {
             toast.warning('Please fill in all fields and select a file to upload.', { position: "top-center" });
-            setError('Please fill in all fields and select a file');
             return;
         }
 
@@ -38,7 +37,7 @@ const UploadService = ({ onUploadSuccess, onUploadError, userToken, adminId }) =
 
         // Upload the file to the backend
         try {
-            const response = await axios.post('http://localhost:5000/upload', formData, {
+            const response = await axios.post('http://localhost:5000/admin/services', formData, {
                 headers: {
                     'Authorization': `Bearer ${userToken}`,
                     'Content-Type': 'multipart/form-data',
@@ -63,26 +62,26 @@ const UploadService = ({ onUploadSuccess, onUploadError, userToken, adminId }) =
 
     return (
         <div className="bg-black bg-opacity-90 flex flex-col w-full max-w-md mx-auto p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-bold mb-4 text-center">Upload Image</h2>
+            <h2 className="text-xl font-bold mb-4 text-center text-white">Upload Service</h2>
             {error && <p className="text-red-500 mb-2 text-center">{error}</p>}
             <input
                 type="text"
                 placeholder="Service Name"
                 value={serviceType}
                 onChange={(e) => setServiceType(e.target.value)}
-                className="border border-gray-300 bg-gray-700 rounded-md p-2 mb-4 w-full"
+                className="border border-gray-300 bg-gray-700 rounded-md p-2 mb-4 w-full text-white"
             />
             <textarea
                 placeholder="Description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="border border-gray-300 bg-gray-700 rounded-md p-2 mb-4 w-full"
+                className="border border-gray-300 bg-gray-700 rounded-md p-2 mb-4 w-full text-white"
                 rows="3"
             />
             <input
                 type="file"
                 onChange={handleFileChange}
-                className="border border-gray-300 bg-gray-700 rounded-md p-2 mb-4 w-full"
+                className="border border-gray-300 bg-gray-700 rounded-md p-2 mb-4 w-full text-white"
             />
             <button
                 onClick={handleUpload}
