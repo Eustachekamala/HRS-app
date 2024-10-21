@@ -1,72 +1,92 @@
-// import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './configs/AuthContext';
-// import ProtectedRoute from './configs/ProtectedRoute';
+import { AuthProvider } from './configs/AuthContext'; 
+import ProtectedRoute from './configs/ProtectedRoute';
 import Services from './pages/Services';
 import Landingpage from './pages/Landingpage';
-// import TechnicianContainer from './pages/TechnicianContainer';
-// import AdminServices from './components/AdminUploadPage';
 import NotFound from './pages/404';
 import ServiceDetail from './pages/ServiceDetail';
 import MakePayment from './components/MakePayment';
 import DescriptionBox from './components/DescriptionBox';
-// import TechnicianList from './components/TechnicianList';
 import TechnicianPanel from './components/TechnicianPannel';
+// import TechnicianDetail from './pages/TechnicianDetail';
 import TechnicianDetailPage from './pages/TechnicianDetailPage';
 import AdminDashboard from './components/AdminDashboard';
 import TechnicianListPage from './pages/TechniciansListPage';
 import Login from './pages/Login'; 
 import Signup from './pages/Signup'; 
-import Signout from './pages/Signout'; 
 import ForgotPassword from './pages/ForgotPassword';
-// import { fetchTechnicians as apiFetchTechnicians } from './api';
+import { fetchTechnicians } from './api';
 
 const App = () => {
+    const [technicianId, setTechnicianId] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // Fetch technician data from the API
+    const fetchTechnicianData = async () => {
+        try {
+            const technicians = await fetchTechnicians(); // Use the fetchTechnicians function from api.js
+            if (technicians && technicians.length > 0) {
+                setTechnicianId(technicians[0].id); // Assuming the ID is in the first object
+            } else {
+                setError('No technicians found.');
+            }
+        } catch (error) {
+            console.error('Error fetching technician data:', error);
+            setError('Failed to load technician data.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchTechnicianData();
+    }, []);
+
+    if (loading) {
+        return <p>Loading...</p>;
+    }
+
+    if (error) {
+        return <p className="text-red-500">{error}</p>;
+    }
 
     return (
-    <AuthProvider>
-        <Router>
-            <Routes>
-                <Route path='/' element={<Landingpage />} />
-                <Route path='/payment' element={<MakePayment />} />
-                <Route path='/description' element={<DescriptionBox />} />
-                {/* <Route 
-                    path='/technicians' 
-                    element={loading ? <p>Loading technicians...</p> : <TechnicianList technicians={technicians || []} />} 
-                /> */}
-                {/* <Route 
-                    path='/technician' 
-                    element={technicians.length > 0 ? <TechnicianPage technician={technicians[0]} /> : <NotFound />} 
-                /> */}
-                <Route path='/services' element={<Services />} />
-                <Route path='/technician-panel' element={<TechnicianPanel/>} />
-                <Route path='/technician-list' element={<TechnicianListPage />} />
-                <Route path='/technician/:id' element={<TechnicianDetailPage />} />
-                <Route path='/admin' element={<AdminDashboard />} />
+        <AuthProvider>
+            <Router>
+                <Routes>
+                    <Route path='/' element={<Landingpage />} />
+                    <Route path='/services' element={<Services />} />
+                    <Route path='/payment' element={<MakePayment />} />
+                    <Route path='/description' element={<DescriptionBox />} />
+                    <Route path='/technician-panel' element={<TechnicianPanel technicianId={technicianId} />} />
+                    <Route path='/technician-list' element={<TechnicianListPage />} />
+                    <Route path='/technician/:id' element={<TechnicianDetailPage />} />
+                    <Route path='/service/:id' element={<ServiceDetail />} />
 
-                {/* Admin Protected Route */}
-                {/* <Route 
-                    path='/admin' 
-                    element={<ProtectedRoute element={<AdminServices />} allowedRoles={['admin']} />} 
-                /> */}
-                {/* <Route path='/admin-dashboard' element={<ProtectedRoute element={<AdminDashboard />} allowedRoles={['admin']} />} /> */}
+                    {/* Admin Protected Route */}
+                    <Route 
+                        path='/admin-dashboard' 
+                        element={
+                            <ProtectedRoute 
+                                element={<AdminDashboard />} 
+                                allowedRoles={['admin']} 
+                            />
+                        } 
+                    />
 
-                <Route path='/service/:id' element={<ServiceDetail />} />
+                    {/* Authentication Routes */}
+                    <Route path='/login' element={<Login />} />
+                    <Route path='/signup' element={<Signup />} />
+                    <Route path='/forgot-password' element={<ForgotPassword />} />
 
-                {/* Authentication Routes */}
-                <Route path='/login' element={<Login />} />
-                <Route path='/signup' element={<Signup />} />
-                <Route path='/forgot-password' element={<ForgotPassword />} />
-                <Route path='/signout' element={<Signout />} />
-
-                {/* 404 Not Found */}
-                <Route path='*' element={<NotFound />} />
-            </Routes>
-        </Router>
-    </AuthProvider>
-);
-
-
+                    {/* 404 Not Found */}
+                    <Route path='*' element={<NotFound />} />
+                </Routes>
+            </Router>
+        </AuthProvider>
+    );
 };
 
 export default App;

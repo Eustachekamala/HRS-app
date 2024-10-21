@@ -207,7 +207,7 @@ class CustomerResource(Resource):
                 return jsonify(customer.to_dict()), 200
             else:
                 customers = Users.query.filter_by(role='customer').all()
-                return jsonify({'customers': [customer.to_dict() for customer in customers]}), 200
+                return {'customers': [customer.to_dict() for customer in customers]}, 200
         except Exception as e:
             # Log the error for debugging (you may want to use logging instead)
             print(f"Error fetching customers: {str(e)}")
@@ -458,21 +458,25 @@ class RequestResource(Resource):
         return {'message': 'Service request created successfully!', 'request_id': new_request.id}, 201
 
 class PaymentResource(Resource):
-    # @role_required('admin')
     @jwt_required()
     def get(self, request_id=None):
         try:
             if request_id is not None:
+                # Fetch a specific client request by ID
                 request = ClientRequest.query.get_or_404(request_id)
-                payment_data = request.to_dict()
+                payment_data = request.to_dict()  # Convert to dictionary using to_dict()
                 logging.info(f"Payment data: {payment_data}")
-                return jsonify(payment_data), 200 
+                return payment_data, 200  # Return the dictionary directly
+            
             else:
+                # Fetch all client requests
                 requests = ClientRequest.query.all()
-                return jsonify({'requests': [req.to_dict() for req in requests]}), 200
+                # Return a list of request dictionaries
+                return {'requests': [req.to_dict() for req in requests]}, 200
+            
         except Exception as e:
-            logging.error(f"Error fetching payment data: {str(e)}")
-            return jsonify({'message': 'Internal Server Error'}), 500
+            logging.error(f"Error fetching payment data: {str(e)}")  # Log the error
+            return {'message': 'Internal Server Error'}, 500  # Return a JSON-compatible error message
 
     @role_required('admin')
     def post(self):

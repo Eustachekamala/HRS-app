@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import TechnicianServiceRequests from './TechnicianServiceReq';
 import axios from 'axios';
 import PropTypes from 'prop-types';
+
 const TechnicianPanel = ({ technicianId }) => {
     // State variables
     const [assignedRequests, setAssignedRequests] = useState([]);
@@ -11,13 +12,15 @@ const TechnicianPanel = ({ technicianId }) => {
     // Fetch service requests for the technician
     useEffect(() => {
         const fetchRequests = async () => {
-            try {
-                const response = await axios.get(`http://localhost:5000/api/technician/${technicianId}/requests`);
-                setAssignedRequests(response.data);
-            } catch (error) {
-                setError(error.message);
-            } finally {
-                setLoading(false);
+            if (technicianId) {
+                try {
+                    const response = await axios.get(`http://localhost:5000/api/technician/${technicianId}/requests`);
+                    setAssignedRequests(response.data);
+                } catch (error) {
+                    setError(error.message);
+                } finally {
+                    setLoading(false);
+                }
             }
         };
 

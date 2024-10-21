@@ -19,13 +19,13 @@ const isTokenExpired = (token) => {
 // AuthProvider component to manage authentication state
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true); // For loading state
-    const [error, setError] = useState(null); // For error handling
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     const loginUser = (token) => {
         if (token) {
             const decodedUser = jwtDecode(token);
-            setUser(decodedUser);
+            setUser(decodedUser); // Ensure decodedUser has role info
             localStorage.setItem('token', token);
         }
     };
@@ -38,11 +38,11 @@ export const AuthProvider = ({ children }) => {
     const validateToken = () => {
         const token = localStorage.getItem('token');
         if (token && !isTokenExpired(token)) {
-            setUser(jwtDecode(token));
+            setUser(jwtDecode(token)); // Ensure this includes role
         } else {
             logoutUser();
         }
-        setLoading(false); // Set loading to false after checking
+        setLoading(false);
     };
 
     useEffect(() => {
@@ -50,16 +50,16 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const getServices = async () => {
-        setLoading(true); // Set loading to true while fetching
+        setLoading(true);
         try {
             const services = await fetchServices();
             return services;
         } catch (error) {
             console.error("Failed to fetch services:", error);
-            setError("Could not fetch services."); // Set error state
+            setError("Could not fetch services.");
             return [];
         } finally {
-            setLoading(false); // Set loading to false after fetching
+            setLoading(false);
         }
     };
 

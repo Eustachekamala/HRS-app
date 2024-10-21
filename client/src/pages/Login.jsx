@@ -26,7 +26,7 @@ const Login = () => {
             const token = data.access_token;
             console.log('Access Token:', token);
 
-            const validToken = await validateAndRefreshToken();
+            const validToken = await validateAndRefreshToken(token);
             console.log('Valid Token:', validToken);
 
             if (!validToken) {
@@ -46,10 +46,11 @@ const Login = () => {
                 throw new Error('Token has expired. Please log in again.');
             }
 
+            // Check for user data in the response
             if (!data.customers || data.customers.length === 0) {
                 throw new Error('No user data returned from the API.');
             }
-            
+
             const user = data.customers[0];
             console.log('User Object:', user);
 
@@ -57,11 +58,13 @@ const Login = () => {
                 throw new Error('User role is not defined in the response.');
             }
 
-            loginUser(user);
+            // Log the user in
+            loginUser(user, user.role);
             localStorage.setItem('access_token', validToken);
 
+            // Redirect based on user role
             const redirectUrl = data.redirect || (user.role === 'admin' ? '/admin-dashboard' : '/services');
-            window.location.href = redirectUrl;
+            window.location.href = redirectUrl; // Redirect to the appropriate page
         } catch (err) {
             console.error('Login Error:', err);
             setError(err instanceof Error ? err.message : 'Login failed. Please try again.');

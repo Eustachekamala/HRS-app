@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom'; 
 import {
     fetchUsers,
     fetchTechnicians,
@@ -6,13 +7,20 @@ import {
     fetchPaymentServices
 } from '../api';
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ userRole }) => {
     const [users, setUsers] = useState([]);
     const [technicians, setTechnicians] = useState([]);
     const [requests, setRequests] = useState([]);
     const [paymentServices, setPaymentServices] = useState([]);
+    const navigate = useNavigate(); 
 
     useEffect(() => {
+        // Check if user is an admin
+        if (userRole !== 'admin') {
+            navigate('/unauthorized');
+            return;
+        }
+
         const fetchData = async () => {
             try {
                 const [usersData, techniciansData, requestsData, paymentData] = await Promise.all([
@@ -32,7 +40,7 @@ const AdminDashboard = () => {
         };
 
         fetchData();
-    }, []);
+    }, [userRole, navigate]);
 
     return (
         <div className="bg-gray-900 text-white min-h-screen p-6">
@@ -82,5 +90,10 @@ const AdminDashboard = () => {
         </div>
     );
 };
+
+// PropTypes can be uncommented if you need to enforce prop types
+// AdminDashboard.propTypes = {
+//     userRole: PropTypes.string.isRequired, 
+// };
 
 export default AdminDashboard;
