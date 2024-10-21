@@ -1,4 +1,3 @@
-
 // import React, { useState, useContext } from 'react';
 import Blogs from '../components/Blogs';
 import { motion } from 'framer-motion';
@@ -32,19 +31,7 @@ const Section = ({ id, bgImage, title, children, textColor = 'text-white' }) => 
 );
 
 const Landingpage = () => {
-    // const [userInfo, setUserInfo] = useState({ name: '', email: '', message: '' });
-    // const [submitted, setSubmitted] = useState(false);
     const { user } = useAuth(); // Access user state from AuthContext
-
-    // const handleInputChange = (e) => {
-    //     const { name, value } = e.target;
-    //     setUserInfo({ ...userInfo, [name]: value });
-    // };
-
-    // const handleSubmit = (e) => {
-    //     e.preventDefault();
-    //     setSubmitted(true);
-    // };
 
     const handleBookServiceClick = () => {
         if (!user) {
@@ -89,70 +76,44 @@ const Landingpage = () => {
             </section>
 
             {/* Services Section */}
-            <Section id="services" bgImage="4322372.jpg" title="Our Services">
+            <Section id="services" bgImage="tools.jpg" title="Our Services">
                 <Services />
             </Section>
 
             {/* Blog Section */}
-            <Section id="blogs" bgImage="image4.jpg" title="Latest Blogs">
-                <Blogs />
+            <Section id="blogs" bgImage="proto.jpg" title="Latest Blogs">
+                <div className="relative z-10 bg-gray-900 bg-opacity-80 p-8 rounded-lg shadow-lg">
+                    <Blogs />
+                </div>
             </Section>
 
             {/* Prototype Section */}
-            <Section id="prototype" bgImage="4882066.jpg" title="Prototype Showcase">
+            <Section id="prototype" bgImage="protobg.avif" title="Prototype Showcase">
                 <div className="mt-4 text-center text-white px-4">
-                    <p className="mb-4">Check out our latest prototype showcasing the innovative features of our home repair services.</p>
-                    <img src="/public/prototype.jpg" alt="Prototype Showcase" className="mx-auto rounded-lg shadow-lg" />
+                    <p className="mb-4">
+                        Check out our latest prototype showcasing the innovative features of our home repair services.
+                    </p>
+                    <img 
+                        src="/public/prototype.jpg" 
+                        alt="Prototype Showcase" 
+                        className="mx-auto rounded-lg shadow-lg"
+                    />
                 </div>
             </Section>
 
             {/* Testimonials Section */}
-            <Section id="testimonials" bgImage="testimonials-section-background.png" title="Testimonials">
-                <div className="mt-4 space-y-4 px-4">
+            <Section id="testimonials" bgImage="testimonials.avif" title="Testimonials" textColor="text-white">
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
                     {testimonials.map((testimonial, index) => (
-                        <blockquote key={index} className="text-center">
-                            <p className="italic text-lg">&quot;{testimonial.quote}&quot;</p>
-                            <footer className="mt-2 font-semibold">- {testimonial.author}</footer>
-                        </blockquote>
+                        <div key={index} className="bg-gray-800 text-white rounded-lg p-6 shadow-md">
+                            <blockquote className="text-center">
+                                <p className="italic text-lg">&quot;{testimonial.quote}&quot;</p>
+                                <footer className="mt-2 font-semibold">- {testimonial.author}</footer>
+                            </blockquote>
+                        </div>
                     ))}
                 </div>
             </Section>
-
-            {/* Contact Section */}
-            {/* <Section id="contact" bgImage="/path/to/your/image6.jpg" title="Contact Us">
-                <form onSubmit={handleSubmit} className="max-w-md mx-auto mt-6 bg-white p-6 rounded-lg shadow-lg">
-                    <input
-                        type="text"
-                        name="name"
-                        placeholder="Your Name"
-                        value={userInfo.name}
-                        onChange={handleInputChange}
-                        className="border border-gray-300 p-3 w-full mb-4 rounded"
-                        required
-                    />
-                    <input
-                        type="email"
-                        name="email"
-                        placeholder="Your Email"
-                        value={userInfo.email}
-                        onChange={handleInputChange}
-                        className="border border-gray-300 p-3 w-full mb-4 rounded"
-                        required
-                    />
-                    <textarea
-                        name="message"
-                        placeholder="Your Message"
-                        value={userInfo.message}
-                        onChange={handleInputChange}
-                        className="border border-gray-300 p-3 w-full mb-4 rounded"
-                        required
-                    ></textarea>
-                    <button type="submit" className="bg-blue-600 text-white px-6 py-3 rounded w-full shadow-md hover:bg-blue-700 transition">
-                        Send Message
-                    </button>
-                </form>
-                {submitted && <ContactInfo userInfo={userInfo} />}
-            </Section> */}
 
             {/* Footer */}
             <Footer />
