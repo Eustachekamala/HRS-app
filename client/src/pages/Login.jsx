@@ -46,6 +46,7 @@ const Login = () => {
                 throw new Error('Token has expired. Please log in again.');
             }
 
+            // Check for user data in the response
             if (!data.customers || data.customers.length === 0) {
                 throw new Error('No user data returned from the API.');
             }
@@ -57,11 +58,13 @@ const Login = () => {
                 throw new Error('User role is not defined in the response.');
             }
 
+            // Log the user in
             loginUser(user, user.role);
             localStorage.setItem('access_token', validToken);
 
-            const redirectUrl = data.redirect_url || (user.role === 'admin' ? '/admin-dashboard' : '/services');
-            window.location.href = redirectUrl;
+            // Redirect based on user role
+            const redirectUrl = data.redirect || (user.role === 'admin' ? '/admin-dashboard' : '/services');
+            window.location.href = redirectUrl; // Redirect to the appropriate page
         } catch (err) {
             console.error('Login Error:', err);
             setError(err instanceof Error ? err.message : 'Login failed. Please try again.');

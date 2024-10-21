@@ -208,12 +208,21 @@ export const fetchRequests = async () => {
 
 // Technician Functions
 export const fetchTechnicians = async () => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+        throw new Error('No access token found. Please log in.');
+    }
+
     try {
-        const response = await apiClient.get('/technicians');
-        return Array.isArray(response.data.technicians) ? response.data.technicians : [];
+        const response = await axios.get('http://localhost:5000/technicians', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data.technicians;
     } catch (error) {
         console.error("Error fetching technicians:", error.response?.data || error.message);
-        throw error;
+        throw error; // Propagate the error for further handling
     }
 };
 
