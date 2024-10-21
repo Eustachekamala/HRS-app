@@ -1,29 +1,39 @@
-// eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; 
 import TechnicianList from './TechnicianList';
 import axios from 'axios';
+import PropTypes from 'prop-types';
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ userRole }) => {
     const [technicians, setTechnicians] = useState([]);
     const [userRequests, setUserRequests] = useState([]);
     const [statistics, setStatistics] = useState({});
+    const navigate = useNavigate(); 
 
     useEffect(() => {
-        // Fetch technicians
-        axios.get('/technicians').then(response => {
-            setTechnicians(response.data);
-        });
+        // Check if user is an admin
+        if (userRole !== 'admin') {
+            navigate('/unauthorized');
+            return;
+        }
 
-        // Fetch user requests
-        axios.get('/user-requests').then(response => {
-            setUserRequests(response.data);
-        });
+        const fetchData = async () => {
+            try {
+                const [techResponse, requestsResponse, statsResponse] = await Promise.all([
+                    axios.get('/technicians'),
+                    axios.get('/requests'),
+                    axios.get('/payment'),
+                ]);
+                setTechnicians(techResponse.data);
+                setUserRequests(requestsResponse.data);
+                setStatistics(statsResponse.data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
 
-        // Fetch statistics (e.g., number of requests, active technicians)
-        axios.get('/payment').then(response => {
-            setStatistics(response.data);
-        });
-    }, []);
+        fetchData();
+    }, [userRole, navigate]);
 
     return (
         <div>
@@ -52,5 +62,9 @@ const AdminDashboard = () => {
         </div>
     );
 };
+
+// AdminDashboard.propTypes = {
+//     userRole: PropTypes.string.isRequired, 
+// };
 
 export default AdminDashboard;

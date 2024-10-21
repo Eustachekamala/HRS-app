@@ -7,8 +7,8 @@ import PropTypes from 'prop-types';
 const ProtectedRoute = ({ element, allowedRoles }) => {
     const { isAuthenticated, user } = useAuth();
 
-    // Check if the user is authenticated and has the required role
-    const userRole = user?.is_admin ? 'admin' : 'user';
+    // Determine the user's role, defaulting to 'user' if user is not defined
+    const userRole = user?.role ? 'admin' : 'user';
     const hasAccess = isAuthenticated && (!allowedRoles || allowedRoles.includes(userRole));
 
     return hasAccess ? element : <Navigate to="/login" />;

@@ -11,55 +11,47 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
     try {
         const data = await login(email, password);
         console.log('API Response:', JSON.stringify(data, null, 2));
 
-        // Check for customers in the response
         if (!data.customers || data.customers.length === 0) {
             throw new Error('No customer data found in the response.');
         }
 
-        // Extract the access token from the API response
         const token = data.access_token || localStorage.getItem('access_token');
         if (!token) {
             throw new Error('No access token found.');
         }
 
+        console.log('Token Retrieved:', token); // Log the token for debugging
+
         // Decode the token
         const decoded = jwtDecode(token);
         console.log('Decoded Token:', decoded);
 
-        // Check expiration and not before
         const currentTime = Math.floor(Date.now() / 1000);
         if (decoded.exp < currentTime) {
-            console.error('Token has expired');
             throw new Error('Token has expired. Please log in again.');
         }
         if (decoded.nbf && decoded.nbf > currentTime) {
-            console.error('Token is not yet valid');
             throw new Error('Token is not yet valid. Please wait until it is active.');
         }
 
         const user = data.customers[0];
-        console.log('User Object:', user);
-
         if (!user || !user.role) {
             throw new Error('User role is not defined in the response.');
         }
 
-        // Store user role and navigate accordingly
         loginUser(user, user.role);
-        localStorage.setItem('access_token', token); // Store token in local storage
+        localStorage.setItem('access_token', token);
 
-        // Use the redirect_url from the API response, if available
         const redirectUrl = data.redirect_url || (user.role === 'admin' ? '/admin-dashboard' : user.role === 'technician' ? '/technician' : '/services');
-
-        window.location.href = redirectUrl; // Redirect to the determined URL
+        window.location.href = redirectUrl;
     } catch (err) {
         console.error('Login Error:', err);
         setError(err.message || 'Login failed. Please try again.');
