@@ -137,32 +137,50 @@ class TechnicianResource(Resource):
         data = request.json
         logging.info(f"Received technician data: {data}")
 
-        required_fields = ['username', 'password', 'email', 'phone', 'image_path', 'occupation']
+        required_fields = ['username', 'password', 'email', 'phone', 'image_path', 'occupation', 'history', 'realisations']
         for field in required_fields:
             if field not in data:
                 return {'error': f'Missing {field}'}, 400
-        
-        new_technician = Technician(
-            username=data['username'],
-            password=generate_password_hash(data['password']),
-            email=data['email'],
-            phone=data['phone'],
-            image_path=data['image_path'],
-            occupation=data['occupation']
-        )
 
-        db.session.add(new_technician)
-        db.session.commit()
-        return {'message': 'Technician created successfully!', 'technician_id': new_technician.id}, 201
+        # Here you could add more validation for email and phone format
+
+        try:
+            new_technician = Technician(
+                username=data['username'],
+                password=generate_password_hash(data['password']),
+                email=data['email'],
+                phone=data['phone'],
+                image_path=data['image_path'],
+                occupation=data['occupation'],
+                history=data['history'],
+                realisations=data['realisations'],
+            )
+
+            db.session.add(new_technician)
+            db.session.commit()
+            response_data = {'message': 'Technician created successfully!', 'technician_id': new_technician.to_dict()}
+            
+            logging.info(f"Response data: {response_data}")
+            return response_data, 201
+
+        except Exception as e:
+            logging.error(f"Error creating technician: {e}")
+            return {'error': 'Failed to create technician'}, 500
 
     @role_required('admin')
     def delete(self, technician_id):
         technician = Technician.query.get(technician_id)
         if not technician:
             return {'error': 'Technician not found'}, 404
-        db.session.delete(technician)
-        db.session.commit()
-        return {'message': 'Technician deleted successfully!'}, 200
+
+        try:
+            db.session.delete(technician)
+            db.session.commit()
+            return {'message': 'Technician deleted successfully!'}, 200
+
+        except Exception as e:
+            logging.error(f"Error deleting technician: {e}")
+            return {'error': 'Failed to delete technician'}, 500
 
 class UserResource(Resource):
     @role_required('admin')
@@ -416,16 +434,13 @@ class TechnicianRequests(Resource):
             image_path=file_path,
             id_admin=id_admin
         )
-
-        try:
-            db.session.add(new_service)
-            db.session.commit()
-            service_schema = ServiceSchema()
-            return {'message': 'Service created successfully!', 'service': service_schema.dump(new_service)}, 201
-        except Exception as e:
-            db.session.rollback()
-            logging.error(f"Error creating service: {e}")
-            return {'error': 'Failed to create service'}, 500
+        
+        db.session.add(new_service)
+        db.session.commit()
+        
+        return {
+            'message': 'User created successfully!',
+       },201
 
 class RequestResource(Resource):
     @role_required('customer', 'technician', 'admin')
