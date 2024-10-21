@@ -1,34 +1,37 @@
 from app import app, db
 from models import Service, Blog, ClientRequest, Users, PaymentService, Admin, Technician
+from werkzeug.security import generate_password_hash # type: ignore
 
 def seed_users():
-    if not Admin.query.first():  # Check if any Admin exists
+    if not Admin.query.first():
         example_admin = Admin(
             username='admin',
             email='admin@gmail.com',
             phone='+254-719-403-222',
-            password='securepassword',
+            password=generate_password_hash('securepassword'),  # Hashing password
             image_path='uploads/admin.jpg',
             role='admin'
         )
         db.session.add(example_admin)
 
-    if not Technician.query.first():  # Check if any Technician exists
+    if not Technician.query.first():
         example_technician = Technician(
             username='Jared',
-            password='jared123',
+            password=generate_password_hash('jared123'),  # Hashing password
             email='jared@example.com',
             phone='+254-719-405-000',
             image_path='uploads/jared.jpg',
             role='technician',
-            occupation='Plumber'
+            occupation='Plumber',
+            history='I have been a plumber for 10 years.',
+            realizations=10
         )
         db.session.add(example_technician)
 
-    if not Users.query.first():  # Check if any Users exists
+    if not Users.query.first(): 
         example_customer = Users(
             username='customer1',
-            password='customer123',
+            password=generate_password_hash('customer123'),
             email='customer@example.com',
             phone='+254-719-405-111',
             role='customer'
@@ -39,37 +42,33 @@ def seed_users():
     print("Sample users created!")
 
 def seed_user_requests():
-    if not ClientRequest.query.first():  # Check if any UserRequest exists
-        # Use the first client created as an example for requests
+    if not ClientRequest.query.first():
         example_user = Users.query.first()
         if not example_user:
             print("No Users found, UserRequest cannot be created.")
             return
 
-        # Create a sample service
         example_service = Service(
             service_type='Plumbing',
             description="Our plumbing services cover a wide range of needs.",
             image_path='uploads/plomberie.jpg',
         )
         db.session.add(example_service)
-        db.session.commit()  # Commit to get the service ID
+        db.session.commit()
 
-        # Creating a user request
         example_request = ClientRequest(
-            user_id=example_user.id,  # Use the first user ID
-            service_id=example_service.id,  # Use the service ID created above
+            user_id=example_user.id,
+            service_id=example_service.id,
             description='I need help with plumbing.'
         )
         db.session.add(example_request)
-        db.session.commit()  # Commit to get the user request ID
+        db.session.commit()
 
-        # Create a sample payment service
         example_payment = PaymentService(
-            service_id=example_service.id,  # Use service ID
-            customer_id=example_user.id,     # Use customer ID
-            user_request_id=example_request.id,  # Assign the user request ID
-            amount=100.00,                   # Example amount
+            service_id=example_service.id,
+            customer_id=example_user.id,
+            user_request_id=example_request.id,
+            amount=100.00,
             phone='+254-719-405-222'
         )
         db.session.add(example_payment)
@@ -108,9 +107,9 @@ def seed_blogs():
 def seed_db():
     with app.app_context():
         db.create_all()
-        seed_users()         # Seed users first
-        seed_user_requests()  # Seed user requests after users
-        seed_blogs()         # Seed blogs last
+        seed_users()
+        seed_user_requests()
+        seed_blogs()
 
 if __name__ == '__main__':
-    seed_db() 
+    seed_db()
