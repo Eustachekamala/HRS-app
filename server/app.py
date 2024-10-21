@@ -44,6 +44,28 @@ blacklist = set()
 class Upload(Resource):
     def get(self, filename):
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    
+class AdminaddService(Resource):
+    @jwt_required()
+    def post(self):
+        data = request.json
+        logging.info(f"Received service data: {data}")
+        
+        required_fields = ['service_type', 'description', 'image_path']
+        for field in required_fields:
+            if field not in data:
+                return {'error': f'Missing {field}'}, 400
+        
+        new_service = Service(
+            service_type=data['service_type'],
+            description=data['description'],
+            image_path=data['image_path'],
+            admin_id=get_jwt_identity()['id']
+        )
+        
+        db.session.add(new_service)
+        db.session.commit()
+        return {'message': 'Service created successfully!', 'service_id': new_service.to_dict()}, 201
 
 
 @jwt.token_in_blocklist_loader
@@ -137,50 +159,32 @@ class TechnicianResource(Resource):
         data = request.json
         logging.info(f"Received technician data: {data}")
 
-        required_fields = ['username', 'password', 'email', 'phone', 'image_path', 'occupation', 'history', 'realisations']
+        required_fields = ['username', 'password', 'email', 'phone', 'image_path', 'occupation']
         for field in required_fields:
             if field not in data:
                 return {'error': f'Missing {field}'}, 400
+        
+        new_technician = Technician(
+            username=data['username'],
+            password=generate_password_hash(data['password']),
+            email=data['email'],
+            phone=data['phone'],
+            image_path=data['image_path'],
+            occupation=data['occupation']
+        )
 
-        # Here you could add more validation for email and phone format
-
-        try:
-            new_technician = Technician(
-                username=data['username'],
-                password=generate_password_hash(data['password']),
-                email=data['email'],
-                phone=data['phone'],
-                image_path=data['image_path'],
-                occupation=data['occupation'],
-                history=data['history'],
-                realisations=data['realisations'],
-            )
-
-            db.session.add(new_technician)
-            db.session.commit()
-            response_data = {'message': 'Technician created successfully!', 'technician_id': new_technician.to_dict()}
-            
-            logging.info(f"Response data: {response_data}")
-            return response_data, 201
-
-        except Exception as e:
-            logging.error(f"Error creating technician: {e}")
-            return {'error': 'Failed to create technician'}, 500
+        db.session.add(new_technician)
+        db.session.commit()
+        return {'message': 'Technician created successfully!', 'technician_id': new_technician.id}, 201
 
     @role_required('admin')
     def delete(self, technician_id):
         technician = Technician.query.get(technician_id)
         if not technician:
             return {'error': 'Technician not found'}, 404
-
-        try:
-            db.session.delete(technician)
-            db.session.commit()
-            return {'message': 'Technician deleted successfully!'}, 200
-
-        except Exception as e:
-            logging.error(f"Error deleting technician: {e}")
-            return {'error': 'Failed to delete technician'}, 500
+        db.session.delete(technician)
+        db.session.commit()
+        return {'message': 'Technician deleted successfully!'}, 200
 
 class UserResource(Resource):
     @role_required('admin')
@@ -434,13 +438,16 @@ class TechnicianRequests(Resource):
             image_path=file_path,
             id_admin=id_admin
         )
-        
-        db.session.add(new_service)
-        db.session.commit()
-        
-        return {
-            'message': 'User created successfully!',
-       },201
+
+        try:
+            db.session.add(new_service)
+            db.session.commit()
+            service_schema = ServiceSchema()
+            return {'message': 'Service created successfully!', 'service': service_schema.dump(new_service)}, 201
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Error creating service: {e}")
+            return {'error': 'Failed to create service'}, 500
 
 class RequestResource(Resource):
     @role_required('customer', 'technician', 'admin')
@@ -548,6 +555,7 @@ api.add_resource(CustomerResource, '/customers', '/customers/<int:customer_id>')
 api.add_resource(RefreshTokenResource, '/refresh_token')
 api.add_resource(LogoutResource, '/logout')
 api.add_resource(Upload, '/uploads/<path:filename>')
+api.add_resource(AdminaddService, '/admin/services')
 api.add_resource(TechnicianRequests, '/api/technician/<int:technician_id>/requests')
 
 # Error handling

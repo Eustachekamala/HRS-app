@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import jwtDecode from 'jwt-decode';
 import { fetchServices } from '../api';
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 // Utility function to check if the token is expired
 const isTokenExpired = (token) => {

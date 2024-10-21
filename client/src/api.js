@@ -196,13 +196,21 @@ export const fetchServices = async () => {
     }
 };
 
-export const fetchRequests = async () => {
+export const fetchRequests = async (token) => {
+    if (!token) {
+        throw new Error("No token provided");
+    }
+
     try {
-        const response = await apiClient.get('/requests');
+        const response = await apiClient.get('/requests', {
+            headers: {
+                Authorization: `Bearer ${token}`, // Ensure the token is formatted correctly
+            },
+        });
         return response.data;
     } catch (error) {
         console.error("Error fetching requests:", error.response?.data || error.message);
-        throw error;
+        throw error; // Rethrow the error for handling in the calling function
     }
 };
 
@@ -271,6 +279,21 @@ export const fetchPaymentServices = async () => {
         }
         
         throw error; // Rethrow the error if it's not an HTTP error
+    }
+};
+
+export const processPayment = async (token, paymentData) => {
+    try {
+        const response = await apiClient.post('/payment/', paymentData, {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error:', error.response?.data || error.message);
+        throw error; // Propagate the error
     }
 };
 

@@ -7,7 +7,7 @@ const UserPanel = () => {
 
     useEffect(() => {
         // Fetch the user's own service requests
-        axios.get('/api/my-requests').then(response => {
+        axios.get('/api/user/requests').then((response) => {
             setUserRequests(response.data);
         });
     }, []);

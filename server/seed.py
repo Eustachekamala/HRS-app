@@ -1,6 +1,6 @@
 from app import app, db
 from models import Service, Blog, ClientRequest, Users, PaymentService, Admin, Technician
-from werkzeug.security import generate_password_hash # type: ignore
+from werkzeug.security import generate_password_hash  # type: ignore
 
 def seed_users():
     if not Admin.query.first():
@@ -8,16 +8,16 @@ def seed_users():
             username='admin',
             email='admin@gmail.com',
             phone='+254-719-403-222',
-            password=generate_password_hash('securepassword'),  # Hashing password
+            password=generate_password_hash('securepassword'),
             image_path='uploads/admin.jpg',
             role='admin'
         )
         db.session.add(example_admin)
 
-    if not Technician.query.first():
-        example_technician = Technician(
+    technicians = [
+        Technician(
             username='Jared',
-            password=generate_password_hash('jared123'),  # Hashing password
+            password=generate_password_hash('jared123'), 
             email='jared@example.com',
             phone='+254-719-405-000',
             image_path='uploads/jared.jpg',
@@ -25,14 +25,72 @@ def seed_users():
             occupation='Plumber',
             history='I have been a plumber for 10 years.',
             realizations=10
+        ),
+        Technician(
+            username='Alice',
+            password=generate_password_hash('alice123'),
+            email='alice@example.com',
+            phone='+254-719-405-001',
+            image_path='uploads/alice.jpg',
+            role='technician',
+            occupation='Electrician',
+            history='Experienced electrician with over 8 years in the field.',
+            realizations=15
+        ),
+        Technician(
+            username='Bob',
+            password=generate_password_hash('bob123'),
+            email='bob@example.com',
+            phone='+254-719-405-665',
+            image_path='uploads/bob.jpg',
+            role='technician',
+            occupation='HVAC Specialist',
+            history='Specializing in heating and cooling systems for 12 years.',
+            realizations=20
+        ),
+        Technician(
+            username='Claire',
+            password=generate_password_hash('claire123'),
+            email='claire@example.com',
+            phone='+254-719-456-043',
+            image_path='uploads/claire.jpg',
+            role='technician',
+            occupation='Carpenter',
+            history='Skilled carpenter with 15 years of experience.',
+            realizations=25
+        ),
+        Technician(
+            username='David',
+            password=generate_password_hash('david123'),
+            email='david@example.com',
+            phone='+254-719-433-033',
+            image_path='uploads/david.jpg',
+            role='technician',
+            occupation='Mason',
+            history='Mason with extensive experience in residential and commercial projects.',
+            realizations=30
+        ),
+        Technician(
+            username='Eva',
+            password=generate_password_hash('eva123'),
+            email='eva@example.com',
+            phone='+254-719-505-035',
+            image_path='uploads/eva.jpg',
+            role='technician',
+            occupation='Roofer',
+            history='Experienced roofer with a focus on quality and safety.',
+            realizations=18
         )
-        db.session.add(example_technician)
+    ]
+
+    for tech in technicians:
+        db.session.add(tech)
 
     if not Users.query.first(): 
         example_customer = Users(
-            username='customer1',
+            username='victoria',
             password=generate_password_hash('customer123'),
-            email='customer@example.com',
+            email='victoria@example.com',
             phone='+254-719-405-111',
             role='customer'
         )
@@ -48,13 +106,44 @@ def seed_user_requests():
             print("No Users found, UserRequest cannot be created.")
             return
 
-        example_service = Service(
-            service_type='Plumbing',
-            description="Our plumbing services cover a wide range of needs.",
-            image_path='uploads/plomberie.jpg',
-        )
-        db.session.add(example_service)
+        # Create six services related to engineering repairs
+        services = [
+            Service(
+                service_type='Plumbing',
+                description="Our plumbing services cover a wide range of needs.",
+                image_path='uploads/plomberie.jpg',
+            ),
+            Service(
+                service_type='Electrical Work',
+                description="Expert electrical services for all your needs.",
+                image_path='uploads/electrical.jpg',
+            ),
+            Service(
+                service_type='HVAC Repair',
+                description="Efficient heating and cooling system repairs.",
+                image_path='uploads/hvac.jpg',
+            ),
+            Service(
+                service_type='Carpentry',
+                description="Custom carpentry solutions for your home.",
+                image_path='uploads/carpentry.jpg',
+            ),
+            Service(
+                service_type='Masonry',
+                description="Professional masonry for durable structures.",
+                image_path='uploads/masonry.jpg',
+            ),
+            Service(
+                service_type='Roofing',
+                description="Reliable roofing solutions to protect your home.",
+                image_path='uploads/roofing.jpg',
+            )
+        ]
+
+        db.session.bulk_save_objects(services)
         db.session.commit()
+
+        example_service = Service.query.first()
 
         example_request = ClientRequest(
             user_id=example_user.id,
@@ -74,7 +163,7 @@ def seed_user_requests():
         db.session.add(example_payment)
 
         db.session.commit()
-        print("Sample UserRequest, Service, and PaymentService created!")
+        print("Sample UserRequest, Services, and PaymentService created!")
     else:
         print("UserRequest already exists, skipping creation.")
 
