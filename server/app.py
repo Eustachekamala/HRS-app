@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 import logging 
 import os
-from flask import Flask, request, jsonify, redirect, url_for, send_from_directory # type: ignore
+from flask import Flask, request, jsonify, redirect, url_for # type: ignore
 from flask_sqlalchemy import SQLAlchemy # type: ignore
 from flask_migrate import Migrate # type: ignore
 from flask_cors import CORS # type: ignore
@@ -14,6 +14,13 @@ from models import db, Admin, Technician, Service, ClientRequest, Blog, PaymentS
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, get_jwt, jwt_required, get_jwt_identity # type: ignore
 from dotenv import load_dotenv
 from marshmallow import Schema, fields  # type: ignore
+from flask_cors import CORS
+from flask_jwt_extended import JWTManager
+
+
+
+app = Flask(__name__)
+CORS(app)
 
 load_dotenv()
 
@@ -28,7 +35,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///home_repair_service.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY','d0125980dce744babe622a0f6e40caf6')
+app.config['JWT_SECRET_KEY'] = 'your-secret-key'  # Change this to a secure secret key
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
 
@@ -36,38 +43,13 @@ app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
+
+
 db.init_app(app)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
 
 blacklist = set()
-
-# Route to serve uploaded files
-class Upload(Resource):
-    def get(self, filename):
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-    
-class AdminaddService(Resource):
-    @jwt_required()
-    def post(self):
-        data = request.json
-        logging.info(f"Received service data: {data}")
-        
-        required_fields = ['service_type', 'description', 'image_path']
-        for field in required_fields:
-            if field not in data:
-                return {'error': f'Missing {field}'}, 400
-        
-        new_service = Service(
-            service_type=data['service_type'],
-            description=data['description'],
-            image_path=data['image_path'],
-            admin_id=get_jwt_identity()['id']
-        )
-        
-        db.session.add(new_service)
-        db.session.commit()
-        return {'message': 'Service created successfully!', 'service_id': new_service.to_dict()}, 201
 
 
 @jwt.token_in_blocklist_loader
@@ -141,9 +123,7 @@ class AdminResource(Resource):
 
 class TechnicianResource(Resource):
     # @role_required('admin', 'technician')
-    @jwt_required()
     def get(self):
-        print(request.headers)
         try:
             technicians = Technician.query.all()
             if not technicians:
@@ -225,17 +205,12 @@ class UserResource(Resource):
 class CustomerResource(Resource):
     @role_required('customer', 'admin')
     def get(self, customer_id=None):
-        try:
-            if customer_id:
-                customer = Users.query.get_or_404(customer_id)
-                return jsonify(customer.to_dict()), 200
-            else:
-                customers = Users.query.filter_by(role='customer').all()
-                return {'customers': [customer.to_dict() for customer in customers]}, 200
-        except Exception as e:
-            # Log the error for debugging (you may want to use logging instead)
-            print(f"Error fetching customers: {str(e)}")
-            return jsonify({'message': 'Internal Server Error'}), 500
+        if customer_id:
+            customer = Users.query.get_or_404(customer_id)
+            return customer.to_dict(), 200
+        else:
+            customers = Users.query.filter_by(role='customer').all()
+            return {'customers': [customer.to_dict() for customer in customers]}, 200
 
     @role_required('customer')
     def put(self, customer_id):
@@ -326,7 +301,6 @@ class LoginResource(Resource):
         except Exception as e:
             logging.error(f'Login error: {str(e)}')
             return {'error': 'An error occurred during login.'}, 500
-
 class ProtectedResource(Resource):
     @jwt_required()
     def get(self):
@@ -366,8 +340,7 @@ class RefreshTokenResource(Resource):
         new_access_token = create_access_token(identity=current_user, expires_delta=timedelta(days=1))
 
         # Return the new access token as a JSON response
-        return {'access_token': new_access_token}, 200  # Return
-
+        return jsonify({'access_token': new_access_token}), 200
 class SignupResource(Resource):
     def post(self):
         try:
@@ -377,10 +350,20 @@ class SignupResource(Resource):
             username = data.get('username')
             phone = data.get('phone')
             role = data.get('role')
+            admin_code = data.get('adminCode')
 
-            # Check if the email already exists
+            # Validate required fields
+            if not all([email, password, username, role]):
+                return {'error': 'Missing required fields.'}, 400
+
+            # Check if email exists
             if Users.query.filter_by(email=email).first():
                 return {'error': 'Email already exists.'}, 400
+
+            # Validate admin signup
+            if role == 'admin':
+                if not admin_code or admin_code != 'your_admin_code':
+                    return {'error': 'Invalid admin code.'}, 400
 
             # Create new user
             hashed_password = generate_password_hash(password)
@@ -435,7 +418,7 @@ class SignupResource(Resource):
             db.session.rollback()
             logging.error(f'Signup error: {str(e)}')
             return {'error': 'An error occurred during signup.'}, 500
-        
+
         
 class LogoutResource(Resource):
     @jwt_required()
@@ -443,7 +426,6 @@ class LogoutResource(Resource):
         jti = get_jwt()["jti"]  # Get the token identifier (JTI)
         blacklist.add(jti)  # Add JTI to the blacklist
         return {"msg": "Successfully logged out"}, 200
-
 
 class ServiceResource(Resource):
     # @role_required('admin', 'technician')
@@ -508,55 +490,6 @@ class ServiceResource(Resource):
             db.session.rollback()
             logging.error(f"Error creating service: {e}")
             return {'error': 'Failed to create service'}, 500
-        
-# To get all requests for a technician
-class TechnicianRequests(Resource):
-    def get(self, technician_id):
-        requests = ClientRequest.query.filter_by(technician_id=technician_id).all()
-        return jsonify([{'id': r.id, 'description': r.description, 'status': r.status} for r in requests])
-
-    @role_required('admin')
-    def post(self):
-        # JWT validation handled by the decorator
-        current_user = get_jwt_identity()  # Optional: get user details if needed
-        
-        if 'file' not in request.files:
-            return {'error': 'No file part'}, 400
-        
-        file = request.files['file']
-        if file.filename == '':
-            return {'error': 'No selected file'}, 400
-        
-        service_type = request.form.get('service_type')
-        description = request.form.get('description')
-        id_admin = request.form.get('id_admin')
-        
-        if not service_type or not description:
-            return {'error': 'service_type and description are required'}, 400
-        
-        if id_admin is None:
-            return {'error': 'Admin ID is required'}, 400
-
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
-
-        new_service = Service(
-            service_type=service_type,
-            description=description,
-            image_path=file_path,
-            id_admin=id_admin
-        )
-
-        try:
-            db.session.add(new_service)
-            db.session.commit()
-            service_schema = ServiceSchema()
-            return {'message': 'Service created successfully!', 'service': service_schema.dump(new_service)}, 201
-        except Exception as e:
-            db.session.rollback()
-            logging.error(f"Error creating service: {e}")
-            return {'error': 'Failed to create service'}, 500
 
 class RequestResource(Resource):
     @role_required('customer', 'technician', 'admin')
@@ -589,26 +522,17 @@ class RequestResource(Resource):
         return {'message': 'Service request created successfully!', 'request_id': new_request.id}, 201
 
 class PaymentResource(Resource):
-    @jwt_required()
+    @role_required('admin')
     def get(self, request_id=None):
-        try:
-            if request_id is not None:
-                # Fetch a specific client request by ID
-                request = ClientRequest.query.get_or_404(request_id)
-                payment_data = request.to_dict()  # Convert to dictionary using to_dict()
-                logging.info(f"Payment data: {payment_data}")
-                return payment_data, 200  # Return the dictionary directly
-            
-            else:
-                # Fetch all client requests
-                requests = ClientRequest.query.all()
-                # Return a list of request dictionaries
-                return {'requests': [req.to_dict() for req in requests]}, 200
-            
-        except Exception as e:
-            logging.error(f"Error fetching payment data: {str(e)}")  # Log the error
-            return {'message': 'Internal Server Error'}, 500  # Return a JSON-compatible error message
-
+        if request_id is not None:
+            request = ClientRequest.query.get_or_404(request_id)
+            payment_data = request.to_dict()
+            logging.info(f"Payment data: {payment_data}")
+            return payment_data, 200
+        else:
+            requests = ClientRequest.query.all()
+            return {'requests': [req.to_dict() for req in requests]}, 200
+    
     @role_required('admin')
     def post(self):
         data = request.json
@@ -617,20 +541,18 @@ class PaymentResource(Resource):
         required_fields = ['service_id', 'payment_method', 'amount']
         for field in required_fields:
             if field not in data:
-                return jsonify({'error': f'Missing {field}'}), 400  # Use jsonify
+                return {'error': f'Missing {field}'}, 400
 
         new_payment = PaymentService(
             service_id=data['service_id'],
-            customer_id=data['customer_id'],
-            user_request_id=data['user_request_id'],
+            payment_method=data['payment_method'],
             amount=data['amount'],
-            phone=data['phone'],
-            # payment_method=data['payment_method'],
+            id_admin=data.get('id_admin')
         )
 
         db.session.add(new_payment)
         db.session.commit()
-        return jsonify({'message': 'Payment created successfully!', 'payment_id': new_payment.id}), 201  # Use jsonify
+        return {'message': 'Payment created successfully!', 'payment_id': new_payment.id}, 201
 
 class BlogResource(Resource):
     # @jwt_required()
@@ -663,9 +585,6 @@ api.add_resource(ProtectedResource, '/protected_route')
 api.add_resource(CustomerResource, '/customers', '/customers/<int:customer_id>')
 api.add_resource(RefreshTokenResource, '/refresh_token')
 api.add_resource(LogoutResource, '/logout')
-api.add_resource(Upload, '/uploads/<path:filename>')
-api.add_resource(AdminaddService, '/admin/services')
-api.add_resource(TechnicianRequests, '/api/technician/<int:technician_id>/requests')
 
 # Error handling
 @app.errorhandler(400)
