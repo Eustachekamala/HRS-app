@@ -2,18 +2,18 @@ from datetime import datetime, timedelta
 from functools import wraps
 import logging 
 import os
-from flask import Flask, request, jsonify, redirect, url_for, send_from_directory # type: ignore
-from flask_sqlalchemy import SQLAlchemy # type: ignore
-from flask_migrate import Migrate # type: ignore
-from flask_cors import CORS # type: ignore
-from flask_restful import Resource, Api # type: ignore
+from flask import Flask, request, jsonify, redirect, url_for, send_from_directory 
+from flask_sqlalchemy import SQLAlchemy 
+from flask_migrate import Migrate 
+from flask_cors import CORS 
+from flask_restful import Resource, Api 
 from jwt import DecodeError, ExpiredSignatureError
-from werkzeug.utils import secure_filename # type: ignore
-from werkzeug.security import generate_password_hash, check_password_hash # type: ignore
+from werkzeug.utils import secure_filename 
+from werkzeug.security import generate_password_hash, check_password_hash 
 from models import db, Admin, Technician, Service, ClientRequest, Blog, PaymentService, Users , User
-from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, get_jwt, jwt_required, get_jwt_identity # type: ignore
+from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, get_jwt, jwt_required, get_jwt_identity 
 from dotenv import load_dotenv
-from marshmallow import Schema, fields  # type: ignore
+from marshmallow import Schema, fields  
 # from flask_cors import CORS
 # from flask_jwt_extended import JWTManager
 
@@ -31,7 +31,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "https://hrs-app.onrender.com", "allow_headers": ["Authorization", "Content-Type"]}})
 
 # Configure application
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://hrsdb_render:wxXeemVxqyW9E0M2ShysVXTiFRtuGGku@dpg-csbr86hu0jms73fh6b10-a/hrsdb_nov7'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
