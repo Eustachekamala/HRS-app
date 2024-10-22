@@ -29,7 +29,11 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "https://hrs-app.onrender.com", "allow_headers": ["Authorization", "Content-Type"]}})
 
 # Configure application
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://hrsdb_render:wxXeemVxqyW9E0M2ShysVXTiFRtuGGku@dpg-csbr86hu0jms73fh6b10-a/home_repair_service_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = (
+    'postgresql://hrsdb_render:wxXeemVxqyW9E0M2ShysVXTiFRtuGGku@'
+    'dpg-csbr86hu0jms73fh6b10-a.oregon-postgres.render.com:5432/home_repair_service_db?sslmode=require'
+)
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
@@ -353,7 +357,6 @@ class SignupResource(Resource):
             username = data.get('username')
             phone = data.get('phone')
             role = data.get('role')
-            admin_code = data.get('adminCode')
 
             # Validate required fields
             if not all([email, password, username, role]):
@@ -364,9 +367,9 @@ class SignupResource(Resource):
                 return {'error': 'Email already exists.'}, 400
 
             # Validate admin signup
-            if role == 'admin':
-                if not admin_code or admin_code != 'your_admin_code':
-                    return {'error': 'Invalid admin code.'}, 400
+            # if role == 'admin':
+            #     if not admin_code or admin_code != 'your_admin_code':
+            #         return {'error': 'Invalid admin code.'}, 400
 
             # Create new user
             hashed_password = generate_password_hash(password)
