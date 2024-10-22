@@ -31,7 +31,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000", "allow_headers": ["Authorization", "Content-Type"]}})
 
 # Configure application
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///home_repair_service.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://hrsdb_user:wBoT0IgPSM6f0jXIHyS5OzFmimQDHhQM@dpg-csbnimtds78s73bba1d0-a/hrsdb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024

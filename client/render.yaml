@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: niremind-frontend
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.15.1
+    autoDeploy: true
+    port: 3000
