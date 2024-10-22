@@ -12,7 +12,7 @@ const ServiceCard = ({ service }) => {
     };
 
     // Ensure image_path does not have 'uploads/' prefix
-    const imageUrl = `http://localhost:5000/uploads/${service.image_path.replace(/^uploads\//, '')}`;
+    const imageUrl = `https://hrs-app-1.onrender.com/uploads/${service.image_path.replace(/^uploads\//, '')}`;
 
     const handleRequestService = () => {
         // Navigate to the ServiceRequestForm

@@ -14,7 +14,7 @@ const TechnicianPanel = ({ technicianId }) => {
         const fetchRequests = async () => {
             if (technicianId) {
                 try {
-                    const response = await axios.get(`http://localhost:5000/api/technicians/${technicianId}/requests`);
+                    const response = await axios.get(`https://hrs-app-1.onrender.com/api/technicians/${technicianId}/requests`);
                     setAssignedRequests(response.data);
                 } catch (error) {
                     setError(error.message);

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import jwtDecode from 'jwt-decode';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = 'https://hrs-app-1.onrender.com';
 
 // Create an Axios instance
 const apiClient = axios.create({
@@ -223,7 +223,7 @@ export const fetchTechnicians = async () => {
     }
 
     try {
-        const response = await axios.get('http://localhost:5000/technicians', {
+        const response = await axios.get('https://hrs-app-1.onrender.com/technicians', {
             headers: {
                 Authorization: `Bearer ${token}`
             }
