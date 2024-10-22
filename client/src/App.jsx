@@ -21,6 +21,7 @@ import { fetchTechnicians as apiFetchTechnicians } from './api';
 import PaypalButton from './components/PaypalButton';
 import { useEffect, useState } from 'react';
 import TechnicianDetailPage from './pages/TechnicianDetailPage';
+import ServiceRequestForm from './components/ServiceRequestForm';
 
 
 const App = () => {
@@ -73,6 +74,7 @@ const App = () => {
                 <Route path='/technician-detail' element={<TechnicianDetailPage />} />
                 <Route path='/technician-detail/:id' element={<TechnicianDetailPage />} />
                 <Route path='/technician-detail/:id/service-detail' element={<TechnicianDetailPage />} />
+                <Route path='/service-request-form' element={<ServiceRequestForm />} />
                 
 
                 {/* Admin Protected Route */}
