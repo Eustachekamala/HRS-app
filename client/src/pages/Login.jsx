@@ -85,7 +85,7 @@ const Login = () => {
             if (decoded.role === 'admin') {
                 navigate('/admin-dashboard');  // Redirect to admin dashboard
             } else if (decoded.role === 'technician') {
-                navigate('/technician-panel');  // Redirect to technician page
+                navigate('/technician-panel');  
             } else {
                 navigate('/services');  // Redirect to services page
             }
@@ -94,7 +94,7 @@ const Login = () => {
             // loginUser(decoded); // If using context for global state
 
         } catch (err) {
-            console.error('Login process failed:', err);
+            console.error('Login process failed:', err);// Redirect to technician page
             setError(err.message || 'Login failed. Please check your credentials and try again.');
             localStorage.removeItem('access_token');
         } finally {

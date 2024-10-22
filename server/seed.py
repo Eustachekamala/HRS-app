@@ -1,187 +1,40 @@
-from app import app, db
-from models import Service, Blog, ClientRequest, Users, PaymentService, Admin, Technician
-from werkzeug.security import generate_password_hash  # type: ignore
+from app import app, db  # Import the app instance and db
+from models import Admin, Technician, Service, Blog
 
-def seed_users():
-    if not Admin.query.first():
-        example_admin = Admin(
-            username='admin',
-            email='admin@gmail.com',
-            phone='+254-719-403-222',
-            password=generate_password_hash('securepassword'),
-            image_path='uploads/admin.jpg',
-            role='admin'
-        )
-        db.session.add(example_admin)
+def seed_data():
+    try:
+        db.session.begin()
 
-    technicians = [
-        Technician(
-            username='Jared',
-            password=generate_password_hash('jared123'), 
-            email='jared@example.com',
-            phone='+254-719-405-000',
-            image_path='uploads/jared.jpg',
-            role='technician',
-            occupation='Plumber',
-            history='I have been a plumber for 10 years.',
-            realizations=10
-        ),
-        Technician(
-            username='Alice',
-            password=generate_password_hash('alice123'),
-            email='alice@example.com',
-            phone='+254-719-405-001',
-            image_path='uploads/alice.jpg',
-            role='technician',
-            occupation='Electrician',
-            history='Experienced electrician with over 8 years in the field.',
-            realizations=15
-        ),
-        Technician(
-            username='Bob',
-            password=generate_password_hash('bob123'),
-            email='bob@example.com',
-            phone='+254-719-405-665',
-            image_path='uploads/bob.jpg',
-            role='technician',
-            occupation='HVAC Specialist',
-            history='Specializing in heating and cooling systems for 12 years.',
-            realizations=20
-        ),
-        Technician(
-            username='Claire',
-            password=generate_password_hash('claire123'),
-            email='claire@example.com',
-            phone='+254-719-456-043',
-            image_path='uploads/claire.jpg',
-            role='technician',
-            occupation='Carpenter',
-            history='Skilled carpenter with 15 years of experience.',
-            realizations=25
-        ),
-        Technician(
-            username='David',
-            password=generate_password_hash('david123'),
-            email='david@example.com',
-            phone='+254-719-433-033',
-            image_path='uploads/david.jpg',
-            role='technician',
-            occupation='Mason',
-            history='Mason with extensive experience in residential and commercial projects.',
-            realizations=30
-        ),
-        Technician(
-            username='Eva',
-            password=generate_password_hash('eva123'),
-            email='eva@example.com',
-            phone='+254-719-505-035',
-            image_path='uploads/eva.jpg',
-            role='technician',
-            occupation='Roofer',
-            history='Experienced roofer with a focus on quality and safety.',
-            realizations=18
-        )
-    ]
+        # Check if the admin already exists
+        existing_admin = Admin.query.filter_by(email='admin@example.com').first()
+        if existing_admin is None:
+            # Create admin only if it doesn't exist
+            admin = Admin(username='admin_user', email='admin@example.com', phone='123456789', password='adminpassword', role='admin', image_path='admin.jpg')
+            db.session.add(admin)
 
-    for tech in technicians:
-        db.session.add(tech)
-
-    if not Users.query.first():
-        example_customer = Users(
-        username='victoria',
-        password=generate_password_hash('customer123'),
-        email='victoria@example.com',
-        phone='+254-719-405-111',
-        role='customer'
-    )
-    db.session.add(example_customer)
-    
-    # Create an admin user as well
-    example_admin = Users(
-        username='eustache',
-        password=generate_password_hash('eustache123@'),
-        email='eustache@gmail.com',
-        phone='+254-719-405-222',
-        role='admin'
-    )
-    db.session.add(example_admin)
-
-    db.session.commit()
-
-    print("Sample users created!")
-
-def seed_user_requests():
-    if not ClientRequest.query.first():
-        example_user = Users.query.first()
-        if not example_user:
-            print("No Users found, UserRequest cannot be created.")
-            return
-
-        # Create six services related to engineering repairs
-        services = [
-            Service(
-                service_type='Plumbing',
-                description="Our plumbing services cover a wide range of needs.",
-                image_path='uploads/plomberie.jpg',
-            ),
-            Service(
-                service_type='Electrical Work',
-                description="Expert electrical services for all your needs.",
-                image_path='uploads/electrical.jpg',
-            ),
-            Service(
-                service_type='HVAC Repair',
-                description="Efficient heating and cooling system repairs.",
-                image_path='uploads/hvac.jpg',
-            ),
-            Service(
-                service_type='Carpentry',
-                description="Custom carpentry solutions for your home.",
-                image_path='uploads/carpentry.jpg',
-            ),
-            Service(
-                service_type='Masonry',
-                description="Professional masonry for durable structures.",
-                image_path='uploads/masonry.jpg',
-            ),
-            Service(
-                service_type='Roofing',
-                description="Reliable roofing solutions to protect your home.",
-                image_path='uploads/roofing.jpg',
-            )
+        # Create technicians
+        technicians = [
+            Technician(username='tech_user_1', email='tech1@example.com', phone='987654321', password='techpassword', role='technician', image_path='tech1.jpg', occupation='Plumbing'),
+            Technician(username='tech_user_2', email='tech2@example.com', phone='456789123', password='techpassword', role='technician', image_path='tech2.jpg', occupation='Electrical'),
+            Technician(username='tech_user_3', email='tech3@example.com', phone='321654987', password='techpassword', role='technician', image_path='tech3.jpg', occupation='Carpentry'),
+            Technician(username='tech_user_4', email='tech4@example.com', phone='654321789', password='techpassword', role='technician', image_path='tech4.jpg', occupation='HVAC'),
         ]
+        db.session.add_all(technicians)
 
-        db.session.bulk_save_objects(services)
-        db.session.commit()
+        # Create services
+        services = [
+            Service(service_type='Plumbing', description='Fixing pipes and taps', image_path='plumbing.jpg'),
+            Service(service_type='Electrical', description='Wiring and repairs', image_path='electrical.jpg'),
+            Service(service_type='Carpentry', description='Furniture and structures', image_path='carpentry.jpg'),
+            Service(service_type='HVAC', description='Heating and cooling systems', image_path='hvac.jpg'),
+            Service(service_type='Landscaping', description='Garden design and maintenance', image_path='landscaping.jpg'),
+            Service(service_type='Cleaning', description='Residential and commercial cleaning', image_path='cleaning.jpg'),
+        ]
+        db.session.add_all(services)
 
-        example_service = Service.query.first()
-
-        example_request = ClientRequest(
-            user_id=example_user.id,
-            service_id=example_service.id,
-            description='I need help with plumbing.'
-        )
-        db.session.add(example_request)
-        db.session.commit()
-
-        example_payment = PaymentService(
-            service_id=example_service.id,
-            customer_id=example_user.id,
-            user_request_id=example_request.id,
-            amount=100.00,
-            phone='+254-719-405-222'
-        )
-        db.session.add(example_payment)
-
-        db.session.commit()
-        print("Sample UserRequest, Services, and PaymentService created!")
-    else:
-        print("UserRequest already exists, skipping creation.")
-
-def seed_blogs():
-    if not Blog.query.first():
-        blogs = [
-            Blog(title='How to Choose the Right Home Repair Service', 
+        # Create blog posts
+        blog_posts = [
+             Blog(title='How to Choose the Right Home Repair Service', 
                  description='Finding a reliable home repair service can be challenging. Here are some tips to help you make the best choice...', 
                  link='https://www.jimthehandyman.com/tips-for-choosing-best-handyman-service/#:~:text=The%20company%20that%20offers%20the,to%20avoid%20any%20future%20bummer.'),
             Blog(title='Top 5 Home Maintenance Tips', 
@@ -190,26 +43,23 @@ def seed_blogs():
             Blog(title='DIY Home Repair: When to Call a Professional', 
                  description='Not all home repairs are DIY. Learn when to tackle a job yourself and when to call in an expert.', 
                  link='https://www.fbfs.com/learning-center/diy-or-call-a-professional#:~:text=If%20a%20home%20renovation%20project,quickly%2C%20consider%20calling%20a%20professional.'),
-            Blog(title='Seasonal Home Maintenance Checklist', 
+             Blog(title='Seasonal Home Maintenance Checklist', 
                  description='Keep your home in great shape year-round with our seasonal maintenance checklist.', 
                  link='https://www.bhg.com/home-improvement/advice/home-maintenance-checklist/'),
-            Blog(title='How to Budget for Home Repairs', 
-                 description='Learn how to create a budget for home repairs and avoid unexpected costs.', 
-                 link='https://www.statefarm.com/simple-insights/residence/how-to-budget-and-save-for-home-maintenance#:~:text=Set%20aside%20a%20portion%20of,for%20a%20home%20maintenance%20fund.')
         ]
         
-        db.session.bulk_save_objects(blogs)
-        db.session.commit()
-        print("Blogs seeded!")
-    else:
-        print("Blogs already exist, skipping creation.")
+        db.session.add_all(blog_posts)
 
-def seed_db():
-    with app.app_context():
-        db.create_all()
-        seed_users()
-        seed_user_requests()
-        seed_blogs()
+        # Commit the session
+        db.session.commit()
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error seeding data: {e}")
+
+    finally:
+        db.session.close()
 
 if __name__ == '__main__':
-    seed_db()
+    with app.app_context():  # Use app context directly
+        seed_data()
