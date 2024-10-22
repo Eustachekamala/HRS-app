@@ -1,74 +1,104 @@
 import React, { useState } from 'react';
 import { useAuth } from '../configs/AuthContext';
-import { login, validateAndRefreshToken } from '../api';
+import { login } from '../api';
 import jwtDecode from 'jwt-decode';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const Login = () => {
     const { loginUser } = useAuth();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const navigate = useNavigate(); // Initialize useNavigate
+    const [formData, setFormData] = useState({
+        email: '',
+        password: ''
+    });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (e) => {
+    const validateTokenFormat = (token) => {
+        console.group('Token Validation');
+        // Basic checks
+        if (typeof token !== 'string') {
+            console.error('Token is not a string');
+            console.groupEnd();
+            return false;
+        }
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+            console.error('Token does not have three parts');
+            console.groupEnd();
+            return false;
+        }
+        try {
+            parts.forEach((part, index) => {
+                const padding = '='.repeat((4 - part.length % 4) % 4);
+                atob(part.replace(/-/g, '+').replace(/_/g, '/') + padding);
+            });
+        } catch (e) {
+            console.error('Failed to decode token parts:', e);
+            console.groupEnd();
+            return false;
+        }
+        console.log('Token format is valid');
+        console.groupEnd();
+        return true;
+    };
+
+    const decodeToken = (token) => {
+        try {
+            const decoded = jwtDecode(token);
+            return decoded;
+        } catch (error) {
+            throw new Error('Invalid token specified');
+        }
+    };
+
+     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
         try {
-            const data = await login(email, password);
-            console.log('API Response:', JSON.stringify(data, null, 2));
+            console.group('Login Request');
+            console.log('Credentials:', { email: formData.email });
 
-            if (!data.access_token) {
-                throw new Error('No access token returned from login.');
+            const response = await login(formData.email, formData.password);
+            console.log('Full API Response:', response);
+
+            const token = response.access_token || 
+                          response.token || 
+                          response.data?.access_token || 
+                          response.data?.token;
+
+            console.log('Raw token:', token);
+
+            if (!token) {
+                throw new Error('No authentication token received from server');
             }
 
-            const token = data.access_token;
-            console.log('Access Token:', token);
-
-            const validToken = await validateAndRefreshToken(token);
-            console.log('Valid Token:', validToken);
-
-            if (!validToken) {
-                throw new Error('Failed to validate access token.');
+            if (!validateTokenFormat(token)) {
+                throw new Error('Token format is invalid');
             }
 
-            let decoded;
-            try {
-                decoded = jwtDecode(validToken);
-                console.log('Decoded Token:', decoded);
-            } catch (error) {
-                throw new Error('Failed to decode token: ' + error.message);
+            const decoded = decodeToken(token); 
+
+            // Here you can decide the redirection based on the role
+            if (decoded.role === 'admin') {
+                navigate('/admin-dashboard');  // Redirect to admin dashboard
+            } else if (decoded.role === 'technician') {
+                navigate('/technician');  // Redirect to technician page
+            } else {
+                navigate('/services');  // Redirect to services page
             }
 
-            const currentTime = Math.floor(Date.now() / 1000);
-            if (decoded.exp < currentTime) {
-                throw new Error('Token has expired. Please log in again.');
-            }
+            // Optionally store the token or user data as needed
+            // loginUser(decoded); // If using context for global state
 
-            // Check for user data in the response
-            if (!data.customers || data.customers.length === 0) {
-                throw new Error('No user data returned from the API.');
-            }
-
-            const user = data.customers[0];
-            console.log('User Object:', user);
-
-            if (!user || !user.role) {
-                throw new Error('User role is not defined in the response.');
-            }
-
-            // Log the user in
-            loginUser(user, user.role);
-            localStorage.setItem('access_token', validToken);
-
-            // Redirect based on user role
-            const redirectUrl = data.redirect || (user.role === 'admin' ? '/admin-dashboard' : '/services');
-            window.location.href = redirectUrl; // Redirect to the appropriate page
         } catch (err) {
-            console.error('Login Error:', err);
-            setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
+            console.error('Login process failed:', err);
+            setError(err.message || 'Login failed. Please check your credentials and try again.');
+            localStorage.removeItem('access_token');
         } finally {
+            console.groupEnd();
             setLoading(false);
         }
     };
@@ -80,39 +110,58 @@ const Login = () => {
                 onSubmit={handleSubmit} 
                 className="bg-black bg-opacity-90 flex flex-col w-full max-w-md mx-auto p-6 rounded-lg shadow-md"
             >
-                {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+                {error && (
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                        <span className="block sm:inline">{error}</span>
+                    </div>
+                )}
                 
                 <input 
-                    type="email" 
-                    placeholder="Email" 
-                    value={email} 
-                    onChange={(e) => setEmail(e.target.value)} 
-                    required 
-                    className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full"
-                />
-                
-                <input 
-                    type="password" 
-                    placeholder="Password" 
-                    value={password} 
-                    onChange={(e) => setPassword(e.target.value)} 
+                    type="email"
+                    name="email"
+                    placeholder="Email"
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({...prev, email: e.target.value}))}
                     required
-                    className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full"
+                    className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full focus:outline-none focus:border-blue-500"
                 />
                 
-                <div className='flex flex-col items-center justify-center'>
-                    <button 
-                        type="submit" 
-                        className={`bg-blue-600 text-white px-6 py-3 rounded w-full shadow-md hover:bg-blue-700 transition ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        disabled={loading}
-                    >
-                        {loading ? 'Logging in...' : 'Login'}
-                    </button>
-                </div>
+                <input 
+                    type="password"
+                    name="password"
+                    placeholder="Password"
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({...prev, password: e.target.value}))}
+                    required
+                    className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full focus:outline-none focus:border-blue-500"
+                />
+                
+                <button 
+                    type="submit"
+                    className={`
+                        bg-blue-600 text-white px-6 py-3 rounded w-full shadow-md
+                        transition-all duration-200
+                        ${loading 
+                            ? 'opacity-50 cursor-not-allowed' 
+                            : 'hover:bg-blue-700 active:transform active:scale-98'
+                        }
+                    `}
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <span className="inline-flex items-center">
+                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Logging in...
+                        </span>
+                    ) : 'Login'}
+                </button>
                 
                 <p className="mt-4 text-center text-gray-300">
                     Don&apos;t have an account? 
-                    <a href="/signup" className="text-blue-300 hover:underline"> Sign up</a>
+                    <a href="/signup" className="text-blue-300 hover:underline ml-1">Sign up</a>
                 </p>
             </form>
         </div>

@@ -29,6 +29,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY','d0125980dce744babe622a0f6e40caf6')
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
 
 # Create uploads directory if it doesn't exist
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -254,48 +256,76 @@ class CustomerResource(Resource):
 
 class LoginResource(Resource):
     def post(self):
-        data = request.json
-        email = data.get('email')
-        password = data.get('password')
+        try:
+            data = request.json
+            email = data.get('email')
+            password = data.get('password')
 
-        if not email or not password:
-            return {'error': 'Email and password are required.'}, 400
+            if not email or not password:
+                return {'error': 'Email and password are required.'}, 400
 
-        user = (Admin.query.filter_by(email=email).first() or
-                Technician.query.filter_by(email=email).first() or
-                Users.query.filter_by(email=email).first())
-        
-        # Check if user was found
-        if user is None:
-            logging.warning(f"User not found: {email}")
+            # Try to find user in any of the user tables
+            user = (Admin.query.filter_by(email=email).first() or
+                   Technician.query.filter_by(email=email).first() or
+                   Users.query.filter_by(email=email).first())
+
+            if not user:
+                return {'error': 'User not found.'}, 404
+
+            logging.info(f'Login attempt - User ID: {user.id}, Role: {user.role}')
+
+            if check_password_hash(user.password, password):
+                # Create token identity with consistent structure
+                token_identity = {
+                    'id': user.id,
+                    'role': user.role,
+                    'email': user.email
+                }
+
+                # Create tokens with consistent claims
+                access_token = create_access_token(
+                    identity=token_identity,
+                    expires_delta=timedelta(days=1),
+                    additional_claims={'role': user.role}
+                )
+                
+                refresh_token = create_refresh_token(
+                    identity=token_identity,
+                    additional_claims={'role': user.role}
+                )
+
+                logging.info(f'Generated access token: {access_token}')
+                logging.info(f'Generated refresh token: {refresh_token}')
+
+                # Determine redirect URL based on role
+                if user.role == 'admin':
+                    redirect_url = url_for('admin_dashboard') if 'admin_dashboard' in app.view_functions else None
+                elif user.role == 'technician':
+                    redirect_url = url_for('technician_dashboard') if 'technician_dashboard' in app.view_functions else None
+                else:
+                    redirect_url = url_for('service_dashboard') if 'service_dashboard' in app.view_functions else None
+
+                # Convert user object to dictionary with consistent structure
+                user_dict = {
+                    'id': user.id,
+                    'email': user.email,
+                    'role': user.role,
+                    'username': getattr(user, 'username', None),
+                    'phone': getattr(user, 'phone', None)
+                }
+
+                return {
+                    'access_token': access_token,
+                    'refresh_token': refresh_token,
+                    'customers': [user_dict],
+                    'redirect': redirect_url
+                }, 200
+
             return {'error': 'Invalid credentials'}, 401
-        
-        logging.info(f'User ID: {user.id}, Role: {user.role}')
-        
-        # Verify password
-        if check_password_hash(user.password, password):
-            access_token = create_access_token(identity={'id': user.id, 'role': user.role}, expires_delta=timedelta(days=1))
-            refresh_token = create_refresh_token(identity={'id': user.id, 'role': user.role})
-            
-            print('Generated access token:', access_token)
-            print('Generated refresh token:', refresh_token)
-            
-            # Redirect URL based on user role
-            if user.role == 'admin':
-                redirect_url = url_for('adminresource')  # Use the correct endpoint name
-            elif user.role == 'technician':
-                redirect_url = url_for('technicianresource')  # Use the correct endpoint name
-            else:
-                redirect_url = url_for('serviceresource')  # Use the correct endpoint name
-            
-            return {
-                'access_token': access_token,
-                'refresh_token': refresh_token,
-                'customers': [user.to_dict()],
-                "redirect": redirect_url
-            }, 200
 
-        return {'error': 'Invalid credentials'}, 401
+        except Exception as e:
+            logging.error(f'Login error: {str(e)}')
+            return {'error': 'An error occurred during login.'}, 500
 
 class ProtectedResource(Resource):
     @jwt_required()
@@ -340,42 +370,71 @@ class RefreshTokenResource(Resource):
 
 class SignupResource(Resource):
     def post(self):
-        data = request.json
-        email = data.get('email')
-        password = data.get('password')
-        username = data.get('username')
-        phone = data.get('phone')
-        role = data.get('role')
+        try:
+            data = request.json
+            email = data.get('email')
+            password = data.get('password')
+            username = data.get('username')
+            phone = data.get('phone')
+            role = data.get('role')
 
-        # Check if the email already exists
-        if Users.query.filter_by(email=email).first():
-            return {'error': 'Email already exists.'}, 400
+            # Check if the email already exists
+            if Users.query.filter_by(email=email).first():
+                return {'error': 'Email already exists.'}, 400
 
-        # Hash the password
-        hashed_password = generate_password_hash(password)
+            # Create new user
+            hashed_password = generate_password_hash(password)
+            new_user = Users(
+                username=username,
+                email=email,
+                password=hashed_password,
+                phone=phone,
+                role=role
+            )
 
-        # Create a new user
-        new_user = Users(
-            username=username,
-            email=email,
-            password=hashed_password,
-            phone=phone,
-            role=role
-        )
-        
-        # Add and commit the new user to the database
-        db.session.add(new_user)
-        db.session.commit()
+            # Save to database
+            db.session.add(new_user)
+            db.session.commit()
 
-        # Generate JWT tokens
-        access_token = create_access_token(identity={'id': new_user.id, 'role': new_user.role})
-        refresh_token = create_refresh_token(identity={'id': new_user.id, 'role': new_user.role})
+            # Create token identity with consistent structure
+            token_identity = {
+                'id': new_user.id,
+                'role': new_user.role,
+                'email': new_user.email
+            }
 
-        return {
-            'message': 'User created successfully!',
-            'access_token': access_token,
-            'refresh_token': refresh_token
-        }, 201
+            # Generate tokens with consistent claims
+            access_token = create_access_token(
+                identity=token_identity,
+                expires_delta=timedelta(days=1),
+                additional_claims={'role': new_user.role}
+            )
+            
+            refresh_token = create_refresh_token(
+                identity=token_identity,
+                additional_claims={'role': new_user.role}
+            )
+
+            # Convert user object to dictionary
+            user_dict = {
+                'id': new_user.id,
+                'email': new_user.email,
+                'role': new_user.role,
+                'username': new_user.username,
+                'phone': new_user.phone
+            }
+
+            return {
+                'message': 'User created successfully!',
+                'access_token': access_token,
+                'refresh_token': refresh_token,
+                'customers': [user_dict]
+            }, 201
+
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f'Signup error: {str(e)}')
+            return {'error': 'An error occurred during signup.'}, 500
         
         
 class LogoutResource(Resource):
@@ -399,6 +458,56 @@ class ServiceResource(Resource):
             services_schema = ServiceSchema(many=True)
             services_data = services_schema.dump(services)
             return {'services': services_data}, 200
+
+    @role_required('admin')
+    def post(self):
+        # JWT validation handled by the decorator
+        current_user = get_jwt_identity()  # Optional: get user details if needed
+        
+        # Validate the presence of a file
+        if 'file' not in request.files:
+            return {'error': 'No file part'}, 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return {'error': 'No selected file'}, 400
+        
+        # Validate required form fields
+        service_type = request.form.get('service_type')
+        description = request.form.get('description')
+        id_admin = request.form.get('id_admin')
+        
+        if not service_type or not description:
+            return {'error': 'service_type and description are required'}, 400
+        
+        if id_admin is None:
+            return {'error': 'Admin ID is required'}, 400
+
+        # Secure the filename and save the file
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
+        try:
+            file.save(file_path)
+
+            # Create and save the new service
+            new_service = Service(
+                service_type=service_type,
+                description=description,
+                image_path=file_path,
+                id_admin=id_admin
+            )
+
+            db.session.add(new_service)
+            db.session.commit()
+
+            service_schema = ServiceSchema()
+            return {'message': 'Service created successfully!', 'service': service_schema.dump(new_service)}, 201
+        
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Error creating service: {e}")
+            return {'error': 'Failed to create service'}, 500
         
 # To get all requests for a technician
 class TechnicianRequests(Resource):
