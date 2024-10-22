@@ -7,15 +7,15 @@ const Signup = () => {
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
     const [phone, setPhone] = useState('');
-    const [role, setRole] = useState('customer');
+    const [role, setRole] = useState('user');
     const [adminCode, setAdminCode] = useState(''); // State for Admin-specific input
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false); // Loading state
+    // const [loading, setLoading] = useState(false); // Loading state
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true); // Set loading to true
+        // setLoading(true); // Set loading to true
         setError(''); // Reset error before submission
 
         try {
@@ -33,9 +33,10 @@ const Signup = () => {
             }
         } catch (err) {
             setError(err.response?.data?.error || 'Signup failed');
-        } finally {
-            setLoading(false); // Set loading to false after API call
-        }
+     } 
+        //finally {
+        //     setLoading(false); // Set loading to false after API call
+        // }
     };
 
     return (
@@ -88,7 +89,7 @@ const Signup = () => {
                             }} 
                             className="border text-blue-500 border-gray-300 p-3 w-full mb-4 rounded"
                         >
-                            <option value="customer">Customer</option>
+                            <option value="user">User</option>
                             <option value="admin">Admin</option>
                             <option value="technician">Technician</option>
                         </select>
