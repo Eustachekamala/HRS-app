@@ -10,25 +10,31 @@ const Signup = () => {
     const [role, setRole] = useState('user'); // Default role is set here
     const [adminCode, setAdminCode] = useState(''); // State for Admin-specific input
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false); // Loading state
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true); // Set loading to true
+        setError(''); // Reset error before submission
+
         try {
             // Send the role and admin code (if applicable) along with other signup data
-            const { success, error } = await signup(email, password, username, phone, role, role === 'admin' ? adminCode : null);
+            const response = await signup(email, password, username, phone, role, role === 'admin' ? adminCode : null);
+            console.log(response); // Log response for debugging
             
+            const { success, error } = response; // Destructure response
+
             if (success) {
-                if ( role === 'admin') {
-                    navigate('/admin'); // Redirect to admin page if admin
-                } else {
-                    navigate('/services'); // Redirect to services page if user
-                }
+                // After successful signup, navigate to login page
+                navigate('/login'); 
             } else {
                 setError(error || 'Signup failed');
             }
         } catch (err) {
             setError(err.response?.data?.error || 'Signup failed');
+        } finally {
+            setLoading(false); // Set loading to false after API call
         }
     };
 
