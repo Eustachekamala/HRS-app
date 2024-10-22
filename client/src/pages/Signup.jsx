@@ -10,7 +10,6 @@ const Signup = () => {
     const [role, setRole] = useState('user');
     const [adminCode, setAdminCode] = useState(''); // State for Admin-specific input
     const [error, setError] = useState('');
-    // const [loading, setLoading] = useState(false); // Loading state
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -106,12 +105,8 @@ const Signup = () => {
                             />
                         )}
 
-                        <button 
-                            type="submit" 
-                            className={`bg-blue-600 text-white px-6 py-3 rounded w-full shadow-md hover:bg-blue-700 transition duration-200 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            disabled={loading} // Disable button while loading
-                        >
-                            {loading ? 'Signing up...' : 'Signup'}
+                        <button type="submit" className="bg-blue-600 text-white px-6 py-3 rounded w-full shadow-md hover:bg-blue-700 transition duration-200">
+                            Signup
                         </button>
                     </div>
                 </form>
