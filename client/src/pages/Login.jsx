@@ -85,7 +85,7 @@ const Login = () => {
             if (decoded.role === 'admin') {
                 navigate('/admin-dashboard');  // Redirect to admin dashboard
             } else if (decoded.role === 'technician') {
-                navigate('/technician');  // Redirect to technician page
+                navigate('/technician-panel');  // Redirect to technician page
             } else {
                 navigate('/services');  // Redirect to services page
             }

@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 import logging 
 import os
-from flask import Flask, request, jsonify, redirect, url_for # type: ignore
+from flask import Flask, request, jsonify, redirect, url_for, send_from_directory # type: ignore
 from flask_sqlalchemy import SQLAlchemy # type: ignore
 from flask_migrate import Migrate # type: ignore
 from flask_cors import CORS # type: ignore
@@ -14,8 +14,8 @@ from models import db, Admin, Technician, Service, ClientRequest, Blog, PaymentS
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, get_jwt, jwt_required, get_jwt_identity # type: ignore
 from dotenv import load_dotenv
 from marshmallow import Schema, fields  # type: ignore
-from flask_cors import CORS
-from flask_jwt_extended import JWTManager
+# from flask_cors import CORS
+# from flask_jwt_extended import JWTManager
 
 
 
@@ -35,7 +35,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///home_repair_service.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-app.config['JWT_SECRET_KEY'] = 'your-secret-key'  # Change this to a secure secret key
+app.config['JWT_SECRET_KEY'] = 'd0125980dce744babe622a0f6e40caf6'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
 
@@ -95,6 +95,9 @@ class ServiceSchema(Schema):
     admin_id = fields.Int()
 
 # API Resources
+class Upload(Resource):
+    def get(self, filename):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename) 
 class Index(Resource):
     def get(self):
         app.logger.info('Hello endpoint was reached')
@@ -121,6 +124,7 @@ class AdminResource(Resource):
         db.session.commit()
         return {'message': 'Admin deleted successfully!'}, 200
 
+    
 class TechnicianResource(Resource):
     # @role_required('admin', 'technician')
     def get(self):
@@ -274,9 +278,9 @@ class LoginResource(Resource):
 
                 # Determine redirect URL based on role
                 if user.role == 'admin':
-                    redirect_url = url_for('admin_dashboard') if 'admin_dashboard' in app.view_functions else None
+                    redirect_url = url_for('admin-dashboard') if 'admin-dashboard' in app.view_functions else None
                 elif user.role == 'technician':
-                    redirect_url = url_for('technician_dashboard') if 'technician_dashboard' in app.view_functions else None
+                    redirect_url = url_for('technician-dashboard') if 'technician_dashboard' in app.view_functions else None
                 else:
                     redirect_url = url_for('service_dashboard') if 'service_dashboard' in app.view_functions else None
 
@@ -328,6 +332,7 @@ class ProtectedResource(Resource):
             return jsonify(message=f"Welcome, Users {current_user['id']}!"), 200
         else:
             return jsonify(message="Role not recognized."), 403
+        
 
 
 class RefreshTokenResource(Resource):
@@ -585,6 +590,7 @@ api.add_resource(ProtectedResource, '/protected_route')
 api.add_resource(CustomerResource, '/customers', '/customers/<int:customer_id>')
 api.add_resource(RefreshTokenResource, '/refresh_token')
 api.add_resource(LogoutResource, '/logout')
+api.add_resource(Upload, '/uploads/<path:filename>')
 
 # Error handling
 @app.errorhandler(400)

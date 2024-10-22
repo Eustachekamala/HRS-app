@@ -86,17 +86,28 @@ def seed_users():
     for tech in technicians:
         db.session.add(tech)
 
-    if not Users.query.first(): 
+    if not Users.query.first():
         example_customer = Users(
-            username='victoria',
-            password=generate_password_hash('customer123'),
-            email='victoria@example.com',
-            phone='+254-719-405-111',
-            role='customer'
-        )
-        db.session.add(example_customer)
+        username='victoria',
+        password=generate_password_hash('customer123'),
+        email='victoria@example.com',
+        phone='+254-719-405-111',
+        role='customer'
+    )
+    db.session.add(example_customer)
+    
+    # Create an admin user as well
+    example_admin = Users(
+        username='eustache',
+        password=generate_password_hash('eustache123@'),
+        email='eustache@gmail.com',
+        phone='+254-719-405-222',
+        role='admin'
+    )
+    db.session.add(example_admin)
 
     db.session.commit()
+
     print("Sample users created!")
 
 def seed_user_requests():
