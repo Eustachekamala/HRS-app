@@ -1,7 +1,6 @@
 services:
   - type: web
     name: niremind-frontend
-    env: node
     plan: free
     region: oregon
     buildCommand: npm install && npm run build
