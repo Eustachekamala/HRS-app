@@ -1,12 +1,12 @@
 from flask_sqlalchemy import SQLAlchemy  # type: ignore
-from sqlalchemy import func, String, Text, Numeric  # type: ignore
+from sqlalchemy import func, String, Text, Numeric, Integer  # type: ignore
 from sqlalchemy_serializer import SerializerMixin  # type: ignore
 from datetime import datetime
 from sqlalchemy.ext.declarative import declared_attr # type: ignore
 
 db = SQLAlchemy()
 
-class BaseModel(db.Model):
+class BaseModel(db.Model, SerializerMixin):
     """Base model with serialization capabilities."""
     __abstract__ = True
 
@@ -59,6 +59,8 @@ class Technician(User):
     __tablename__ = 'technicians'
     image_path = db.Column(String(255), nullable=False)
     occupation = db.Column(String(100), nullable=True)
+    history = db.Column(String, nullable=True)
+    realizations = db.Column(Integer, nullable=True) 
 
     user_requests = db.relationship('ClientRequest', back_populates='technician', cascade='all, delete-orphan')
 

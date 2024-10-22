@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import TechnicianList from '../components/TechnicianList';
+import { fetchTechnicians as apiFetchTechnicians } from '../api';
 
 const TechnicianPage = () => {
     const [technicians, setTechnicians] = useState([]);
@@ -12,10 +13,10 @@ const TechnicianPage = () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.get('http://0.0.0.0:5000/technician', {
+                const response = await apiFetchTechnicians({
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                     },
                 });
 

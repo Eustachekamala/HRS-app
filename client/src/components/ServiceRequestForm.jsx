@@ -23,7 +23,7 @@ const ServiceRequestForm = () => {
         })
         .then(response => {
             setSuccessMessage('Service request created successfully');
-            setServiceType(''); // Clear input fields after success
+            setServiceType('');
             setDescription('');
         })
         .catch(error => {
@@ -33,29 +33,33 @@ const ServiceRequestForm = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <div>
-                <label htmlFor="serviceType">Service Type</label>
+        <form onSubmit={handleSubmit} className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+            <div className="mb-4">
+                <label htmlFor="serviceType" className="block text-sm font-semibold mb-2">Service Type</label>
                 <input
                     id="serviceType"
                     name="serviceType"
                     type="text"
                     value={serviceType}
                     onChange={(e) => setServiceType(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
             </div>
-            <div>
-                <label htmlFor="description">Description</label>
+            <div className="mb-4">
+                <label htmlFor="description" className="block text-sm font-semibold mb-2">Description</label>
                 <textarea
                     id="description"
                     name="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
                 ></textarea>
             </div>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
-            <button type="submit">Submit Request</button>
+            {error && <p className="text-red-600 mb-4">{error}</p>}
+            {successMessage && <p className="text-green-600 mb-4">{successMessage}</p>}
+            <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition duration-200">
+                Submit Request
+            </button>
         </form>
     );
 };
