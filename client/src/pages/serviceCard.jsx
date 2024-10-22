@@ -12,7 +12,8 @@ const ServiceCard = ({ service }) => {
     // Ensure image_path does not have 'uploads/' prefix
     const imageUrl = `http://localhost:5000/uploads/${service.image_path.replace(/^uploads\//, '')}`;
 
-    return (
+   
+  return (
         <div className="flex flex-col justify-between border border-gray-700 rounded-lg shadow-md p-4 bg-gray-800">
             <h3 className="text-lg font-semibold text-white">{service.service_type}</h3>
             <p className="mt-1 text-gray-300 text-sm">
@@ -30,7 +31,7 @@ const ServiceCard = ({ service }) => {
                     className="mt-2 border border-gray-700 rounded-lg h-72 object-cover"
                     onError={(e) => {
                         e.target.onerror = null; // Prevents looping
-                        // e.target.src = 'path/to/placeholder/image.jpg'; // Set a placeholder image
+                        // e.target.src = 'path/to/placeholder/image.jpg'; 
                     }}
                 />
             )}

@@ -7,7 +7,7 @@ const Signup = () => {
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
     const [phone, setPhone] = useState('');
-    const [role, setRole] = useState('user'); // Default role is set here
+    const [role, setRole] = useState('customer');
     const [adminCode, setAdminCode] = useState(''); // State for Admin-specific input
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false); // Loading state
@@ -82,13 +82,13 @@ const Signup = () => {
                             value={role} 
                             onChange={(e) => {
                                 setRole(e.target.value);
-                                if (e.target.value === 'user') {
+                                if (e.target.value === 'customer') {
                                     setAdminCode(''); // Reset admin code when switching to user
                                 }
                             }} 
                             className="border text-blue-500 border-gray-300 p-3 w-full mb-4 rounded"
                         >
-                            <option value="user">User</option>
+                            <option value="customer">Customer</option>
                             <option value="admin">Admin</option>
                         </select>
                         
