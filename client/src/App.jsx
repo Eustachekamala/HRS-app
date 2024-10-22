@@ -13,6 +13,7 @@ import TechnicianList from './components/TechnicianList';
 import TechnicianPage from './pages/TechnicianPage';
 import AdminDashboard from './components/AdminDashboard';
 import TechnicianPanel from './components/TechnicianPannel';
+import AddTechnician from './pages/AddTechnician';
 import Login from './pages/Login'; 
 import Signup from './pages/Signup'; 
 import Signout from './pages/Signout'; 
@@ -22,6 +23,7 @@ import PaypalButton from './components/PaypalButton';
 import { useEffect, useState } from 'react';
 import TechnicianDetailPage from './pages/TechnicianDetailPage';
 import ServiceRequestForm from './components/ServiceRequestForm';
+import TechnicianServiceRequests from './components/TechnicianServiceReq';
 
 
 const App = () => {
@@ -75,6 +77,8 @@ const App = () => {
                 <Route path='/technician-detail/:id' element={<TechnicianDetailPage />} />
                 <Route path='/technician-detail/:id/service-detail' element={<TechnicianDetailPage />} />
                 <Route path='/service-request-form' element={<ServiceRequestForm />} />
+                <Route path='/add-technician' element={<AddTechnician />} />
+                <Route path='/technician-requests' element={<TechnicianServiceRequests />} />
                 
 
                 {/* Admin Protected Route */}

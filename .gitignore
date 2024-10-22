@@ -62,9 +62,6 @@ coverage.xml
 # Flask specific
 .flaskenv
 
-# Ignore local environment files
-.env
-
 # Ignore IDE and editor files
 *.swp
 *.swo

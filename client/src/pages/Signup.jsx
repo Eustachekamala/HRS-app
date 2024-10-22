@@ -90,6 +90,7 @@ const Signup = () => {
                         >
                             <option value="customer">Customer</option>
                             <option value="admin">Admin</option>
+                            <option value="technician">Technician</option>
                         </select>
                         
                         {/* Conditional Rendering for Admin Role */}
