@@ -28,10 +28,10 @@ load_dotenv()
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000", "allow_headers": ["Authorization", "Content-Type"]}})
+CORS(app, resources={r"/*": {"origins": "https://hrs-app.onrender.com", "allow_headers": ["Authorization", "Content-Type"]}})
 
 # Configure application
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///home_repair_service.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://hrsdb_user:wBoT0IgPSM6f0jXIHyS5OzFmimQDHhQM@dpg-csbnimtds78s73bba1d0-a/hrsdb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
@@ -495,6 +495,56 @@ class ServiceResource(Resource):
             db.session.rollback()
             logging.error(f"Error creating service: {e}")
             return {'error': 'Failed to create service'}, 500
+        
+
+# To get all requests for a technician
+class TechnicianRequests(Resource):
+    def get(self, technician_id):
+        requests = ClientRequest.query.filter_by(technician_id=technician_id).all()
+        return jsonify([{'id': r.id, 'description': r.description, 'status': r.status} for r in requests])
+
+    @role_required('admin')
+    def post(self):
+        # JWT validation handled by the decorator
+        current_user = get_jwt_identity()  # Optional: get user details if needed
+        
+        if 'file' not in request.files:
+            return {'error': 'No file part'}, 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return {'error': 'No selected file'}, 400
+        
+        service_type = request.form.get('service_type')
+        description = request.form.get('description')
+        id_admin = request.form.get('id_admin')
+        
+        if not service_type or not description:
+            return {'error': 'service_type and description are required'}, 400
+        
+        if id_admin is None:
+            return {'error': 'Admin ID is required'}, 400
+
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+
+        new_service = Service(
+            service_type=service_type,
+            description=description,
+            image_path=file_path,
+            id_admin=id_admin
+        )
+
+        try:
+            db.session.add(new_service)
+            db.session.commit()
+            service_schema = ServiceSchema()
+            return {'message': 'Service created successfully!', 'service': service_schema.dump(new_service)}, 201
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Error creating service: {e}")
+            return {'error': 'Failed to create service'}, 500
 
 class RequestResource(Resource):
     @role_required('customer', 'technician', 'admin')
@@ -591,6 +641,7 @@ api.add_resource(CustomerResource, '/customers', '/customers/<int:customer_id>')
 api.add_resource(RefreshTokenResource, '/refresh_token')
 api.add_resource(LogoutResource, '/logout')
 api.add_resource(Upload, '/uploads/<path:filename>')
+api.add_resource(TechnicianRequests, '/api/technician/<int:technician_id>/requests')
 
 # Error handling
 @app.errorhandler(400)

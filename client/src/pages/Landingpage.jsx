@@ -10,7 +10,6 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import '../index.css';
 
-// Testimonial data
 const testimonials = [
     { quote: "Amazing service! Highly recommend!", author: "John Doe" },
     { quote: "Professional and efficient! My repairs were completed on time.", author: "Jane Smith" },
@@ -19,6 +18,7 @@ const testimonials = [
     { quote: "Fast response time and great results! Very satisfied!", author: "David Lee" },
     { quote: "Their team is always friendly and knowledgeable. I felt taken care of.", author: "Victoria Lee" },
 ];
+
 
 // eslint-disable-next-line react/prop-types
 const Section = ({ id, bgImage, title, children, textColor = 'text-white' }) => (

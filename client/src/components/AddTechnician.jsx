@@ -33,7 +33,7 @@ const AddTechnician = () => {
         technicianData.append('realizations', realizations);
 
         try {
-            const response = await axios.post('http://localhost:5000/technicians', technicianData, {
+            const response = await axios.post('https://hrs-app-1.onrender.com/technicians', technicianData, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                 }

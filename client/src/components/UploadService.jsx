@@ -37,7 +37,7 @@ const UploadService = ({ onUploadSuccess, onUploadError, userToken, adminId }) =
 
         // Upload the file to the backend
         try {
-            const response = await axios.post('http://localhost:5000/admin/services', formData, {
+            const response = await axios.post('https://hrs-app-1.onrender.com/admin/services', formData, {
                 headers: {
                     'Authorization': `Bearer ${userToken}`,
                     'Content-Type': 'multipart/form-data',
