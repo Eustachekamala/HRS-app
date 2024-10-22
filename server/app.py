@@ -31,7 +31,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "https://hrs-app.onrender.com", "allow_headers": ["Authorization", "Content-Type"]}})
 
 # Configure application
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://hrsdb_render:wxXeemVxqyW9E0M2ShysVXTiFRtuGGku@dpg-csbr86hu0jms73fh6b10-a/hrsdb_nov7'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
