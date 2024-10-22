@@ -3,9 +3,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const TechnicianList = ({ technicians }) => {
+    // Ensure technicians is always an array
+    const isArray = Array.isArray(technicians);
+
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {technicians.length > 0 ? (
+            {isArray && technicians.length > 0 ? (
                 technicians.map(technician => (
                     <div key={technician.id} className="bg-gray-800 rounded-lg p-4 shadow-lg">
                         <img
@@ -27,7 +30,11 @@ const TechnicianList = ({ technicians }) => {
 };
 
 TechnicianList.propTypes = {
-    technicians: PropTypes.array.isRequired,
+    technicians: PropTypes.array,
+};
+
+TechnicianList.defaultProps = {
+    technicians: [], // Default to an empty array
 };
 
 export default TechnicianList;
