@@ -13,6 +13,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@paypal/react-paypal-js": "^8.7.0",
     "@react-oauth/google": "^0.12.1",
     "axios": "^1.7.7",
     "framer-motion": "^11.11.9",

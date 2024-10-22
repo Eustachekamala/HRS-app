@@ -1,98 +1,94 @@
-import React, { useState, useEffect } from 'react';
+// import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './configs/AuthContext'; 
+import { AuthProvider } from './configs/AuthContext';
 import ProtectedRoute from './configs/ProtectedRoute';
 import Services from './pages/Services';
 import Landingpage from './pages/Landingpage';
+import AdminServices from './components/AdminUploadPage';
 import NotFound from './pages/404';
 import ServiceDetail from './pages/ServiceDetail';
-import MakePayment from './components/MakePayment';
+// import MakePayment from './components/PaypalButton';
 import DescriptionBox from './components/DescriptionBox';
-import TechnicianPanel from './components/TechnicianPannel';
-// import TechnicianDetail from './pages/TechnicianDetail';
-import TechnicianDetailPage from './pages/TechnicianDetailPage';
+// import TechnicianList from './components/TechnicianList';
+// import TechnicianPage from './pages/TechnicianPage';
 import AdminDashboard from './components/AdminDashboard';
-import AdminUploadPage from './components/AdminUploadPage';
-import TechnicianListPage from './pages/TechniciansListPage';
 import Login from './pages/Login'; 
 import Signup from './pages/Signup'; 
+import Signout from './pages/Signout'; 
 import ForgotPassword from './pages/ForgotPassword';
-import { fetchTechnicians } from './api';
-import AddTechnician from './components/AddTechnician'
-import ServiceRequestForm from './components/ServiceRequestForm';
+// import { fetchTechnicians as apiFetchTechnicians } from './api';
+import PaypalButton from './components/PaypalButton';
 
 const App = () => {
-    const [technicianId, setTechnicianId] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    // const [technicians, setTechnicians] = useState([]); 
+    // const [loading, setLoading] = useState(true);
 
-    // Fetch technician data from the API
-    const fetchTechnicianData = async () => {
-        try {
-            const technicians = await fetchTechnicians();
-            if (technicians && technicians.length > 0) {
-                setTechnicianId(technicians[0].id);
-            } else {
-                setError('No technicians found.');
-            }
-        } catch (error) {
-            console.error('Error fetching technician data:', error);
-            setError('Failed to load technician data.');
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Function to get token from local storage
+    // const getToken = () => localStorage.getItem('token');
 
-    useEffect(() => {
-        fetchTechnicianData();
-    }, []);
+    // useEffect(() => {
+    //     const fetchTechnicians = async () => {
+    //         const token = getToken();
 
-    if (loading) {
-        return <p>Loading...</p>;
-    }
+    //         if (!token) {
+    //             setLoading(false);
+    //             return;
+    //         }
 
-    if (error) {
-        return <p className="text-red-500">{error}</p>;
-    }
+    //         try {
+    //             const response = await apiFetchTechnicians();
+    //             setTechnicians(response.data); // Assuming the API returns an array of technicians
+    //         } catch (error) {
+    //             console.error('Error fetching technicians:', error);
+    //             setTechnicians([]); // Resetting to an empty array on error
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     };
+
+    //     fetchTechnicians();
+    // }, []);
 
     return (
-        <AuthProvider>
-            <Router>
-                <Routes>
-                    <Route path='/' element={<Landingpage />} />
-                    <Route path='/services' element={<Services />} />
-                    <Route path='/payment' element={<MakePayment />} />
-                    <Route path='/description' element={<DescriptionBox />} />
-                    <Route path='/technician-panel' element={<TechnicianPanel technicianId={technicianId} />} />
-                    <Route path='/technician-list' element={<TechnicianListPage />} />
-                    <Route path='/technician/:id' element={<TechnicianDetailPage />} />
-                    <Route path='/service/:id' element={<ServiceDetail />} />
-                    <Route path='/add-technician' element={<AddTechnician />} />
-                    <Route path='/admin-upload' element={<AdminUploadPage />} />
-                    <Route path='/service-request' element={<ServiceRequestForm />} />
+    <AuthProvider>
+        <Router>
+            <Routes>
+                <Route path='/' element={<Landingpage />} />
+                <Route path='/payment' element={<PaypalButton />} />
+                <Route path='/description' element={<DescriptionBox />} />
+                {/* <Route 
+                    path='/technicians' 
+                    element={loading ? <p>Loading technicians...</p> : <TechnicianList technicians={technicians || []} />} 
+                /> */}
+                {/* <Route 
+                    path='/technician' 
+                    element={technicians.length > 0 ? <TechnicianPage technician={technicians[0]} /> : <NotFound />} 
+                /> */}
+                <Route path='/services' element={<Services />} />
 
-                    {/* Admin Protected Route */}
-                    <Route 
-                        path='/admin-dashboard' 
-                        element={
-                            <ProtectedRoute 
-                                element={<AdminDashboard />} 
-                                allowedRoles={['admin']} 
-                            />
-                        } 
-                    />
+                {/* Admin Protected Route */}
+                {/* <Route 
+                    path='/admin' 
+                    element={<ProtectedRoute element={<AdminServices />} allowedRoles={['admin']} />} 
+                /> */}
+                <Route path='/admin-dashboard' element={<AdminDashboard />} allowedRoles={['admin']} />
 
-                    {/* Authentication Routes */}
-                    <Route path='/login' element={<Login />} />
-                    <Route path='/signup' element={<Signup />} />
-                    <Route path='/forgot-password' element={<ForgotPassword />} />
+                <Route path='/service/:id' element={<ServiceDetail />} />
 
-                    {/* 404 Not Found */}
-                    <Route path='*' element={<NotFound />} />
-                </Routes>
-            </Router>
-        </AuthProvider>
-    );
+                {/* Authentication Routes */}
+                <Route path='/login' element={<Login />} />
+                <Route path='/signup' element={<Signup />} />
+                <Route path='/forgot-password' element={<ForgotPassword />} />
+                <Route path='/signout' element={<Signout />} />
+
+                {/* 404 Not Found */}
+                <Route path='*' element={<NotFound />} />
+            </Routes>
+        </Router>
+    </AuthProvider>
+);
+
+
 };
 
 export default App;

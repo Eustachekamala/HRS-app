@@ -100,12 +100,16 @@ const Signup = () => {
                                 value={adminCode} 
                                 onChange={(e) => setAdminCode(e.target.value)} 
                                 className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full"
-                                required // Set required if you want to enforce this field
+                                required 
                             />
                         )}
 
-                        <button type="submit" className="bg-blue-600 text-white px-6 py-3 rounded w-full shadow-md hover:bg-blue-700 transition duration-200">
-                            Signup
+                        <button 
+                            type="submit" 
+                            className={`bg-blue-600 text-white px-6 py-3 rounded w-full shadow-md hover:bg-blue-700 transition duration-200 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={loading} // Disable button while loading
+                        >
+                            {loading ? 'Signing up...' : 'Signup'}
                         </button>
                     </div>
                 </form>
