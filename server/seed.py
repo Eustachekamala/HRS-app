@@ -1,5 +1,5 @@
 from app import app, db  # Import the app instance and db
-from models import Admin, Technician, Service, Blog
+from models import Admin, Technician, Service, Blog, Users
 
 def seed_data():
     try:
@@ -20,6 +20,13 @@ def seed_data():
             Technician(username='tech_user_4', email='tech4@example.com', phone='654321789', password='techpassword', role='technician', image_path='tech4.jpg', occupation='HVAC'),
         ]
         db.session.add_all(technicians)
+        
+        users = [
+            Users(username='kamala', email='kamala@example.com', phone='987654321', password='1234@', role='customer',),
+            Users(username='kate', email='kate@example.com', phone='456789123', password='12345@', role='technician',),
+        ]
+        
+        db.session.add_all(users)
 
         # Create services
         services = [
