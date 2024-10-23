@@ -710,16 +710,20 @@ class TechnicianServiceRequests(Resource):
         
 #! The statistic of the app..
 class StatisticResource(Resource):
-    @jwt_required()
     def get(self):
         total_requests = ClientRequest.query.count()
         active_technicians = Technician.query.filter_by(role='technician').count()
 
-        return jsonify({
-            'totalRequests': total_requests,
-            'activeTechnicians': active_technicians,
-        }), 200
-
+        # Create a structured response
+        response = {
+            "message": "Statistics retrieved successfully!",
+            "statistics": {
+                "totalRequests": [total_requests.to_dict()],
+                "activeTechnicians": active_technicians,
+            }
+        }
+        return response, 200
+    
 # Add resources to API
 api = Api(app)
 api.add_resource(Index, '/')
