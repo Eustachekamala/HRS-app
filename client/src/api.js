@@ -319,7 +319,6 @@ export const fetchTechnicianRequests = async () => {
 };
 
 
-// Fetch Statistics API
 export const fetchStatistics = async () => {
     const token = localStorage.getItem('access_token');
     if (!token) {
@@ -334,10 +333,11 @@ export const fetchStatistics = async () => {
         });
         return response.data;
     } catch (error) {
-        console.error('Error:', error.response?.data || error.message);
-        throw error; // Propagate the error
+        console.error('Error fetching statistics:', error.response?.data || error.message);
+        throw error;
     }
 };
+
 
 
 export default apiClient;
