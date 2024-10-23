@@ -33,30 +33,37 @@ const ServiceRequestForm = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <div>
-                <label htmlFor="serviceType">Service Type</label>
-                <input
-                    id="serviceType"
-                    name="serviceType"
-                    type="text"
-                    value={serviceType}
-                    onChange={(e) => setServiceType(e.target.value)}
-                />
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+                <h2 className="text-lg font-semibold mb-4">Request Service { serviceType }</h2>
+                    <form onSubmit={handleSubmit}>
+                        <div className='mb-4'>
+                            <label htmlFor="serviceType">Service Type</label>
+                            <input
+                                id="serviceType"
+                                name="serviceType"
+                                type="text"
+                                value={serviceType}
+                                onChange={(e) => setServiceType(e.target.value)}
+                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                        <div className='mb-4'>
+                            <label htmlFor="description" className="block text-sm font-semibold mb-2">Description</label>
+                            <textarea
+                                id="description"
+                                name="description"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                            ></textarea>
+                        </div>
+                        {error && <p style={{ color: 'red' }}>{error}</p>}
+                        {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
+                        <button className="w-full mt-2 text-blue-600 hover:underline" type="submit">Submit Request</button>
+                    </form>
             </div>
-            <div>
-                <label htmlFor="description">Description</label>
-                <textarea
-                    id="description"
-                    name="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                ></textarea>
-            </div>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
-            <button type="submit">Submit Request</button>
-        </form>
+        </div>
     );
 };
 
