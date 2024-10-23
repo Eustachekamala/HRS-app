@@ -715,7 +715,10 @@ class StatisticResource(Resource):
         total_requests = ClientRequest.query.count()
         active_technicians = Technician.query.filter_by(role='technician').count()
 
-        return [ total_requests.to_dict(), active_technicians.to_dict()], 200
+        return jsonify({
+            'totalRequests': total_requests,
+            'activeTechnicians': active_technicians,
+        }), 200
 
 # Add resources to API
 api = Api(app)
