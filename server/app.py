@@ -714,15 +714,15 @@ class StatisticResource(Resource):
         total_requests = ClientRequest.query.count()
         active_technicians = Technician.query.filter_by(role='technician').count()
 
-        # Create a structured response
         response = {
             "message": "Statistics retrieved successfully!",
             "statistics": {
-                "totalRequests": [total_requests.to_dict()],
+                "totalRequests": total_requests,
                 "activeTechnicians": active_technicians,
             }
         }
-        return response, 200
+
+        return jsonify(response), 200
     
 # Add resources to API
 api = Api(app)
