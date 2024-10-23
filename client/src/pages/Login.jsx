@@ -48,6 +48,7 @@ const Login = () => {
             const decoded = jwtDecode(token);
             return decoded;
         } catch (error) {
+            console.error('Invalid token specified, error:', error);
             throw new Error('Invalid token specified');
         }
     };
@@ -86,12 +87,14 @@ const Login = () => {
                 navigate('/admin-dashboard');  // Redirect to admin dashboard
             } else if (decoded.role === 'technician') {
                 navigate('/technician-panel');  
-            } else {
+            } else if (decoded.role === 'user') {
                 navigate('/services');  // Redirect to services page
+            } else {
+                navigate('/login');  // Redirect to services page
             }
 
             // Optionally store the token or user data as needed
-            // loginUser(decoded); // If using context for global state
+            loginUser(decoded); // If using context for global state
 
         } catch (err) {
             console.error('Login process failed:', err);// Redirect to technician page
