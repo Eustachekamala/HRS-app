@@ -9,7 +9,7 @@ const AdminDashboard = () => {
     const navigate = useNavigate(); // Initialize useNavigate for navigation
     const [technicians, setTechnicians] = useState([]);
     const [userRequests, setUserRequests] = useState([]);
-    const [statistics, setStatistics] = useState({});
+    const [statistics, setStatistics] = useState([]);
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -64,12 +64,36 @@ const AdminDashboard = () => {
                 </div>
 
                 <section className="mb-6 p-4 border rounded-lg bg-gray-400 transition-opacity opacity-0 animate-fadeIn">
-                    <h2 className="text-xl font-semibold text-blue-600 flex items-center">
-                        <FaChartLine className="mr-2" /> Statistics
-                    </h2>
-                    <p className="text-gray-700">Total Requests: {statistics.total_requests || 0}</p>
-                    <p className="text-gray-700">Active Technicians: {statistics.active_technicians || 0}</p>
-                </section>
+                <h2 className="text-xl font-semibold text-blue-600 flex items-center">
+                    <FaChartLine className="mr-2" /> Statistics
+                </h2>
+
+                {loading && <p className="text-gray-500">Loading statistics...</p>}
+
+                {/* Render Technicians */}
+                {technicians.length > 0 && (
+                    <div>
+                        <h3 className="font-semibold text-gray-700">Technicians:</h3>
+                        {technicians.map(technician => (
+                            <div key={technician.id} className="flex items-center justify-between">
+                                <p className="text-gray-700">{technician.total_requests || 0}</p>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Render Statistics */}
+                {statistics.length > 0 && (
+                    <div>
+                        <h3 className="font-semibold text-gray-700">Statistics:</h3>
+                        {statistics.map(statistic => (
+                            <div key={statistic.id} className="flex items-center justify-between">
+                                <p className="text-gray-700">{statistic.total_requests || 0}</p>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </section>
 
                 <section className="mb-6 p-4 border rounded-lg bg-gray-400 transition-opacity opacity-0 animate-fadeIn">
                     <h2 className="text-xl font-semibold text-blue-600 flex items-center">
