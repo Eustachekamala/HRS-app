@@ -199,6 +199,15 @@ class TechnicianResource(Resource):
 
 class UserResource(Resource):
     @role_required('admin')
+    def get(self):
+        users = Users.query.filter_by(role='user').all()
+        response_data = [user.to_dict() for user in users]
+        return {
+            "message": "Users retrieved successfully!",
+            "data": response_data
+        }
+    
+    @role_required('admin')
     def post(self):
         data = request.json
         logging.info(f"Received user data: {data}")
