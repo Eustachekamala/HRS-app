@@ -13,36 +13,35 @@ const AdminDashboard = () => {
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const techResponse = await axios.get('/technicians');
-                setTechnicians(Array.isArray(techResponse.data) ? techResponse.data : []);
+   useEffect(() => {
+    const fetchData = async () => {
+        try {
+            const techResponse = await axios.get('/technicians');
+            setTechnicians(Array.isArray(techResponse.data) ? techResponse.data : []);
 
-                const userResponse = await axios.get('/requests');
-                setUserRequests(Array.isArray(userResponse.data) ? userResponse.data : []);
+            const userResponse = await axios.get('/requests');
+            setUserRequests(Array.isArray(userResponse.data) ? userResponse.data : []);
 
-                // Fetch statistics
-                const token = localStorage.getItem('access_token');
-                const statsResponse = await fetchStatisticsFromAPI(token);
-                setStatistics(statsResponse);
+            // Fetch statistics using the imported function
+            const token = localStorage.getItem('access_token');
+            const statsResponse = await fetchStatisticsFromAPI(token);
+            setStatistics(statsResponse);
 
-                const paymentResponse = await axios.get('/payment');
-                setPayments(Array.isArray(paymentResponse.data) ? paymentResponse.data : []);
+            const paymentResponse = await axios.get('/payment');
+            setPayments(Array.isArray(paymentResponse.data) ? paymentResponse.data : []);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            setTechnicians([]);
+            setUserRequests([]);
+            setPayments([]);
+            setStatistics({});
+        } finally {
+            setLoading(false);
+        }
+    };
 
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                setTechnicians([]);
-                setUserRequests([]);
-                setPayments([]);
-                setStatistics({});
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, []);
+    fetchData();
+}, []);
 
     const handleAddTechnician = () => {
         navigate('/add-technician');
@@ -62,7 +61,20 @@ const AdminDashboard = () => {
                         <FaPlus className="mr-2" /> Add Technician
                     </button>
                 </div>
+            {/* Render Technicians with Total Requests */}
+                {technicians.length > 0 && (
+                <div>
+                    <h3 className="font-semibold text-gray-700">Technicians:</h3>
+                    {technicians.map(technician => (
+                        <div key={technician.id} className="flex items-center justify-between">
+                            <p className="text-gray-700">{technician.username}</p> {/* Adjust as necessary */}
+                            <p className="text-gray-700">{technician.total_requests || 0} Total Requests</p>                        
+                        </div>
+                    ))}
+                </div>
+                )}
 
+            {/* Render Statistics */}
             <section className="mb-6 p-4 border rounded-lg bg-gray-400 transition-opacity opacity-0 animate-fadeIn">
                 <h2 className="text-xl font-semibold text-blue-600 flex items-center">
                     <FaChartLine className="mr-2" /> Statistics
@@ -70,21 +82,7 @@ const AdminDashboard = () => {
 
                 {loading && <p className="text-gray-500">Loading statistics...</p>}
 
-                {/* Render Technicians with Total Requests */}
-                {technicians.length > 0 && (
-                    <div>
-                        <h3 className="font-semibold text-gray-700">Technicians:</h3>
-                        {technicians.map(technician => (
-                            <div key={technician.id} className="flex items-center justify-between">
-                                <p className="text-gray-700">{technician.name || technician.id}</p> {/* Adjust as necessary */}
-                                <p className="text-gray-700">{technician.total_requests || 0} Total Requests</p>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* Render Statistics */}
-                {statistics.length > 0 && (
+                {statistics.total_requests !== undefined && (
                     <div>
                         <h3 className="font-semibold text-gray-700">Statistics:</h3>
                         <p className="text-gray-700">Total Requests: {statistics.total_requests || 0}</p>
@@ -92,6 +90,7 @@ const AdminDashboard = () => {
                     </div>
                 )}
             </section>
+
 
                 <section className="mb-6 p-4 border rounded-lg bg-gray-400 transition-opacity opacity-0 animate-fadeIn">
                     <h2 className="text-xl font-semibold text-blue-600 flex items-center">
