@@ -67,8 +67,8 @@ const AdminDashboard = () => {
                     <h2 className="text-xl font-semibold text-blue-600 flex items-center">
                         <FaChartLine className="mr-2" /> Statistics
                     </h2>
-                    <p className="text-gray-700">Total Requests: {statistics.totalRequests || 0}</p>
-                    <p className="text-gray-700">Active Technicians: {statistics.activeTechnicians || 0}</p>
+                    <p className="text-gray-700">Total Requests: {statistics.total_requests || 0}</p>
+                    <p className="text-gray-700">Active Technicians: {statistics.active_technicians || 0}</p>
                 </section>
 
                 <section className="mb-6 p-4 border rounded-lg bg-gray-400 transition-opacity opacity-0 animate-fadeIn">
