@@ -3,11 +3,11 @@ import { useAuth } from '../configs/AuthContext';
 import { login } from '../api';
 import jwtDecode from 'jwt-decode';
 import { Link } from 'react-router-dom';
-// import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const Login = () => {
     const { loginUser } = useAuth();
-    // const navigate = useNavigate(); // Initialize useNavigate
+    const navigate = useNavigate(); // Initialize useNavigate
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -84,14 +84,15 @@ const Login = () => {
             const decoded = decodeToken(token); 
 
             // Here you can decide the redirection based on the role
+            // Assuming 'decoded' contains user info after successful login
             if (decoded.role === 'admin') {
-                Link('/admin-dashboard');  // Redirect to admin dashboard
+                navigate('/admin-dashboard');
             } else if (decoded.role === 'technician') {
-                Link('/technician-panel');
+                navigate('/technician-panel');
             } else if (decoded.role === 'user') {
-                Link('/services');  // Redirect to services page
+                navigate('/services');
             } else {
-               Link('/login');  // Redirect to services page
+                navigate('/login');
             }
 
             // Optionally store the token or user data as needed
