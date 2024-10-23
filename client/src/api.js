@@ -298,4 +298,40 @@ export const processPayment = async (token, paymentData) => {
     }
 };
 
+export const fetchTechnicianRequests = async (token) => {
+    if (!token) {
+        throw new Error("No token provided");
+    }
+
+    try {
+        const response = await apiClient.get('/technician/requests', {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error:', error.response?.data || error.message);
+        throw error; // Propagate the error
+    }
+};
+
+export const fetchStatistics = async (token) => {
+    if (!token) {
+        throw new Error("No token provided");
+    }
+
+    try {
+        const response = await apiClient.get('/statistic', {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error:', error.response?.data || error.message);
+        throw error; // Propagate the error
+    }
+};
+
 export default apiClient;
