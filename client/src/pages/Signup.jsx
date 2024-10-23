@@ -82,7 +82,7 @@ const Signup = () => {
                             value={role} 
                             onChange={(e) => {
                                 setRole(e.target.value);
-                                if (e.target.value === 'customer') {
+                                if (e.target.value === 'user') {
                                     setAdminCode(''); // Reset admin code when switching to user
                                 }
                             }} 
@@ -90,7 +90,6 @@ const Signup = () => {
                         >
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
-                            <option value="technician">Technician</option>
                         </select>
                         
                         {/* Conditional Rendering for Admin Role */}
