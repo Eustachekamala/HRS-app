@@ -44,7 +44,7 @@ const ServiceRequestModal = ({ isOpen, onClose, serviceType }) => {
                             id="description"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded focus:outline-none text-green focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                            className="w-full p-2 border border-gray-300 rounded focus:outline-none text-b focus:ring-2 focus:ring-blue-500 min-h-[100px]"
                         ></textarea>
                     </div>
                     {error && <p className="text-red-600 mb-4">{error}</p>}
