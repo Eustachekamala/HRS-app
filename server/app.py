@@ -99,7 +99,30 @@ class ServiceSchema(Schema):
 # API Resources
 class Upload(Resource):
     def get(self, filename):
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename) 
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    
+class AdminaddService(Resource):
+    @jwt_required()
+    def post(self):
+        data = request.json
+        logging.info(f"Received service data: {data}")
+        
+        required_fields = ['service_type', 'description', 'image_path']
+        for field in required_fields:
+            if field not in data:
+                return {'error': f'Missing {field}'}, 400
+        
+        new_service = Service(
+            service_type=data['service_type'],
+            description=data['description'],
+            image_path=data['image_path'],
+            admin_id=get_jwt_identity()['id']
+        )
+        
+        db.session.add(new_service)
+        db.session.commit()
+        return {'message': 'Service created successfully!', 'service_id': new_service.to_dict()}, 201
+     
 class Index(Resource):
     def get(self):
         app.logger.info('Hello endpoint was reached')
@@ -287,20 +310,27 @@ class LoginResource(Resource):
                     redirect_url = url_for('service_dashboard') if 'service_dashboard' in app.view_functions else None
 
                 # Convert user object to dictionary with consistent structure
-                user_dict = {
-                    'id': user.id,
-                    'email': user.email,
-                    'role': user.role,
-                    'username': getattr(user, 'username', None),
-                    'phone': getattr(user, 'phone', None)
-                }
-
+                # user_dict = {
+                #     'id': user.id,
+                #     'email': user.email,
+                #     'role': user.role,
+                #     'username': getattr(user, 'username', None),
+                #     'phone': getattr(user, 'phone', None)
+                # }
+                
                 return {
-                    'access_token': access_token,
-                    'refresh_token': refresh_token,
-                    'customers': [user_dict],
-                    'redirect': redirect_url
+                'access_token': access_token,
+                'refresh_token': refresh_token,
+                'customers': [user.to_dict()],
+                "redirect": redirect_url
                 }, 200
+
+                # return {
+                #     'access_token': access_token,
+                #     'refresh_token': refresh_token,
+                #     'customers': [user_dict],
+                #     'redirect': redirect_url
+                # }, 200
 
             return {'error': 'Invalid credentials'}, 401
 
@@ -373,6 +403,7 @@ class SignupResource(Resource):
 
             # Create new user
             hashed_password = generate_password_hash(password)
+            
             new_user = Users(
                 username=username,
                 email=email,
@@ -405,20 +436,27 @@ class SignupResource(Resource):
             )
 
             # Convert user object to dictionary
-            user_dict = {
-                'id': new_user.id,
-                'email': new_user.email,
-                'role': new_user.role,
-                'username': new_user.username,
-                'phone': new_user.phone
-            }
-
+            # user_dict = {
+            #     'id': new_user.id,
+            #     'email': new_user.email,
+            #     'role': new_user.role,
+            #     'username': new_user.username,
+            #     'phone': new_user.phone
+            # }
+            
             return {
                 'message': 'User created successfully!',
                 'access_token': access_token,
                 'refresh_token': refresh_token,
-                'customers': [user_dict]
-            }, 201
+                'customers': [new_user.to_dict()]
+            }, 200
+
+            # return {
+            #     'message': 'User created successfully!',
+            #     'access_token': access_token,
+            #     'refresh_token': refresh_token,
+            #     'customers': [user_dict]
+            # }, 201
 
         except Exception as e:
             db.session.rollback()
@@ -643,6 +681,7 @@ api.add_resource(RefreshTokenResource, '/refresh_token')
 api.add_resource(LogoutResource, '/logout')
 api.add_resource(Upload, '/uploads/<path:filename>')
 api.add_resource(TechnicianRequests, '/api/technician/<int:technician_id>/requests')
+api.add_resource(AdminaddService, '/admin/services')
 
 # Error handling
 @app.errorhandler(400)
