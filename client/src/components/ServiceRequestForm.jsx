@@ -8,7 +8,7 @@ const ServiceRequestForm = () => {
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const navigate = useNavigate(); // Hook to programmatically navigate
-    const handle = ( ) => { navigate ='/technician'}
+    
     const handleSubmit = (e) => {
         e.preventDefault();
         setError('');
@@ -65,7 +65,7 @@ const ServiceRequestForm = () => {
                     <button className="w-full mt-2 bg-blue-500 py-4 px-4 rounded-lg text-white hover:underline" type="submit">Submit Request</button>
                     <button 
                         type="button" 
-                        onClick={handle} 
+                        onClick={ (e) => navigate('/technician')}
                         className="w-full mt-2 bg-green-500 py-4 px-4 rounded-lg text-white hover:underline"
                     >
                         View Technicians
