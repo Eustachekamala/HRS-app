@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const ServiceRequestForm = () => {
     const [serviceType, setServiceType] = useState('');
     const [description, setDescription] = useState('');
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
-    const history = useHistory(); // Hook to programmatically navigate
-
+    const navigate = useNavigate(); // Hook to programmatically navigate
+    const handle = ( ) => { navigate ='/technician'}
     const handleSubmit = (e) => {
         e.preventDefault();
         setError('');
@@ -65,7 +65,7 @@ const ServiceRequestForm = () => {
                     <button className="w-full mt-2 bg-blue-500 py-4 px-4 rounded-lg text-white hover:underline" type="submit">Submit Request</button>
                     <button 
                         type="button" 
-                        onClick={() => history.push('/technician')} 
+                        onClick={handle} 
                         className="w-full mt-2 bg-green-500 py-4 px-4 rounded-lg text-white hover:underline"
                     >
                         View Technicians
