@@ -26,7 +26,7 @@ load_dotenv()
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": {"https://hrs-app.onrender.com","https://localhost:3000"}, "allow_headers": ["Authorization", "Content-Type"]}})
+CORS(app, resources={r"/*": {"origins": "https://hrs-app.onrender.com", "allow_headers": ["Authorization", "Content-Type"]}})
 
 # Configure application
 app.config['SQLALCHEMY_DATABASE_URI'] = (
