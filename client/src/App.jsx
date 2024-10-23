@@ -24,6 +24,8 @@ import { useEffect, useState } from 'react';
 import TechnicianDetailPage from './pages/TechnicianDetailPage';
 import ServiceRequestForm from './components/ServiceRequestForm';
 import TechnicianServiceRequests from './components/TechnicianServiceReq';
+import ManageTechnicians from './components/ManageTechnicians';
+
 
 
 const App = () => {
@@ -80,6 +82,7 @@ const App = () => {
                 <Route path='/service-request-form' element={<ServiceRequestForm />} />
                 <Route path='/add-technician' element={<AddTechnician />} />
                 <Route path='/technician-requests' element={<TechnicianServiceRequests  technicianName={technicianName}/>} />
+                <Route path="/manage-technicians" element={<ManageTechnicians />} />
                 
 
                 {/* Admin Protected Route */}
