@@ -95,7 +95,7 @@ const Landingpage = () => {
                         Check out our latest prototype showcasing the innovative features of our home repair services.
                     </p>
                     <img 
-                        src="/public/prototype.jpg" 
+                        src="/prototype.jpg" 
                         alt="Prototype Showcase" 
                         className="mx-auto rounded-lg shadow-lg"
                     />
