@@ -303,13 +303,13 @@ class LoginResource(Resource):
 
                 # Determine redirect URL based on role
                 if user.role == 'admin':
-                    redirect_url = url_for('admin-dashboard') if 'admin-dashboard' in app.view_functions else None
+                    redirect_url = url_for('admin_resource') if 'admin_resource' in app.view_functions else None
                 elif user.role == 'technician':
-                    redirect_url = url_for('technician-panel') if 'technician-panel' in app.view_functions else None
-                elif user.role == user:
-                    redirect_url = url_for('services') if 'services' in app.view_functions else None
-                else :
-                    redirect_url = url_for('login') if 'login' in app.view_functions else None
+                    redirect_url = url_for('technician_resource') if 'technician_resource' in app.view_functions else None
+                elif user.role == 'user':
+                    redirect_url = url_for('services_resource') if 'services_resource' in app.view_functions else None
+                else:
+                    redirect_url = url_for('login_resource') if 'login_resource' in app.view_functions else None
 
                 # Convert user object to dictionary with consistent structure
                 # user_dict = {
@@ -446,7 +446,8 @@ class SignupResource(Resource):
             #     'phone': new_user.phone
             # }
             
-            redirect_url = url_for('login') if 'login' in app.view_functions else None
+           # Determine redirect URL to login
+            redirect_url = url_for('login_resource') if 'login_resource' in app.view_functions else None
             
              # Log the successful account creation
             logging.info(f'User created successfully - User ID: {new_user.id}')
@@ -456,7 +457,7 @@ class SignupResource(Resource):
                 'access_token': access_token,
                 'refresh_token': refresh_token,
                 'customers': [new_user.to_dict()],
-                'url': redirect_url
+                'redirect': redirect_url
             }, 200
 
             # return {
@@ -674,15 +675,15 @@ class BlogResource(Resource):
 # Add resources to API
 api = Api(app)
 api.add_resource(Index, '/')
-api.add_resource(AdminResource, '/admin', '/admins/<int:admin_id>')
-api.add_resource(TechnicianResource, '/technicians')
-api.add_resource(ServiceResource, '/services', '/services/<int:service_id>')
+api.add_resource(AdminResource, '/admin', '/admins/<int:admin_id>', endpoint='admin_resource')
+api.add_resource(TechnicianResource, '/technicians', endpoint='technician_resource')
+api.add_resource(ServiceResource, '/services', '/services/<int:service_id>',  endpoint='services_resource')
 api.add_resource(RequestResource, '/requests', '/requests/<int:request_id>')
 api.add_resource(PaymentResource, '/payment')
 api.add_resource(BlogResource, '/blogs', '/blogs/<int:blog_id>')
 api.add_resource(UserResource, '/users', '/users/<int:user_id>')
-api.add_resource(LoginResource, '/login')
-api.add_resource(SignupResource, '/signup')
+api.add_resource(LoginResource, '/login', endpoint='login_resource')
+api.add_resource(SignupResource, '/signup', enpoint='signup_resource')
 api.add_resource(ProtectedResource, '/protected_route')
 api.add_resource(CustomerResource, '/customers', '/customers/<int:customer_id>')
 api.add_resource(RefreshTokenResource, '/refresh_token')
