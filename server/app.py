@@ -722,7 +722,7 @@ class StatisticResource(Resource):
             }
         }
 
-        return jsonify(response), 200
+        return response, 200
     
 # Add resources to API
 api = Api(app)
