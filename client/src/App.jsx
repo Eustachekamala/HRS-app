@@ -32,6 +32,7 @@ const App = () => {
 
     //Function to get token from local storage
     const getToken = () => localStorage.getItem('token');
+    const technicianName = "Jared";
 
     useEffect(() => {
         const fetchTechnicians = async () => {
@@ -78,7 +79,7 @@ const App = () => {
                 <Route path='/technician-detail/:id/service-detail' element={<TechnicianDetailPage />} />
                 <Route path='/service-request-form' element={<ServiceRequestForm />} />
                 <Route path='/add-technician' element={<AddTechnician />} />
-                <Route path='/technician-requests' element={<TechnicianServiceRequests />} />
+                <Route path='/technician-requests' element={<TechnicianServiceRequests  technicianName={technicianName}/>} />
                 
 
                 {/* Admin Protected Route */}
