@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TechnicianList from './TechnicianList';
 import axios from 'axios';
-import { FaUsers, FaChartLine, FaMoneyBillWave, FaClipboardList, FaHeartbeat, FaPlus } from 'react-icons/fa';
+import { FaUsers, FaMoneyBillWave, FaClipboardList, FaHeartbeat, FaPlus } from 'react-icons/fa';
 import { fetchStatistics as fetchStatisticsFromAPI } from '../api';
+import Statistics from './Statistics';
 
 const AdminDashboard = () => {
     const navigate = useNavigate(); // Initialize useNavigate for navigation
@@ -12,6 +13,7 @@ const AdminDashboard = () => {
     const [statistics, setStatistics] = useState({});
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -31,11 +33,11 @@ const AdminDashboard = () => {
                 setPayments(Array.isArray(paymentResponse.data) ? paymentResponse.data : []);
 
             } catch (error) {
-                console.error('Error fetching data:', error);
                 setTechnicians([]);
                 setUserRequests([]);
                 setPayments([]);
                 setStatistics({});
+                setError(error);
             } finally {
                 setLoading(false);
             }
@@ -47,6 +49,11 @@ const AdminDashboard = () => {
     const handleAddTechnician = () => {
         navigate('/add-technician');
     };
+
+    const handleManageTechnicians = () => {
+        navigate('/manage-technicians');
+    };
+
 
     return (
         <div className="h-screen w-screen bg-gray-900 flex items-center justify-center">
@@ -63,35 +70,19 @@ const AdminDashboard = () => {
                     </button>
                 </div>
 
-                <section className="mb-6 p-4 border rounded-lg bg-gray-400 transition-opacity opacity-0 animate-fadeIn">
-                    <h2 className="text-xl font-semibold text-blue-600 flex items-center">
-                        <FaChartLine className="mr-2" /> Statistics
-                    </h2>
-                    {loading ? (
-                        <p className="text-gray-500">Loading statistics...</p>
-                    ) : (
-                        <>
-                            {statistics.total_requests !== undefined ? (
-                                <>
-                                    <p className="text-gray-700">Total Requests: {statistics.total_requests || 0}</p>
-                                    <p className="text-gray-700">Active Technicians: {statistics.active_technicians || 0}</p>
-                                </>
-                            ) : (
-                                <p className="text-red-500">Error loading statistics</p>
-                            )}
-                        </>
-                    )}
-                </section>
+                 {error && <p className="text-red-500">{error}</p>}
+                {/* Statistics Section */}
+                <Statistics statistics={statistics} loading={loading} />
 
                 <section className="mb-6 p-4 border rounded-lg bg-gray-400 transition-opacity opacity-0 animate-fadeIn">
-                    <h2 className="text-xl font-semibold text-blue-600 flex items-center">
+                    <div className="flex justify-end mb-4">
+                    <button 
+                        onClick={handleManageTechnicians} 
+                        className="flex items-center bg-green-600 text-white p-2 rounded hover:bg-green-500 transition"
+                    >
                         <FaUsers className="mr-2" /> Manage Technicians
-                    </h2>
-                    {loading ? (
-                        <p className="text-gray-500">Loading technicians...</p>
-                    ) : (
-                        <TechnicianList technicians={technicians} />
-                    )}
+                    </button>
+                </div>
                 </section>
 
                 <section className="mb-6 p-4 border rounded-lg bg-gray-400 transition-opacity opacity-0 animate-fadeIn">
