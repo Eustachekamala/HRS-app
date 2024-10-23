@@ -305,9 +305,11 @@ class LoginResource(Resource):
                 if user.role == 'admin':
                     redirect_url = url_for('admin-dashboard') if 'admin-dashboard' in app.view_functions else None
                 elif user.role == 'technician':
-                    redirect_url = url_for('technician-dashboard') if 'technician_dashboard' in app.view_functions else None
-                else:
-                    redirect_url = url_for('service_dashboard') if 'service_dashboard' in app.view_functions else None
+                    redirect_url = url_for('technician-panel') if 'technician-panel' in app.view_functions else None
+                elif user.role == user:
+                    redirect_url = url_for('services') if 'services' in app.view_functions else None
+                else :
+                    redirect_url = url_for('login') if 'login' in app.view_functions else None
 
                 # Convert user object to dictionary with consistent structure
                 # user_dict = {
@@ -444,11 +446,17 @@ class SignupResource(Resource):
             #     'phone': new_user.phone
             # }
             
+            redirect_url = url_for('login') if 'login' in app.view_functions else None
+            
+             # Log the successful account creation
+            logging.info(f'User created successfully - User ID: {new_user.id}')
+            
             return {
                 'message': 'User created successfully!',
                 'access_token': access_token,
                 'refresh_token': refresh_token,
-                'customers': [new_user.to_dict()]
+                'customers': [new_user.to_dict()],
+                'url': redirect_url
             }, 200
 
             # return {
