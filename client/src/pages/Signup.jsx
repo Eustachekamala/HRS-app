@@ -8,13 +8,14 @@ const Signup = () => {
     const [username, setUsername] = useState('');
     const [phone, setPhone] = useState('');
     const [role, setRole] = useState('user');
-    const [adminCode, setAdminCode] = useState(''); // State for Admin-specific input
+    const [adminCode, setAdminCode] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // setLoading(true); // Set loading to true
+        setLoading(true); // Set loading to true
         setError(''); // Reset error before submission
 
         try {
@@ -33,9 +34,9 @@ const Signup = () => {
         } catch (err) {
             setError(err.response?.data?.error || 'Signup failed');
      } 
-        //finally {
-        //     setLoading(false); // Set loading to false after API call
-        // }
+        finally {
+            setLoading(false); // Set loading to false after API call
+        }
     };
 
     return (
@@ -95,7 +96,7 @@ const Signup = () => {
                         {/* Conditional Rendering for Admin Role */}
                         {role === 'admin' && (
                             <input 
-                                type="text" 
+                                type="password"
                                 placeholder="Admin Code" 
                                 value={adminCode} 
                                 onChange={(e) => setAdminCode(e.target.value)} 

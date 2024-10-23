@@ -41,7 +41,7 @@ app.config['JWT_SECRET_KEY'] = 'd0125980dce744babe622a0f6e40caf6'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
 
-# Create uploads directory if it doesn't exist
+#! Create uploads directory if it doesn't exist
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
@@ -60,13 +60,13 @@ def check_if_token_is_blacklisted(jwt_header, jwt_payload):
     return jti in blacklist
 
 
-# Error handler for expired tokens
+# !Error handler for expired tokens
 @app.errorhandler(ExpiredSignatureError)
 def handle_expired_token(error):
     logging.warning("Attempted access with expired token.")
     return jsonify({'error': 'Token has expired. Please log in again.'}), 401
 
-# Role-based access control decorator
+#! Role-based access control decorator
 def role_required(*required_roles):
     def decorator(fn):
         @wraps(fn)
@@ -80,7 +80,7 @@ def role_required(*required_roles):
         return wrapper
     return decorator
 
-# Marshmallow Schemas
+#! Marshmallow Schemas
 class AdminSchema(Schema):
     id = fields.Int()
     username = fields.Str()
@@ -96,11 +96,12 @@ class ServiceSchema(Schema):
     created_at = fields.DateTime()
     admin_id = fields.Int()
 
-# API Resources
+#! API Resources
 class Upload(Resource):
     def get(self, filename):
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
     
+#! AdminaddService to add service to admin
 class AdminaddService(Resource):
     @jwt_required()
     def post(self):
@@ -128,6 +129,7 @@ class Index(Resource):
         app.logger.info('Hello endpoint was reached')
         return {"message": "Welcome to our Home Repair Service"}
 
+#! AdminResource to get admin details
 class AdminResource(Resource):
     @role_required('admin')
     def get(self):
@@ -150,6 +152,7 @@ class AdminResource(Resource):
         return {'message': 'Admin deleted successfully!'}, 200
 
     
+#! TechnicianResource to get technician details
 class TechnicianResource(Resource):
     # @role_required('admin', 'technician')
     def get(self):
@@ -164,7 +167,8 @@ class TechnicianResource(Resource):
         except Exception as e:
             logging.error(f"Error retrieving technicians: {e}")
             return {'error': 'Failed to retrieve technicians'}, 500
-
+        
+    #! Post method to add technician
     @role_required('admin')
     def post(self):
         data = request.json
@@ -187,7 +191,8 @@ class TechnicianResource(Resource):
         db.session.add(new_technician)
         db.session.commit()
         return {'message': 'Technician created successfully!', 'technician_id': new_technician.id}, 201
-
+    
+    #! Delete method to delete technician
     @role_required('admin')
     def delete(self, technician_id):
         technician = Technician.query.get(technician_id)
@@ -197,6 +202,7 @@ class TechnicianResource(Resource):
         db.session.commit()
         return {'message': 'Technician deleted successfully!'}, 200
 
+#! UserResource to manage users
 class UserResource(Resource):
     @role_required('admin')
     def get(self):
@@ -206,7 +212,8 @@ class UserResource(Resource):
             "message": "Users retrieved successfully!",
             "data": response_data
         }
-    
+        
+    #! Post method to add user
     @role_required('admin')
     def post(self):
         data = request.json
@@ -240,6 +247,7 @@ class UserResource(Resource):
         db.session.commit()
         return {'message': 'User deleted successfully!'}, 200
 
+#! To manage the customer
 class CustomerResource(Resource):
     @role_required('customer', 'admin')
     def get(self, customer_id=None):
@@ -249,7 +257,8 @@ class CustomerResource(Resource):
         else:
             customers = Users.query.filter_by(role='customer').all()
             return {'customers': [customer.to_dict() for customer in customers]}, 200
-
+        
+    #! Put method to update customer
     @role_required('customer')
     def put(self, customer_id):
         customer = Users.query.get_or_404(customer_id)
@@ -267,6 +276,7 @@ class CustomerResource(Resource):
         db.session.commit()
         return {'message': 'Customer updated successfully!', 'customer_id': customer.id}, 200
 
+#! LoginResource to login
 class LoginResource(Resource):
     def post(self):
         try:
@@ -348,6 +358,8 @@ class LoginResource(Resource):
         except Exception as e:
             logging.error(f'Login error: {str(e)}')
             return {'error': 'An error occurred during login.'}, 500
+        
+#! ProtectedResource to check if user is authorized
 class ProtectedResource(Resource):
     @jwt_required()
     def get(self):
@@ -377,7 +389,7 @@ class ProtectedResource(Resource):
             return jsonify(message="Role not recognized."), 403
         
 
-
+#! RefreshTokenResource to refresh token
 class RefreshTokenResource(Resource):
     @jwt_required(refresh=True)
     def post(self):
@@ -389,6 +401,8 @@ class RefreshTokenResource(Resource):
 
         # Return the new access token as a JSON response
         return jsonify({'access_token': new_access_token}), 200
+    
+#! SignupResource to signup
 class SignupResource(Resource):
     def post(self):
         try:
@@ -481,14 +495,15 @@ class SignupResource(Resource):
             logging.error(f'Signup error: {str(e)}')
             return {'error': 'An error occurred during signup.'}, 500
 
-        
+#! LogoutResource to logout
 class LogoutResource(Resource):
     @jwt_required()
     def post(self):
         jti = get_jwt()["jti"]  # Get the token identifier (JTI)
         blacklist.add(jti)  # Add JTI to the blacklist
         return {"msg": "Successfully logged out"}, 200
-
+    
+#! ServiceResource to get service details
 class ServiceResource(Resource):
     # @role_required('admin', 'technician')
     def get(self, service_id=None):
@@ -502,7 +517,8 @@ class ServiceResource(Resource):
             services_schema = ServiceSchema(many=True)
             services_data = services_schema.dump(services)
             return {'services': services_data}, 200
-
+        
+#! Post method to add service
     @role_required('admin')
     def post(self):
         # JWT validation handled by the decorator
@@ -554,11 +570,6 @@ class ServiceResource(Resource):
             return {'error': 'Failed to create service'}, 500
         
 
-# To get all requests for a technician
-class TechnicianRequests(Resource):
-    def get(self, technician_id):
-        requests = ClientRequest.query.filter_by(technician_id=technician_id).all()
-        return jsonify([{'id': r.id, 'description': r.description, 'status': r.status} for r in requests])
 
     @role_required('admin')
     def post(self):
@@ -602,7 +613,8 @@ class TechnicianRequests(Resource):
             db.session.rollback()
             logging.error(f"Error creating service: {e}")
             return {'error': 'Failed to create service'}, 500
-
+        
+#! RequestResource to get request details
 class RequestResource(Resource):
     @role_required('user, technician', 'admin')
     def get(self, request_id=None):
@@ -612,7 +624,8 @@ class RequestResource(Resource):
         else:
             requests = ClientRequest.query.all()
             return {'requests': [req.to_dict() for req in requests]}, 200
-
+        
+    #! To make a request
     @role_required('user')
     def post(self):
         data = request.json
@@ -632,7 +645,8 @@ class RequestResource(Resource):
         db.session.add(new_request)
         db.session.commit()
         return {'message': 'Service request created successfully!', 'request_id': new_request.id}, 201
-
+    
+#! PaymentResource to get payment details
 class PaymentResource(Resource):
     @role_required('admin')
     def get(self, request_id=None):
@@ -665,7 +679,8 @@ class PaymentResource(Resource):
         db.session.add(new_payment)
         db.session.commit()
         return {'message': 'Payment created successfully!', 'payment_id': new_payment.id}, 201
-
+    
+#! BlogResource to get blog details
 class BlogResource(Resource):
     # @jwt_required()
     def get(self):
@@ -680,6 +695,27 @@ class BlogResource(Resource):
         except Exception as e:
             logging.error(f"Error retrieving blogs: {e}")
             return {'error': 'Failed to retrieve blogs'}, 500
+        
+#! To get all requests made for a technician
+class TechnicianServiceRequests(Resource):
+    @role_required('technician')
+    def get(self, technician_id):
+        try:
+            requests = ClientRequest.query.filter_by(technician_id=technician_id).all()
+            return [ request.to_dict() for request in requests], 200
+        
+        except Exception as e:
+            logging.error(f"Error retrieving technician requests: {e}")
+            return {'error': 'Failed to retrieve technician requests'}, 500
+        
+#! The statistic of the app..
+class StatisticResource(Resource):
+    @jwt_required()
+    def get(self):
+        total_requests = ClientRequest.query.count()
+        active_technicians = Technician.query.filter_by(role='technician').count()
+
+        return [ total_requests.to_dict(), active_technicians.to_dict()], 200
 
 # Add resources to API
 api = Api(app)
@@ -698,8 +734,9 @@ api.add_resource(CustomerResource, '/customers', '/customers/<int:customer_id>')
 api.add_resource(RefreshTokenResource, '/refresh_token')
 api.add_resource(LogoutResource, '/logout')
 api.add_resource(Upload, '/uploads/<path:filename>')
-api.add_resource(TechnicianRequests, '/api/technician/<int:technician_id>/requests')
+api.add_resource(TechnicianServiceRequests, '/technician/<int:technician_id>/requests')
 api.add_resource(AdminaddService, '/admin/services')
+api.add_resource(StatisticResource, '/statistic')
 
 # Error handling
 @app.errorhandler(400)

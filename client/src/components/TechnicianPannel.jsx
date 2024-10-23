@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 const TechnicianPanel = ({ technicianId }) => {
     // State variables
     const [assignedRequests, setAssignedRequests] = useState([]);
+    const [technicianName, setTechnicianName] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -14,10 +15,29 @@ const TechnicianPanel = ({ technicianId }) => {
         const fetchRequests = async () => {
             if (technicianId) {
                 try {
-                    const response = await axios.get(`https://hrs-app-1.onrender.com/api/technicians/${technicianId}/requests`);
-                    setAssignedRequests(response.data);
+                    const requestsResponse = await axios.get(
+                        `https://hrs-app-1.onrender.com/technicians/${technicianId}/requests`, {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                                'Content-Type': 'application/json',
+                            },
+                        }
+                    );
+                    setAssignedRequests(requestsResponse.data);
+                    
+                    // Fetch technician details
+                    const technicianResponse = await axios.get(
+                        `https://hrs-app-1.onrender.com/technicians/${technicianId}`, {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                                'Content-Type': 'application/json',
+                            },
+                        }
+                    );
+                    setTechnicianName(technicianResponse.data.name); // Assuming the response has a 'name' field
                 } catch (error) {
-                    setError(error.message);
+                    // Check for error responses and set a message accordingly
+                    setError(error.response?.data?.message || error.message || 'An error occurred');
                 } finally {
                     setLoading(false);
                 }
@@ -37,14 +57,11 @@ const TechnicianPanel = ({ technicianId }) => {
         return <p>Error: {error}</p>;
     }
 
-    // Technician name (could be fetched or passed as a prop)
-    const technicianName = "Eustache Kamala";
-
     return (
         <div className="min-h-screen bg-gray-900 p-6">
             <h1 className="text-3xl font-bold text-white mb-6">Technician Panel</h1>
             <section>
-                <h2 className="text-2xl font-semibold text-gray-200 mb-4">Assigned Service Requests</h2>
+                <h2 className="text-2xl font-semibold text-gray-200 mb-4">Assigned Service Requests for {technicianName}</h2>
                 <TechnicianServiceRequests 
                     technicianName={technicianName}
                     serviceRequests={assignedRequests}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'; // Import useNavigate for naviga
 import TechnicianList from './TechnicianList';
 import axios from 'axios';
 import { FaUsers, FaChartLine, FaMoneyBillWave, FaClipboardList, FaHeartbeat, FaPlus } from 'react-icons/fa';
+import { fetchStatistics as fetchStatisticsFromAPI } from '../api';
 
 const AdminDashboard = () => {
     const navigate = useNavigate(); // Initialize useNavigate for navigation
@@ -18,19 +19,23 @@ const AdminDashboard = () => {
                 const techResponse = await axios.get('/technicians');
                 setTechnicians(Array.isArray(techResponse.data) ? techResponse.data : []);
 
-                const userResponse = await axios.get('/user-requests');
+                const userResponse = await axios.get('/requests');
                 setUserRequests(Array.isArray(userResponse.data) ? userResponse.data : []);
 
-                const statsResponse = await axios.get('/payment');
-                setStatistics(statsResponse.data);
+                // Fetch statistics
+                const token = localStorage.getItem('access_token');
+                const statsResponse = await fetchStatisticsFromAPI(token);
+                setStatistics(statsResponse);
 
-                const paymentResponse = await axios.get('/payments');
+                const paymentResponse = await axios.get('/payment');
                 setPayments(Array.isArray(paymentResponse.data) ? paymentResponse.data : []);
+
             } catch (error) {
                 console.error('Error fetching data:', error);
                 setTechnicians([]);
                 setUserRequests([]);
                 setPayments([]);
+                setStatistics({});
             } finally {
                 setLoading(false);
             }
@@ -40,7 +45,7 @@ const AdminDashboard = () => {
     }, []);
 
     const handleAddTechnician = () => {
-        navigate('/add-technician'); // Redirect to the Add Technician component
+        navigate('/add-technician');
     };
 
     return (
