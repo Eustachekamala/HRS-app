@@ -595,7 +595,7 @@ class TechnicianRequests(Resource):
             return {'error': 'Failed to create service'}, 500
 
 class RequestResource(Resource):
-    @role_required('customer', 'technician', 'admin')
+    @role_required('user, technician', 'admin')
     def get(self, request_id=None):
         if request_id:
             request = ClientRequest.query.get_or_404(request_id)
@@ -604,7 +604,7 @@ class RequestResource(Resource):
             requests = ClientRequest.query.all()
             return {'requests': [req.to_dict() for req in requests]}, 200
 
-    @role_required('customer')
+    @role_required('user')
     def post(self):
         data = request.json
         logging.info(f"Received request data: {data}")
