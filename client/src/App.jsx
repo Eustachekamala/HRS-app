@@ -22,7 +22,7 @@ import { fetchTechnicians as apiFetchTechnicians } from './api';
 import PaypalButton from './components/PaypalButton';
 import { useEffect, useState } from 'react';
 import TechnicianDetailPage from './pages/TechnicianDetailPage';
-import ServiceRequestModal from './components/ServiceRequestModal';
+import ServiceRequestForm from './components/ServiceRequestForm';
 import TechnicianServiceRequests from './components/TechnicianServiceReq';
 
 
@@ -76,7 +76,7 @@ const App = () => {
                 <Route path='/technician-detail' element={<TechnicianDetailPage />} />
                 <Route path='/technician-detail/:id' element={<TechnicianDetailPage />} />
                 <Route path='/technician-detail/:id/service-detail' element={<TechnicianDetailPage />} />
-                <Route path='/service-request-form' element={<ServiceRequestModal/>} />
+                <Route path='/service-request-form' element={<ServiceRequestForm />} />
                 <Route path='/add-technician' element={<AddTechnician />} />
                 <Route path='/technician-requests' element={<TechnicianServiceRequests />} />
                 
