@@ -318,12 +318,18 @@ class LoginResource(Resource):
                 #     'phone': getattr(user, 'phone', None)
                 # }
                 
-                return jsonify( {
-                'access_token': access_token,
-                'refresh_token': refresh_token,
-                'customers': [user.to_dict()],
-                "redirect": redirect_url
-                }), 200
+                
+                response_data={
+                    'access_token': access_token,
+                    'refresh_token': refresh_token,
+                    'customers': [user.to_dict()],
+                    'redirect': redirect_url
+                }
+                
+                return jsonify({
+                    'message': 'Loged in Succesfully',
+                    'response_data':response_data
+                    }), 200
 
                 # return {
                 #     'access_token': access_token,
@@ -444,12 +450,17 @@ class SignupResource(Resource):
             #     'phone': new_user.phone
             # }
             
-            return jsonify({
+            response_data={
+                    'access_token': access_token,
+                    'refresh_token': refresh_token,
+                    'customers': [new_user.to_dict()],
+                }
+            
+            return jsonify ({
                 'message': 'User created successfully!',
-                'access_token': access_token,
-                'refresh_token': refresh_token,
-                'customers': [new_user.to_dict()]
-            }), 200
+                'response_data':response_data
+             }
+            ), 201
 
             # return {
             #     'message': 'User created successfully!',
