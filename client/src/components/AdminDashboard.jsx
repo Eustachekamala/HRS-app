@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import TechnicianList from './TechnicianList';
 import axios from 'axios';
 import { FaUsers, FaMoneyBillWave, FaClipboardList, FaHeartbeat, FaPlus } from 'react-icons/fa';
 import { fetchStatistics as fetchStatisticsFromAPI } from '../api';
 import Statistics from './Statistics';
 
 const AdminDashboard = () => {
-    const navigate = useNavigate(); // Initialize useNavigate for navigation
-    const [technicians, setTechnicians] = useState([]);
+    const navigate = useNavigate();
     const [userRequests, setUserRequests] = useState([]);
     const [statistics, setStatistics] = useState({});
     const [payments, setPayments] = useState([]);
@@ -18,22 +16,17 @@ const AdminDashboard = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const techResponse = await axios.get('/technicians');
-                setTechnicians(Array.isArray(techResponse.data) ? techResponse.data : []);
-
                 const userResponse = await axios.get('/requests');
                 setUserRequests(Array.isArray(userResponse.data) ? userResponse.data : []);
 
                 // Fetch statistics
-                const token = localStorage.getItem('access_token');
-                const statsResponse = await fetchStatisticsFromAPI(token);
+                const statsResponse = await fetchStatisticsFromAPI();
                 setStatistics(statsResponse);
 
                 const paymentResponse = await axios.get('/payment');
                 setPayments(Array.isArray(paymentResponse.data) ? paymentResponse.data : []);
 
             } catch (error) {
-                setTechnicians([]);
                 setUserRequests([]);
                 setPayments([]);
                 setStatistics({});
@@ -54,7 +47,6 @@ const AdminDashboard = () => {
         navigate('/manage-technicians');
     };
 
-
     return (
         <div className="h-screen w-screen bg-gray-900 flex items-center justify-center">
             <div className="max-w-4xl w-full p-6 bg-gray-800 shadow-md rounded-lg">
@@ -70,19 +62,20 @@ const AdminDashboard = () => {
                     </button>
                 </div>
 
-                 {error && <p className="text-red-500">{error}</p>}
+                {error && <p className="text-red-500">{error.message}</p>}
+                
                 {/* Statistics Section */}
                 <Statistics statistics={statistics} loading={loading} />
 
                 <section className="mb-6 p-4 border rounded-lg bg-gray-400 transition-opacity opacity-0 animate-fadeIn">
                     <div className="flex justify-end mb-4">
-                    <button 
-                        onClick={handleManageTechnicians} 
-                        className="flex items-center bg-green-600 text-white p-2 rounded hover:bg-green-500 transition"
-                    >
-                        <FaUsers className="mr-2" /> Manage Technicians
-                    </button>
-                </div>
+                        <button 
+                            onClick={handleManageTechnicians} 
+                            className="flex items-center bg-green-600 text-white p-2 rounded hover:bg-green-500 transition"
+                        >
+                            <FaUsers className="mr-2" /> Manage Technicians
+                        </button>
+                    </div>
                 </section>
 
                 <section className="mb-6 p-4 border rounded-lg bg-gray-400 transition-opacity opacity-0 animate-fadeIn">

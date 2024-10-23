@@ -298,7 +298,8 @@ export const processPayment = async (token, paymentData) => {
     }
 };
 
-export const fetchTechnicianRequests = async (token) => {
+export const fetchTechnicianRequests = async () => {
+    const token = localStorage.getItem('access_token');
     if (!token) {
         throw new Error("No token provided");
     }
@@ -309,6 +310,7 @@ export const fetchTechnicianRequests = async (token) => {
                 Authorization: `Bearer ${token}`,
             },
         });
+        console.log(response.data);
         return response.data;
     } catch (error) {
         console.error('Error:', error.response?.data || error.message);
@@ -316,7 +318,10 @@ export const fetchTechnicianRequests = async (token) => {
     }
 };
 
-export const fetchStatistics = async (token) => {
+
+// Fetch Statistics API
+export const fetchStatistics = async () => {
+    const token = localStorage.getItem('access_token');
     if (!token) {
         throw new Error("No token provided");
     }
@@ -333,5 +338,6 @@ export const fetchStatistics = async (token) => {
         throw error; // Propagate the error
     }
 };
+
 
 export default apiClient;
