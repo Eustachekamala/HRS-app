@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { fetchTechnicians as fetchTechniciansFromApi } from '../api'; // Import the fetchTechnicians function
 import { FaTrash } from 'react-icons/fa';
+import axios from 'axios';
 
 const ManageTechnicians = () => {
     const [technicians, setTechnicians] = useState([]);
@@ -8,10 +9,10 @@ const ManageTechnicians = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchTechnicians = async () => {
+        const loadTechnicians = async () => {
             try {
-                const response = await axios.get('/technicians');
-                setTechnicians(response.data);
+                const techData = await fetchTechniciansFromApi();
+                setTechnicians(techData);
             } catch (err) {
                 console.error('Error fetching technicians:', err);
                 setError('Failed to fetch technicians');
@@ -20,7 +21,7 @@ const ManageTechnicians = () => {
             }
         };
 
-        fetchTechnicians();
+        loadTechnicians();
     }, []);
 
     const handleDelete = async (technicianId) => {
@@ -47,7 +48,7 @@ const ManageTechnicians = () => {
                     <thead>
                         <tr className="bg-gray-800">
                             <th className="px-4 py-2">Technician ID</th>
-                            <th className="px-4 py-2">Name</th>
+                            <th className="px-4 py-2">Username</th>
                             <th className="px-4 py-2">Email</th>
                             <th className="px-4 py-2">Actions</th>
                         </tr>
@@ -56,7 +57,7 @@ const ManageTechnicians = () => {
                         {technicians.map((technician) => (
                             <tr key={technician.id} className="bg-gray-700 hover:bg-gray-600 transition-colors">
                                 <td className="border px-4 py-2">{technician.id}</td>
-                                <td className="border px-4 py-2">{technician.name}</td>
+                                <td className="border px-4 py-2">{technician.username}</td>
                                 <td className="border px-4 py-2">{technician.email}</td>
                                 <td className="border px-4 py-2">
                                     <button
