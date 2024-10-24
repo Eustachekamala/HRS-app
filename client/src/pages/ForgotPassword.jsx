@@ -21,7 +21,7 @@ const ForgotPassword = () => {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-black">
+        <div className="flex items-center justify-center h-screen bg-gray-900 ">
             <form onSubmit={handleSubmit} className="bg-blue-600 p-8 rounded-lg shadow-md w-full max-w-md">
                 <h2 className="text-2xl font-bold text-white text-center mb-4">Forgot Password</h2>
                 {message && <p className="text-green-500 text-sm text-center">{message}</p>} {/* Success message */}
