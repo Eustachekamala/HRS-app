@@ -14,7 +14,7 @@ const ServiceDisplay = ({ services }) => {
     services.sort((a, b) => a.service_type.localeCompare(b.service_type));
 
     return (
-        <div className="w-full mx-auto p-4 m-0">
+        <div className="w-full h-full mx-auto p-4 m-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                 {services.map((service) => (
                     <ServiceCard key={service.id} service={service} />
