@@ -16,7 +16,7 @@ const TechnicianPanel = ({ technicianId }) => {
             if (technicianId) {
                 try {
                     const requestsResponse = await axios.get(
-                        `https://hrs-app-1.onrender.com/technicians/${technicianId}/requests`, {
+                        `http://127.0.0.1:5000/technicians/${technicianId}/requests`, {
                             headers: {
                                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                                 'Content-Type': 'application/json',
@@ -27,7 +27,7 @@ const TechnicianPanel = ({ technicianId }) => {
                     
                     // Fetch technician details
                     const technicianResponse = await axios.get(
-                        `https://hrs-app-1.onrender.com/technicians/${technicianId}`, {
+                        `http://127.0.0.1:5000/technicians/${technicianId}`, {
                             headers: {
                                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                                 'Content-Type': 'application/json',

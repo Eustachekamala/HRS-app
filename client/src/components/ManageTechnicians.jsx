@@ -1,23 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { fetchTechnicians as fetchTechniciansFromApi } from '../api';
-import { FaTrash } from 'react-icons/fa';
+import { FaTrash, FaPlus } from 'react-icons/fa';
 import axios from 'axios';
+import AddTechnician from './AddTechnician';
 
 const ManageTechnicians = () => {
     const [technicians, setTechnicians] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [showAddTechnician, setShowAddTechnician] = useState(false);
 
     useEffect(() => {
         const loadTechnicians = async () => {
             setLoading(true);
             setError(null);
             try {
-                const token = localStorage.getItem('access_token');
-                if (!token) {
-                    throw new Error('No token provided');
-                }
-                
                 const techData = await fetchTechniciansFromApi();
                 setTechnicians(techData);
             } catch (err) {
@@ -33,7 +30,7 @@ const ManageTechnicians = () => {
 
     const handleDelete = async (technicianId) => {
         try {
-            await axios.delete(`/technicians/${technicianId}`);
+            await axios.delete(`http://127.0.0.1:5000/technicians/${technicianId}`);
             setTechnicians(technicians.filter(technician => technician.id !== technicianId));
             alert('Technician deleted successfully!');
         } catch (err) {
@@ -42,9 +39,18 @@ const ManageTechnicians = () => {
         }
     };
 
+    const handleAddTechnician = (newTechnician) => {
+        setTechnicians([...technicians, newTechnician]);
+        setShowAddTechnician(false);
+    };
+
     return (
         <div className="bg-gray-900 p-6 rounded-lg shadow-md">
             <h2 className="text-2xl font-semibold text-white mb-4">Manage Technicians</h2>
+            <button onClick={() => setShowAddTechnician(true)} className="bg-blue-600 text-white px-4 py-2 rounded flex items-center mb-4">
+                <FaPlus className="mr-2" /> Add Technician
+            </button>
+            {showAddTechnician && <AddTechnician onAdd={handleAddTechnician} />}
             
             {loading ? (
                 <p className="text-gray-500">Loading technicians...</p>

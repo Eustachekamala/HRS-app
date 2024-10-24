@@ -26,7 +26,7 @@ load_dotenv()
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://hrs-app.onrender.com", "allow_headers": ["Authorization", "Content-Type"]}})
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000", "allow_headers": ["Authorization", "Content-Type"]}})
 
 # Configure application
 app.config['SQLALCHEMY_DATABASE_URI'] = (
@@ -117,7 +117,7 @@ class AdminaddService(Resource):
             service_type=data['service_type'],
             description=data['description'],
             image_path=data['image_path'],
-            admin_id=get_jwt_identity()['id']
+            # admin_id=get_jwt_identity()['id']
         )
         
         db.session.add(new_service)
@@ -131,6 +131,7 @@ class Index(Resource):
 
 #! AdminResource to get admin details
 class AdminResource(Resource):
+    @jwt_required()
     @role_required('admin')
     def get(self):
         user = Admin.query.filter_by(role='admin').first()
@@ -142,6 +143,7 @@ class AdminResource(Resource):
         logging.info(f"Response data: {admin_data}")
         return {'admin': admin_data}, 200
 
+    @jwt_required()
     @role_required('admin')
     def delete(self, admin_id):
         admin = User.query.get(admin_id)
@@ -154,7 +156,8 @@ class AdminResource(Resource):
     
 #! TechnicianResource to get technician details
 class TechnicianResource(Resource):
-    # @role_required('admin', 'technician')
+    # @jwt_required()
+    # @role_required('admin', 'technician', 'user')
     def get(self):
         try:
             technicians = Technician.query.all()
@@ -169,23 +172,40 @@ class TechnicianResource(Resource):
             return {'error': 'Failed to retrieve technicians'}, 500
         
     #! Post method to add technician
-    @role_required('admin')
+    # @jwt_required()
+    # @role_required('admin')
     def post(self):
-        data = request.json
+        data = request.form  # Use request.form to handle FormData
         logging.info(f"Received technician data: {data}")
 
-        required_fields = ['username', 'password', 'email', 'phone', 'image_path', 'occupation']
+        required_fields = ['username', 'email', 'password', 'phone', 'occupation', 'role', 'history', 'realizations']
         for field in required_fields:
             if field not in data:
                 return {'error': f'Missing {field}'}, 400
         
+        # Handle file upload
+        if 'image_path' not in request.files:
+            return {'error': 'Missing image file'}, 400
+        
+        image_file = request.files['image_path']
+        if image_file.filename == '':
+            return {'error': 'No file selected'}, 400
+        
+        # Secure the filename and save the file
+        filename = secure_filename(image_file.filename)
+        image_path = os.path.join('uploads/', filename)
+        image_file.save(image_path)
+
         new_technician = Technician(
             username=data['username'],
-            password=generate_password_hash(data['password']),
             email=data['email'],
+            password=generate_password_hash(data['password']),
+            role=data['role'],
             phone=data['phone'],
-            image_path=data['image_path'],
-            occupation=data['occupation']
+            image_path=image_path,
+            occupation=data['occupation'],
+            history=data.get('history', ''),
+            realizations=data.get('realizations', 0)
         )
 
         db.session.add(new_technician)
@@ -194,6 +214,7 @@ class TechnicianResource(Resource):
         return [new_technician.to_dict()], 201
     
     #! Delete method to delete technician
+    @jwt_required()
     @role_required('admin')
     def delete(self, technician_id):
         technician = Technician.query.get(technician_id)
@@ -205,6 +226,7 @@ class TechnicianResource(Resource):
 
 #! UserResource to manage users
 class UserResource(Resource):
+    @jwt_required()
     @role_required('admin')
     def get(self):
         users = Users.query.filter_by(role='user').all()
@@ -215,6 +237,7 @@ class UserResource(Resource):
         }
         
     #! Post method to add user
+    @jwt_required()
     @role_required('admin')
     def post(self):
         data = request.json
@@ -239,6 +262,7 @@ class UserResource(Resource):
         db.session.commit()
         return {'user_id': [new_user.to_dict()]}, 201
     
+    @jwt_required()
     @role_required('admin')
     def delete(self, customer_id):
         user = User.query.get(customer_id)
@@ -250,6 +274,7 @@ class UserResource(Resource):
 
 #! To manage the customer
 class CustomerResource(Resource):
+    @jwt_required()
     @role_required('customer', 'admin')
     def get(self, customer_id=None):
         if customer_id:
@@ -260,6 +285,7 @@ class CustomerResource(Resource):
             return {'customers': [customer.to_dict() for customer in customers]}, 200
         
     #! Put method to update customer
+    @jwt_required()
     @role_required('customer')
     def put(self, customer_id):
         customer = Users.query.get_or_404(customer_id)
@@ -279,6 +305,7 @@ class CustomerResource(Resource):
 
 #! LoginResource to login
 class LoginResource(Resource):
+    @jwt_required()
     def post(self):
         try:
             data = request.json
@@ -405,6 +432,7 @@ class RefreshTokenResource(Resource):
     
 #! SignupResource to signup
 class SignupResource(Resource):
+    # @jwt_required()
     def post(self):
         try:
             data = request.json
@@ -506,7 +534,7 @@ class LogoutResource(Resource):
     
 #! ServiceResource to get service details
 class ServiceResource(Resource):
-    # @role_required('admin', 'technician')
+    # @role_required('admin', 'technician', 'user')
     def get(self, service_id=None):
         if service_id is not None:
             service = Service.query.get_or_404(service_id)
@@ -519,16 +547,17 @@ class ServiceResource(Resource):
             services_data = services_schema.dump(services)
             return {'services': services_data}, 200
         
-#! Post method to add service
-    @role_required('admin')
+    #! Post method to add service
+    # @jwt_required()
+    # @role_required('admin') 
     def post(self):
-        # JWT validation handled by the decorator
-        current_user = get_jwt_identity()  # Optional: get user details if needed
+        # Get the current user from the JWT
+        # current_user = get_jwt_identity()
         
         # Validate the presence of a file
         if 'file' not in request.files:
             return {'error': 'No file part'}, 400
-        
+
         file = request.files['file']
         if file.filename == '':
             return {'error': 'No selected file'}, 400
@@ -536,13 +565,9 @@ class ServiceResource(Resource):
         # Validate required form fields
         service_type = request.form.get('service_type')
         description = request.form.get('description')
-        id_admin = request.form.get('id_admin')
-        
+
         if not service_type or not description:
             return {'error': 'service_type and description are required'}, 400
-        
-        if id_admin is None:
-            return {'error': 'Admin ID is required'}, 400
 
         # Secure the filename and save the file
         filename = secure_filename(file.filename)
@@ -556,67 +581,67 @@ class ServiceResource(Resource):
                 service_type=service_type,
                 description=description,
                 image_path=file_path,
-                id_admin=id_admin
             )
 
             db.session.add(new_service)
             db.session.commit()
 
-            service_schema = ServiceSchema()
-            return {'message': 'Service created successfully!', 'service': service_schema.dump(new_service)}, 201
-        
+            return {'message': 'Service created successfully!', 'service': new_service.to_dict()}, 201
+            
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error creating service: {e}")
-            return {'error': 'Failed to create service'}, 500
+            return {'error': 'An error occurred while creating the service.'}, 500
+
         
 
 
-    @role_required('admin')
-    def post(self):
-        # JWT validation handled by the decorator
-        current_user = get_jwt_identity()  # Optional: get user details if needed
+    # @role_required('admin')
+    # def post(self):
+    #     # JWT validation handled by the decorator
+    #     current_user = get_jwt_identity()  # Optional: get user details if needed
         
-        if 'file' not in request.files:
-            return {'error': 'No file part'}, 400
+    #     if 'file' not in request.files:
+    #         return {'error': 'No file part'}, 400
         
-        file = request.files['file']
-        if file.filename == '':
-            return {'error': 'No selected file'}, 400
+    #     file = request.files['file']
+    #     if file.filename == '':
+    #         return {'error': 'No selected file'}, 400
         
-        service_type = request.form.get('service_type')
-        description = request.form.get('description')
-        id_admin = request.form.get('id_admin')
+    #     service_type = request.form.get('service_type')
+    #     description = request.form.get('description')
+    #     id_admin = request.form.get('id_admin')
         
-        if not service_type or not description:
-            return {'error': 'service_type and description are required'}, 400
+    #     if not service_type or not description:
+    #         return {'error': 'service_type and description are required'}, 400
         
-        if id_admin is None:
-            return {'error': 'Admin ID is required'}, 400
+    #     if id_admin is None:
+    #         return {'error': 'Admin ID is required'}, 400
 
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
+    #     filename = secure_filename(file.filename)
+    #     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    #     file.save(file_path)
 
-        new_service = Service(
-            service_type=service_type,
-            description=description,
-            image_path=file_path,
-            id_admin=id_admin
-        )
+    #     new_service = Service(
+    #         service_type=service_type,
+    #         description=description,
+    #         image_path=file_path,
+    #         id_admin=id_admin
+    #     )
 
-        try:
-            db.session.add(new_service)
-            db.session.commit()
-            service_schema = ServiceSchema()
-            return {'message': 'Service created successfully!', 'service': service_schema.dump(new_service)}, 201
-        except Exception as e:
-            db.session.rollback()
-            logging.error(f"Error creating service: {e}")
-            return {'error': 'Failed to create service'}, 500
+    #     try:
+    #         db.session.add(new_service)
+    #         db.session.commit()
+    #         service_schema = ServiceSchema()
+    #         return {'message': 'Service created successfully!', 'service': service_schema.dump(new_service)}, 201
+    #     except Exception as e:
+    #         db.session.rollback()
+    #         logging.error(f"Error creating service: {e}")
+    #         return {'error': 'Failed to create service'}, 500
         
 #! RequestResource to get request details
 class RequestResource(Resource):
+    @jwt_required()
     @role_required('user, technician', 'admin')
     def get(self, request_id=None):
         if request_id:
@@ -627,7 +652,8 @@ class RequestResource(Resource):
             return {'requests': [req.to_dict() for req in requests]}, 200
         
     #! To make a request
-    @role_required('user')
+    # @jwt_required()
+    # @role_required('user')
     def post(self):
         data = request.json
         logging.info(f"Received request data: {data}")
@@ -645,11 +671,12 @@ class RequestResource(Resource):
 
         db.session.add(new_request)
         db.session.commit()
-        return {'message': 'Service request created successfully!', 'request_id': new_request.id}, 201
+        return [new_request.to_dict()], 201
     
 #! PaymentResource to get payment details
 class PaymentResource(Resource):
-    @role_required('admin')
+    @jwt_required()
+    # @role_required('admin')
     def get(self, request_id=None):
         if request_id is not None:
             request = ClientRequest.query.get_or_404(request_id)
@@ -660,7 +687,7 @@ class PaymentResource(Resource):
             requests = ClientRequest.query.all()
             return {'requests': [req.to_dict() for req in requests]}, 200
     
-    @role_required('admin')
+    # @role_required('admin')
     def post(self):
         data = request.json
         logging.info(f"Received payment data: {data}")
@@ -699,7 +726,8 @@ class BlogResource(Resource):
         
 #! To get all requests made for a technician
 class TechnicianServiceRequests(Resource):
-    @role_required('technician')
+    # @jwt_required()
+    # @role_required('technician')
     def get(self, technician_id):
         try:
             requests = ClientRequest.query.filter_by(technician_id=technician_id).all()
@@ -724,7 +752,7 @@ class StatisticResource(Resource):
 api = Api(app)
 api.add_resource(Index, '/')
 api.add_resource(AdminResource, '/admin', '/admins/<int:admin_id>', endpoint='admin_resource')
-api.add_resource(TechnicianResource, '/technicians', endpoint='technician_resource')
+api.add_resource(TechnicianResource, '/technicians', '/technicians/<int:technician_id>',  endpoint='technician_resource')
 api.add_resource(ServiceResource, '/services', '/services/<int:service_id>',  endpoint='services_resource')
 api.add_resource(RequestResource, '/requests', '/requests/<int:request_id>')
 api.add_resource(PaymentResource, '/payment')
@@ -737,8 +765,7 @@ api.add_resource(CustomerResource, '/customers', '/customers/<int:customer_id>')
 api.add_resource(RefreshTokenResource, '/refresh_token')
 api.add_resource(LogoutResource, '/logout')
 api.add_resource(Upload, '/uploads/<path:filename>')
-api.add_resource(TechnicianServiceRequests, '/technician/<int:technician_id>/requests')
-api.add_resource(AdminaddService, '/admin/services')
+api.add_resource(TechnicianServiceRequests, '/technician_requests/<int:technician_id>')
 api.add_resource(StatisticResource, '/statistic')
 
 # Error handling

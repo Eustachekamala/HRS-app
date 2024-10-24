@@ -1,78 +1,102 @@
 import axios from 'axios';
 import jwtDecode from 'jwt-decode';
 
-const API_URL = 'https://hrs-app-1.onrender.com';
-
-// Create an Axios instance
 const apiClient = axios.create({
-    baseURL: API_URL,
+    baseURL: 'http://127.0.0.1:5000',
 });
 
-// Function to get the JWT token from local storage
-const getAccessToken = () => localStorage.getItem('access_token');
-const getRefreshToken = () => localStorage.getItem('refresh_token');
+
+apiClient.interceptors.request.use((config) => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+});
+
+// // Function to get the JWT token from local storage
+// const getAccessToken = () => localStorage.getItem('access_token');
+// const getRefreshToken = () => localStorage.getItem('refresh_token');
 
 // Function to refresh the token
 
-export const refreshAccessToken = async () => {
-    const refreshToken = getRefreshToken();
+// export const refreshAccessToken = async () => {
+//     const refreshToken = getRefreshToken();
     
-    // Check if the refresh token exists
+//     // Check if the refresh token exists
+//     if (!refreshToken) {
+//         console.error("No refresh token found");
+//         throw new Error("No refresh token found");
+//     }
+
+//     try {
+//         // Send a request to refresh the access token
+//         const response = await apiClient.post('/refresh_token', { token: refreshToken }, {
+//             headers: {
+//                 'Authorization': `Bearer ${refreshToken}`, // Include the refresh token in the headers
+//                 'Content-Type': 'application/json',
+//             },
+//         });
+
+//         // Extract the new access token from the response
+//         const { access_token } = response.data;
+//         if (access_token) {
+//             // Store the new access token in local storage
+//             localStorage.setItem('access_token', access_token);
+//             return access_token;
+//         } else {
+//             throw new Error('Failed to refresh access token.');
+//         }
+//     } catch (error) {
+//         // Log the error message and propagate the error
+//         console.error('Error refreshing access token:', error.message);
+//         throw error; // Propagate error for handling
+//     }
+// };
+// // Add a response interceptor to handle token refresh
+// apiClient.interceptors.response.use(
+//     response => response,
+//     async error => {
+//         const originalRequest = error.config;
+
+//         // If a 401 error occurs, try to refresh the token
+//         if (error.response && error.response.status === 401) {
+//             try {
+//                 const newToken = await refreshAccessToken(); // Refresh the token
+//                 originalRequest.headers['Authorization'] = `Bearer ${newToken}`; // Set the new token in the request headers
+//                 return apiClient(originalRequest); // Retry the original request
+//             } catch (refreshError) {
+//                 console.error('Failed to refresh token:', refreshError);
+//                 window.location.href = '/login'; // Redirect to login
+//             }
+//         }
+
+//         return Promise.reject(error); // Reject the promise for any other errors
+//     }
+// );
+
+// Function to refresh the access token
+export const refreshAccessToken = async () => {
+    const refreshToken = localStorage.getItem('refresh_token');
     if (!refreshToken) {
-        console.error("No refresh token found");
-        throw new Error("No refresh token found");
+        throw new Error('No refresh token available');
     }
-
+    
     try {
-        // Send a request to refresh the access token
-        const response = await apiClient.post('/refresh_token', { token: refreshToken }, {
-            headers: {
-                'Authorization': `Bearer ${refreshToken}`, // Include the refresh token in the headers
-                'Content-Type': 'application/json',
-            },
-        });
-
-        // Extract the new access token from the response
+        const response = await apiClient.post('/refresh-token', { token: refreshToken });
         const { access_token } = response.data;
-        if (access_token) {
-            // Store the new access token in local storage
-            localStorage.setItem('access_token', access_token);
-            return access_token;
-        } else {
-            throw new Error('Failed to refresh access token.');
-        }
+        localStorage.setItem('access_token', access_token);
+        return access_token;
     } catch (error) {
-        // Log the error message and propagate the error
-        console.error('Error refreshing access token:', error.message);
-        throw error; // Propagate error for handling
+        console.error('Failed to refresh token:', error);
+        throw error; // Handle further in your call
     }
 };
-// Add a response interceptor to handle token refresh
-apiClient.interceptors.response.use(
-    response => response,
-    async error => {
-        const originalRequest = error.config;
 
-        // If a 401 error occurs, try to refresh the token
-        if (error.response && error.response.status === 401) {
-            try {
-                const newToken = await refreshAccessToken(); // Refresh the token
-                originalRequest.headers['Authorization'] = `Bearer ${newToken}`; // Set the new token in the request headers
-                return apiClient(originalRequest); // Retry the original request
-            } catch (refreshError) {
-                console.error('Failed to refresh token:', refreshError);
-                window.location.href = '/login'; // Redirect to login
-            }
-        }
-
-        return Promise.reject(error); // Reject the promise for any other errors
-    }
-);
-
-// Login API
-export const login = async (email, password) => {
+// Export API functions
+export const login = async (credentials) => {
     try {
-        const response = await apiClient.post('/login', { email, password });
+        const response = await apiClient.post('/login', credentials);
         const { access_token, refresh_token } = response.data;
 
         if (!access_token || !refresh_token) {
@@ -82,12 +106,29 @@ export const login = async (email, password) => {
         localStorage.setItem('access_token', access_token);
         localStorage.setItem('refresh_token', refresh_token);
 
-        return response.data; // Return response for further processing
+        return response.data;
     } catch (error) {
         console.error('Login error:', error.response?.data || error.message);
         throw new Error(error.response?.data?.message || 'Login failed. Please try again.');
     }
 };
+
+// Export other API functions as needed
+export const fetchProtectedData = async () => {
+    try {
+        const response = await apiClient.get('/protected-data');
+        return response.data;
+    } catch (error) {
+        if (error.response.status === 401) {
+            // Token might be expired, attempt to refresh
+            await refreshAccessToken();
+            // Retry the request
+            return fetchProtectedData();
+        }
+        throw error; // Rethrow if it's another error
+    }
+};
+
 
 // Validate and refresh token utility function
 // api.js
@@ -223,7 +264,7 @@ export const fetchTechnicians = async () => {
     }
 
     try {
-        const response = await axios.get('https://hrs-app-1.onrender.com/technicians', {
+        const response = await axios.get('https://127.0.0.1:5000/technicians', {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -285,7 +326,7 @@ export const fetchPaymentServices = async () => {
 
 export const processPayment = async (token, paymentData) => {
     try {
-        const response = await apiClient.post('/payment/', paymentData, {
+        const response = await apiClient.post('/payment', paymentData, {
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`,
@@ -299,7 +340,7 @@ export const processPayment = async (token, paymentData) => {
 };
 
 export const fetchTechnicianRequests = async (token, technicianId) => {
-    const response = await axios.get(`https://hrs-app-1.onrender.com/technician_requests/${technicianId}`, {
+    const response = await axios.get(`http://127.0.0.1:5000/technician_requests/${technicianId}`, {
         headers: {
             Authorization: `Bearer ${token}`
         }
@@ -309,7 +350,7 @@ export const fetchTechnicianRequests = async (token, technicianId) => {
 
 
 export const fetchStatistics = async (token) => {
-    const response = await axios.get('https://hrs-app-1.onrender.com/statistic', {
+    const response = await axios.get('http://127.0.0.1:5000/statistic', {
         headers: {
             Authorization: `Bearer ${token}` 
         }

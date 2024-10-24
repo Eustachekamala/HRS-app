@@ -1,11 +1,23 @@
 import { useState } from 'react';
-import { FaHome, FaTools, FaInfoCircle, FaComments, FaPhone } from 'react-icons/fa';
-
+import { FaHome, FaTools, FaInfoCircle, FaComments, FaPhone, FaSign} from 'react-icons/fa';
+import { useAuth } from '../configs/AuthContext'; // Use useAuth hook
 function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
 
     const toggleMenu = () => {
         setIsOpen(!isOpen);
+    };
+
+    const { user } = useAuth(); // Access user state from AuthContext
+
+    const handleLogin = () => {
+        if (!user) {
+            // If user is not logged in, redirect to sign up page
+            window.location.href = '/signup'; // Change this to your sign up route
+        } else {
+            // If user is logged in, redirect to login page
+            window.location.href = '/login'; // Change this to your login route
+        }
     };
 
     return (
@@ -29,7 +41,9 @@ function Navbar() {
                         <li><a href="#contact" className="flex items-center hover:underline">Contact</a></li>
                     </ul>
                 </nav>
-                <a href="#contact" className="hidden md:block bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-200">Get a Quote</a>
+                <button onClick={handleLogin} className="bg-blue-600 text-white px-6 py-3 rounded w-24 shadow-md hover:bg-blue-700 transition duration-200">
+                    Login 
+                </button>
             </header>
 
             {/* Mobile Menu */}

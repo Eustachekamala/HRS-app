@@ -1,109 +1,74 @@
 import React, { useState } from 'react';
 import { useAuth } from '../configs/AuthContext';
-import { login } from '../api';
+import { login as apiLogin } from '../api';
 import jwtDecode from 'jwt-decode';
-import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
     const { loginUser } = useAuth();
-    const navigate = useNavigate(); // Initialize useNavigate
-    const [formData, setFormData] = useState({
-        email: '',
-        password: ''
-    });
+    const navigate = useNavigate();
+    const [formData, setFormData] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
     const validateTokenFormat = (token) => {
-        console.group('Token Validation');
-        // Basic checks
-        if (typeof token !== 'string') {
-            console.error('Token is not a string');
-            console.groupEnd();
-            return false;
-        }
+        console.log('Validate token format:', token);
+        if (typeof token !== 'string') return false;
         const parts = token.split('.');
-        if (parts.length !== 3) {
-            console.error('Token does not have three parts');
-            console.groupEnd();
-            return false;
-        }
+        if (parts.length !== 3) return false;
+
         try {
-            parts.forEach((part, index) => {
+            parts.forEach((part) => {
                 const padding = '='.repeat((4 - part.length % 4) % 4);
                 atob(part.replace(/-/g, '+').replace(/_/g, '/') + padding);
             });
-        } catch (e) {
-            console.error('Failed to decode token parts:', e);
-            console.groupEnd();
+        } catch {
             return false;
         }
-        console.log('Token format is valid');
-        console.groupEnd();
         return true;
     };
 
-    const decodeToken = (token) => {
-        try {
-            const decoded = jwtDecode(token);
-            return decoded;
-        } catch (error) {
-            console.error('Invalid token specified, error:', error);
-            throw new Error('Invalid token specified');
-        }
-    };
-
-     const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
         try {
-            console.group('Login Request');
-            console.log('Credentials:', { email: formData.email });
-
-            const response = await login(formData.email, formData.password);
-            console.log('Full API Response:', response);
-
-            const token = response.access_token || 
-                          response.token || 
-                          response.data?.access_token || 
-                          response.data?.token;
+            const response = await apiLogin(formData);
+            const { access_token: token } = response;
 
             console.log('Raw token:', token);
 
-            if (!token) {
-                throw new Error('No authentication token received from server');
-            }
-
+            // Validate token format before decoding
             if (!validateTokenFormat(token)) {
-                throw new Error('Token format is invalid');
+                throw new Error('Invalid token format. Please log in again.');
             }
 
-            const decoded = decodeToken(token); 
+            // Decode the token to get user role
+            let decoded;
+            try {
+                decoded = jwtDecode(token);
+                console.log('Decoded token:', decoded);
+            } catch (error) {
+                console.error('Token decoding failed:', error);
+                throw new Error('Invalid token. Please log in again.');
+            }
 
-            // Here you can decide the redirection based on the role
-            // Assuming 'decoded' contains user info after successful login
+            // Role-based navigation
             if (decoded.role === 'admin') {
                 navigate('/admin-dashboard');
             } else if (decoded.role === 'technician') {
                 navigate('/technician-panel');
-            } else if (decoded.role === 'user') {
-                navigate('/services');
             } else {
-                navigate('/login');
+                navigate('/services');
             }
 
-            // Optionally store the token or user data as needed
-            loginUser(decoded); // If using context for global state
+            loginUser(decoded); // Update user context
 
         } catch (err) {
-            console.error('Login process failed:', err);// Redirect to technician page
+            console.error('Login process failed:', err);
             setError(err.message || 'Login failed. Please check your credentials and try again.');
-            localStorage.removeItem('access_token');
         } finally {
-            console.groupEnd();
             setLoading(false);
         }
     };
@@ -126,7 +91,7 @@ const Login = () => {
                     name="email"
                     placeholder="Email"
                     value={formData.email}
-                    onChange={(e) => setFormData(prev => ({...prev, email: e.target.value}))}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                     required
                     className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full focus:outline-none focus:border-blue-500"
                 />
@@ -136,21 +101,14 @@ const Login = () => {
                     name="password"
                     placeholder="Password"
                     value={formData.password}
-                    onChange={(e) => setFormData(prev => ({...prev, password: e.target.value}))}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                     required
                     className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full focus:outline-none focus:border-blue-500"
                 />
                 
                 <button 
                     type="submit"
-                    className={`
-                        bg-blue-600 text-white px-6 py-3 rounded w-full shadow-md
-                        transition-all duration-200
-                        ${loading 
-                            ? 'opacity-50 cursor-not-allowed' 
-                            : 'hover:bg-blue-700 active:transform active:scale-98'
-                        }
-                    `}
+                    className={`bg-blue-600 text-white px-6 py-3 rounded w-full shadow-md transition-all duration-200 ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700 active:transform active:scale-98'}`}
                     disabled={loading}
                 >
                     {loading ? (
