@@ -55,7 +55,7 @@ const ServiceRequestForm = () => {
                                 name="description"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                className="w-full p-2 border text-white border-gray-400 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                                className="w-full p-2 border text-black border-gray-400 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
                             ></textarea>
                         </div>
                         {error && <p style={{ color: 'red' }}>{error}</p>}
