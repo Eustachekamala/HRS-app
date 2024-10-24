@@ -1,13 +1,7 @@
-// import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './configs/AuthContext';
-// import ProtectedRoute from './configs/ProtectedRoute';
-import Services from './pages/Services';
-import Landingpage from './pages/Landingpage';
-// import AdminServices from './components/AdminUploadPage';
 import NotFound from './pages/404';
-import ServiceDetail from './pages/ServiceDetail';
-// import MakePayment from './components/PaypalButton';
 import DescriptionBox from './components/DescriptionBox';
 import TechnicianList from './components/TechnicianList';
 import TechnicianPage from './pages/TechnicianPage';
@@ -20,20 +14,19 @@ import Signout from './pages/Signout';
 import ForgotPassword from './pages/ForgotPassword';
 import { fetchTechnicians as apiFetchTechnicians } from './api';
 import PaypalButton from './components/PaypalButton';
-import { useEffect, useState } from 'react';
 import TechnicianDetailPage from './pages/TechnicianDetailPage';
 import ServiceRequestForm from './components/ServiceRequestForm';
 import UploadService from './components/UploadService';
-// import TechnicianServiceRequests from './components/TechnicianServiceReq';
 import ManageTechnicians from './components/ManageTechnicians';
-
-
+import ServiceList from "./pages/ServiceList"; 
+import ServiceForm from './pages/ServiceForm';
+import Landingpage from './pages/Landingpage';
+import { ToastContainer } from 'react-toastify';
 
 const App = () => {
     const [technicians, setTechnicians] = useState([]); 
     const [loading, setLoading] = useState(true);
 
-    //Function to get token from local storage
     const getToken = () => localStorage.getItem('token');
 
     useEffect(() => {
@@ -60,55 +53,44 @@ const App = () => {
     }, []);
 
     return (
-    <AuthProvider>
-        <Router>
-            <Routes>
-                <Route path='/' element={<Landingpage />} />
-                <Route path='/payment' element={<PaypalButton />} />
-                <Route path='/description' element={<DescriptionBox />} />
-                <Route 
-                    path='/technicians' 
-                    element={loading ? <p>Loading technicians...</p> : <TechnicianList technicians={technicians || []} />} 
-                />
-                <Route path='/technician-panel' element={<TechnicianPanel technicianId={1} />} />
-                <Route 
-                    path='/technician' 
-                    element={technicians.length > 0 ? <TechnicianPage technician={technicians[0]} /> : <NotFound />} 
-                />
-                <Route path='/services' element={<Services />} />
-                <Route path='/technician-detail' element={<TechnicianDetailPage />} />
-                <Route path='/technician-detail/:id' element={<TechnicianDetailPage />} />
-                <Route path='/technician-detail/:id/service-detail' element={<TechnicianDetailPage />} />
-                <Route path='/service-request-form' element={<ServiceRequestForm />} />
-                <Route path='/add-technician' element={<AddTechnician />} />
-                {/* <Route path='/technician-requests' element={<TechnicianServiceRequests  technicianName={technicianName}/>} /> */}
-                <Route path="/manage-technicians" element={<ManageTechnicians />} />
-                <Route path="/add-service" element={<UploadService />} />
-                
+        <AuthProvider>
+            <Router>
+                <ToastContainer />
+                <Routes>
+                    <Route path='/' element={<Landingpage />} />
+                    <Route path='/payment' element={<PaypalButton />} />
+                    <Route path='/description' element={<DescriptionBox />} />
+                    <Route 
+                        path='/technicians' 
+                        element={loading ? <p>Loading technicians...</p> : <TechnicianList technicians={technicians || []} />} 
+                    />
+                    <Route path='/technician-panel' element={<TechnicianPanel technicianId={1} />} />
+                    <Route 
+                        path='/technician' 
+                        element={technicians.length > 0 ? <TechnicianPage technician={technicians[0]} /> : <NotFound />} 
+                    />
+                    <Route path='/technician-detail' element={<TechnicianDetailPage />} />
+                    <Route path='/technician-detail/:id' element={<TechnicianDetailPage />} />
+                    <Route path='/technician-detail/:id/service-detail' element={<TechnicianDetailPage />} />
+                    <Route path='/service-request-form' element={<ServiceRequestForm />} />
+                    <Route path='/add-technician' element={<AddTechnician />} />
+                    <Route path="/manage-technicians" element={<ManageTechnicians />} />
+                    <Route path="/add-service" element={<UploadService />} />
+                    <Route path="/servicesForm" element={<ServiceForm />} />
+                    <Route path="/services" element={<ServiceList showButton={true} />} />
 
-                {/* Admin Protected Route */}
-                {/* <Route 
-                    path='/admin' 
-                    element={<ProtectedRoute element={<AdminServices />} allowedRoles={['admin']} />} 
-                /> */}
-                <Route path='/admin-dashboard' element={<AdminDashboard />} allowedRoles={['admin']} />
+                    <Route path='/admin-dashboard' element={<AdminDashboard />} />
 
-                <Route path='/service/:id' element={<ServiceDetail />} />
+                    <Route path='/login' element={<Login />} />
+                    <Route path='/signup' element={<Signup />} />
+                    <Route path='/forgot-password' element={<ForgotPassword />} />
+                    <Route path='/signout' element={<Signout />} />
 
-                {/* Authentication Routes */}
-                <Route path='/login' element={<Login />} />
-                <Route path='/signup' element={<Signup />} />
-                <Route path='/forgot-password' element={<ForgotPassword />} />
-                <Route path='/signout' element={<Signout />} />
-
-                {/* 404 Not Found */}
-                <Route path='*' element={<NotFound />} />
-            </Routes>
-        </Router>
-    </AuthProvider>
-);
-
-
+                    <Route path='*' element={<NotFound />} />
+                </Routes>
+            </Router>
+        </AuthProvider>
+    );
 };
 
 export default App;

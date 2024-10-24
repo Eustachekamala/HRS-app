@@ -1,5 +1,3 @@
-// src/AddTechnician.jsx
-
 import React, { useState } from 'react';
 import axios from 'axios';
 
@@ -9,9 +7,12 @@ const AddTechnician = () => {
     const [password, setPassword] = useState('');
     const [role, setRole] = useState('');
     const [phone, setPhone] = useState('');
-    const [picture, setPicture] = useState(null);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
+    const [occupation, setOccupation] = useState('');
+    const [image_path, setImagePath] = useState(null);
+    const [history, setHistory] = useState('');
+    const [realizations, setRealizations] = useState(0);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -24,13 +25,19 @@ const AddTechnician = () => {
         formData.append('password', password);
         formData.append('role', role);
         formData.append('phone', phone);
-        if (picture) {
-            formData.append('picture', picture);
+        if (image_path) {
+            formData.append('image_path', image_path);
         }
+        formData.append('occupation', occupation);
+        formData.append('history', history);
+        formData.append('realizations', realizations);
+
+        const token = localStorage.getItem('token');
 
         try {
-            const response = await axios.post('/technicians', formData, {
+            const response = await axios.post('http://127.0.0.1:5000/technicians', formData, {
                 headers: {
+                    Authorization: `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data',
                 },
             });
@@ -41,7 +48,10 @@ const AddTechnician = () => {
                 setPassword('');
                 setRole('');
                 setPhone('');
-                setPicture(null);
+                setImagePath(null);
+                setOccupation('');
+                setHistory('');
+                setRealizations(0);
             }
         } catch (error) {
             setMessage('Error adding technician. Please try again.');
@@ -52,44 +62,31 @@ const AddTechnician = () => {
 
     return (
         <div className="bg-gray-900 h-screen flex items-center justify-center">
-            <div className="max-w-md w-full p-6 bg-gray-800 shadow-md rounded-lg">
+            <div className="w-full max-w-md p-4 bg-gray-800 shadow-md rounded-lg">
                 <h2 className="text-2xl font-bold text-center text-gray-300 mb-4">Add Technician</h2>
                 {message && <p className="text-red-500 text-center">{message}</p>}
                 <form onSubmit={handleSubmit}>
-                    <div className="mb-4">
-                        <label className="block text-gray-300" htmlFor="username">Username</label>
-                        <input
-                            type="text"
-                            id="username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            required
-                            className="w-full p-2 bg-gray-700 text-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-300" htmlFor="email">Email</label>
-                        <input
-                            type="email"
-                            id="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="w-full p-2 bg-gray-700 text-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-300" htmlFor="password">Password</label>
-                        <input
-                            type="password"
-                            id="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            className="w-full p-2 bg-gray-700 text-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div className="mb-4">
+                    {[
+                        { label: "Username", value: username, setValue: setUsername, type: "text" },
+                        { label: "Email", value: email, setValue: setEmail, type: "email" },
+                        { label: "Password", value: password, setValue: setPassword, type: "password" },
+                        { label: "Phone", value: phone, setValue: setPhone, type: "tel" },
+                        { label: "Occupation", value: occupation, setValue: setOccupation, type: "text" },
+                        { label: "Realizations", value: realizations, setValue: setRealizations, type: "number" },
+                    ].map(({ label, value, setValue, type }, index) => (
+                        <div key={index} className="mb-3">
+                            <label className="block text-gray-300" htmlFor={label.toLowerCase()}>{label}</label>
+                            <input
+                                type={type}
+                                id={label.toLowerCase()}
+                                value={value}
+                                onChange={(e) => setValue(e.target.value)}
+                                required
+                                className="w-full p-2 bg-gray-700 text-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                    ))}
+                    <div className="mb-3">
                         <label className="block text-gray-300" htmlFor="role">Role</label>
                         <select
                             id="role"
@@ -104,24 +101,23 @@ const AddTechnician = () => {
                             <option value="support">Support</option>
                         </select>
                     </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-300" htmlFor="phone">Phone</label>
+                    <div className="mb-3">
+                        <label className="block text-gray-300" htmlFor="image_path">Upload Image</label>
                         <input
-                            type="tel"
-                            id="phone"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
+                            type="file"
+                            id="image_path"
+                            onChange={(e) => setImagePath(e.target.files[0])}
+                            accept="image/*"
                             required
                             className="w-full p-2 bg-gray-700 text-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-300" htmlFor="picture">Upload Picture</label>
-                        <input
-                            type="file"
-                            id="picture"
-                            onChange={(e) => setPicture(e.target.files[0])}
-                            accept="image/*"
+                    <div className="mb-3"> 
+                        <label className="block text-gray-300" htmlFor="history">History</label>
+                        <textarea
+                            id="history"
+                            value={history}
+                            onChange={(e) => setHistory(e.target.value)}
                             required
                             className="w-full p-2 bg-gray-700 text-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />

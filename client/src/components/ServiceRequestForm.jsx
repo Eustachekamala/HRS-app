@@ -1,76 +1,85 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom'; 
+import axios from 'axios';
 
-const ServiceRequestForm = ({ serviceType, onClose }) => {
+const ServiceRequestForm = ({ serviceType, serviceId, onClose }) => {
     const [description, setDescription] = useState('');
     const [error, setError] = useState('');
-    const [successMessage, setSuccessMessage] = useState('');
-    const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setError('');
-        setSuccessMessage('');
+    const handleSubmit = async () => {
+        const userId = 1; // Replace with actual logged-in user ID
+        const token = localStorage.getItem('jwt'); // Retrieve the JWT from local storage
 
-        if (!serviceType || !description) {
-            setError('All fields are required.');
-            return;
+        // Function to validate JWT format
+        const isValidJWT = (token) => {
+            return token && token.split('.').length === 3; 
+        };
+
+        // Validate the JWT
+        if (!isValidJWT(token)) {
+            setError('Invalid JWT format. Please log in again.'); 
+            return; 
         }
 
-        axios.post('/requests', {
-            service_type: serviceType, // Use the passed serviceType
-            description
-        })
-        .then(response => {
-            console.log(response);
-            setSuccessMessage('Service request created successfully');
-            setDescription('');
-        })
-        .catch(error => {
-            setError('There was an error creating the request. Please try again later.');
-            console.error('Error:', error);
-        });
+        try {
+            const response = await axios.post('http://127.0.0.1:5000/requests', {
+                user_id: userId,
+                service_id: serviceId,
+                description,
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`, 
+                },
+            });
+
+            alert(response.data.message); // Show success message
+            onClose();
+        } catch (err) {
+            setError(err.response?.data?.error || 'An error occurred while submitting the request.'); 
+        }
     };
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900">
-            <div className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
-                <h2 className="text-lg font-semibold mb-4">Request Service: {serviceType}</h2>
-                <form onSubmit={handleSubmit} className='text-white'>
-                    <div className='mb-4'>
-                        <label htmlFor="serviceType" className="block text-sm font-semibold mb-2">Service Type</label>
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70">
+            <div className="bg-gray-300 p-6 rounded-lg shadow-lg max-w-md w-full">
+                <h2 className="text-xl font-semibold mb-4 text-center">Request a Service</h2>
+                {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
+                <form>
+                    <label className="block mb-4">
+                        <span className="font-medium">Service Type:</span>
                         <input
-                            id="serviceType"
-                            name="serviceType"
                             type="text"
                             value={serviceType}
-                            readOnly 
-                            className="w-full p-2 border text-black border-gray-400 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            readOnly
+                            className="block w-full border border-gray-300 rounded mt-1 p-2 bg-gray-100 cursor-not-allowed"
                         />
-                    </div>
-                    <div className='mb-4'>
-                        <label htmlFor="description" className="block text-sm font-semibold mb-2">Description</label>
+                    </label>
+                    <label className="block mb-4">
+                        <span className="font-medium">Description:</span>
                         <textarea
-                            id="description"
-                            name="description"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            className="w-full p-2 border text-black border-gray-400 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                            className="block w-full border border-gray-300 rounded mt-1 p-2"
+                            rows="4"
+                            required
                         ></textarea>
+                    </label>
+                    <div className="flex justify-between">
+                        <button
+                            type="button"
+                            onClick={handleSubmit}
+                            className="bg-blue-600 text-white px-4 py-2 rounded transition duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            Submit Request
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="bg-gray-300 text-black px-4 py-2 rounded transition duration-200 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                        >
+                            Cancel
+                        </button>
                     </div>
-                    {error && <p style={{ color: 'red' }}>{error}</p>}
-                    {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
-                    <button className="w-full mt-2 bg-blue-500 py-4 px-4 rounded-lg text-white hover:underline" type="submit">Submit Request</button>
-                    <button className="w-full mt-2 bg-red-500 py-2 rounded-lg text-white hover:underline" type="button" onClick={onClose}>Close</button>
-                    <button 
-                        type="button" 
-                        onClick={() => navigate('/technician')}
-                        className="w-full mt-2 bg-green-500 py-4 px-4 rounded-lg text-white hover:underline"
-                    >
-                        View Technicians
-                    </button>
                 </form>
             </div>
         </div>
@@ -80,6 +89,7 @@ const ServiceRequestForm = ({ serviceType, onClose }) => {
 ServiceRequestForm.propTypes = {
     serviceType: PropTypes.string.isRequired,
     onClose: PropTypes.func.isRequired,
+    serviceId: PropTypes.string.isRequired // Changed to string based on context
 };
 
 export default ServiceRequestForm;

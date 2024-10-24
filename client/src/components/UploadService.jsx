@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-vars
 import React, { useState } from 'react';
 import axios from 'axios';
 import PropTypes from 'prop-types';
@@ -6,7 +5,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Define the UploadService component
-const UploadService = ({ onUploadSuccess, onUploadError, userToken, adminId }) => {
+const UploadService = ({ onUploadSuccess, onUploadError}) => {
     const [file, setFile] = useState(null);
     const [serviceType, setServiceType] = useState('');
     const [description, setDescription] = useState('');
@@ -18,12 +17,26 @@ const UploadService = ({ onUploadSuccess, onUploadError, userToken, adminId }) =
         setFile(event.target.files[0]);
     };
 
+    // Validate input fields
+    const validateFields = () => {
+        if (!file) {
+            toast.warning('Please select a file to upload.', { position: "top-center" });
+            return false;
+        }
+        if (!serviceType.trim()) {
+            toast.warning('Service name is required.', { position: "top-center" });
+            return false;
+        }
+        if (!description.trim()) {
+            toast.warning('Description is required.', { position: "top-center" });
+            return false;
+        }
+        return true;
+    };
+
     // Handle upload
     const handleUpload = async () => {
-        if (!file || !serviceType.trim() || !description.trim() || !adminId) {
-            toast.warning('Please fill in all fields and select a file to upload.', { position: "top-center" });
-            return;
-        }
+        if (!validateFields()) return;
 
         setLoading(true);
         setError(null);
@@ -33,17 +46,16 @@ const UploadService = ({ onUploadSuccess, onUploadError, userToken, adminId }) =
         formData.append('file', file);
         formData.append('service_type', serviceType);
         formData.append('description', description);
-        formData.append('id_admin', adminId);
 
+        const token = localStorage.getItem('token');
         // Upload the file to the backend
         try {
-            const response = await axios.post('https://hrs-app-1.onrender.com/services', formData, {
+            const response = await axios.post('http://127.0.0.1:5000/services', formData, {
                 headers: {
-                    'Authorization': `Bearer ${userToken}`,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            console.log('Upload successful:', response.data);
             toast.success('Service created successfully!', { position: "top-center" });
             onUploadSuccess();
             // Reset form fields
@@ -53,8 +65,8 @@ const UploadService = ({ onUploadSuccess, onUploadError, userToken, adminId }) =
         } catch (err) {
             console.error('Upload failed:', err.response ? err.response.data : err.message);
             onUploadError(err.message);
-            setError('Failed to upload image. Please try again.');
-            toast.error('Failed to upload image. Please try again.', { position: "top-center" });
+            setError('Failed to upload service. Please try again.');
+            toast.error('Failed to upload service. Please try again.', { position: "top-center" });
         } finally {
             setLoading(false);
         }

@@ -21,7 +21,7 @@ const TechnicianDetailPage = () => {
     return (
         <div className="bg-gray-900 min-h-screen flex flex-col items-center p-6">
             <h1 className="text-3xl font-bold text-white mb-6">{technician.username}</h1>
-            <img src={`https://hrs-app-1.onrender.com/uploads/${technician.image_path.replace(/^uploads\//, '')}`} alt={technician.username} className="w-32 h-32 rounded-full mb-4" />
+            <img src={`http://127.0.0.1:5000/uploads/${technician.image_path.replace(/^uploads\//, '')}`} alt={technician.username} className="w-32 h-32 rounded-full mb-4" />
             <p className="text-white">Occupation: {technician.occupation}</p>
             <p className="text-white">Email: {technician.email}</p>
             <p className="text-white">Phone: {technician.phone}</p>

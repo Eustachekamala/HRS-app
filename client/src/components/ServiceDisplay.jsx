@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState} from 'react';
 import PropTypes from 'prop-types';
-import ServiceCard from '../pages/serviceCard';
+import ServiceCard from '../pages/ServiceCard';
 import ServiceRequestForm from './ServiceRequestForm'; 
 // Define the ServiceDisplay component
 const ServiceDisplay = ({ services }) => {

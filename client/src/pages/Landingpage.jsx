@@ -4,8 +4,9 @@ import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 // import ContactInfo from '../components/ContactInfo';
 import Footer from '../components/Footer';
-import Services from '../pages/Services';
-import { useAuth } from '../configs/AuthContext'; // Use useAuth hook
+// import Services from '../pages/Services';
+import ServiceList from './ServiceList';
+
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import '../index.css';
@@ -31,19 +32,10 @@ const Section = ({ id, bgImage, title, children, textColor = 'text-white' }) => 
     </section>
 );
 
+
+
 const Landingpage = () => {
-    const { user } = useAuth(); // Access user state from AuthContext
-
-    const handleBookServiceClick = () => {
-        if (!user) {
-            // If user is not logged in, redirect to sign up page
-            window.location.href = '/signup'; // Change this to your sign up route
-        } else {
-            // If user is logged in, redirect to login page
-            window.location.href = '/login'; // Change this to your login route
-        }
-    };
-
+    
     return (
         <div id='home' className='bg-black bg-opacity-90 min-h-screen flex flex-col'>
             <Navbar />
@@ -67,18 +59,18 @@ const Landingpage = () => {
                     >
                         Reliable repairs for every corner of your home.
                     </motion.p>
-                    <button 
+                    {/* <button 
                         onClick={handleBookServiceClick} 
                         className="bg-blue-600 text-white px-6 py-3 rounded mt-4 inline-block transition-transform transform hover:scale-105 shadow-md"
                     >
                         Book a Service
-                    </button>
+                    </button> */}
                 </motion.div>
             </section>
 
             {/* Services Section */}
-            <Section id="services" bgImage="tools.jpg" title="Our Services">
-                <Services />
+            <Section id="services" bgImage="tools.jpg" title="">
+                <ServiceList showButton={false} />
             </Section>
 
             {/* Blog Section */}

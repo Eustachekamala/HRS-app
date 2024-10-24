@@ -1,70 +1,36 @@
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useState, useEffect } from 'react';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
-function ServiceDetail() {
-    const { id } = useParams();
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+const ServiceDetail = ({ serviceId }) => {
     const [service, setService] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const fetchService = async () => {
-            setLoading(true);
-            setError(null);
             try {
-                const response = await axios.get(`https://hrs-app-1.onrender.com/services/${id}`);
-                console.log(response.data);
-                setService(response.data.service);
-            } catch (error) {
-                console.error('Error fetching service:', error);
-                if (error.response) {
-                    setError(`Error: ${error.response.status} - ${error.response.data.error || 'Service not found.'}`);
-                } else {
-                    setError('Error: ' + error.message);
-                }
+                const response = await axios.get(`http://127.0.0.1:5000/services/${serviceId}`);
+                setService(response.data);
+            } catch (err) {
+                setError('Failed to fetch service details');
             } finally {
                 setLoading(false);
             }
         };
 
         fetchService();
-    }, [id]);
+    }, [serviceId]);
+
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p>{error}</p>;
 
     return (
-        <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-            <div className="bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-2xl">
-                {loading && <p className="text-white text-center">Loading service...</p>}
-                {error && <p className="text-red-500 text-center">{error}</p>}
-                {service && (
-                    <div className="text-white">
-                        <h2 className="text-3xl font-semibold mb-4">{service.service_type}</h2>
-                        <p className="mb-4">{service.description}</p>
-                        {service.image_path && (
-                            <>
-                                <p>Image Path: {service.image_path}</p>
-                                <img
-                                    src={`https://hrs-app-1.onrender.com/uploads/${service.image_path}`.replace(/^uploads\//, '')}
-                                    alt={service.service_type}
-                                    className="mt-2 border border-gray-700 rounded-lg h-72 object-cover"                            
-                                />
-
-                            </>
-                        )}
-                        <button
-                            onClick={() => window.history.back()}
-                            className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg transition duration-300"
-                        >
-                            Back to Services
-                        </button>
-                    </div>
-                )}
-                <ToastContainer position='top-center' autoClose={3000} />
-            </div>
+        <div>
+            <h2>{service.service_type}</h2>
+            <p>{service.description}</p>
+            {service.image_path && <img src={service.image_path} alt={service.service_type} />}
         </div>
     );
-}
+};
 
 export default ServiceDetail;

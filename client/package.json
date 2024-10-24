@@ -1,5 +1,5 @@
 {
-  "proxy": "http://127.0.0.1:5555",
+  "proxy": "http://127.0.0.1:5000",
   "name": "vite-project",
   "private": true,
   "version": "0.0.0",
