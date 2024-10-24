@@ -32,7 +32,7 @@ const Statistics = () => {
     }, []);
 
     return (
-        <div className="h- bg-gray-900 p-6 rounded-lg shadow-md mb-10">
+        <div className="bg-gray-900 p-6 rounded-lg shadow-md mb-10 mt-10">
             <h1 className="text-3xl font-bold text-white mb-6">Statistics</h1>
             {loading ? (
                 <p className="text-gray-500">Loading statistics...</p>

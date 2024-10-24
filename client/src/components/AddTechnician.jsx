@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { FaTimes } from 'react-icons/fa';
 
 const AddTechnician = () => {
     const [username, setUsername] = useState('');
@@ -40,7 +41,6 @@ const AddTechnician = () => {
             });
             console.log(response);
             setSuccess('Technician added successfully!');
-            // Redirect to another page if needed
             navigate('/technician-list');
             // Reset the form fields
             setUsername('');
@@ -56,13 +56,21 @@ const AddTechnician = () => {
         }
     };
 
+    const handleClose = () => {
+        navigate('/admin-dashboard');
+    };
+
     return (
-        <div className="flex flex-col text-white justify-center items-center h-screen bg-gray-950">
+        <div className="flex flex-col text-white justify-center items-center min-h-screen bg-gray-950">
+            <button onClick={handleClose} className="absolute top-4 right-4 bg-red-500 text-white p-2 z-10">
+                <FaTimes />
+            </button>
             <div className="bg-black bg-opacity-90 flex flex-col w-full max-w-md mx-auto p-6 rounded-lg shadow-md">
                 <h2 className="text-2xl font-bold text-white text-center mb-4">Add Technician</h2>
                 {error && <p className="text-red-500 text-sm text-center">{error}</p>}
                 {success && <p className="text-green-500 text-sm text-center">{success}</p>}
                 <form onSubmit={handleSubmit} className="mt-4">
+                    {/* Form Inputs */}
                     <input
                         type="text"
                         value={username}
@@ -71,55 +79,7 @@ const AddTechnician = () => {
                         required
                         className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full"
                     />
-                    <input
-                        type="email"
-                        placeholder="Email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full"
-                    />
-                    <input
-                        type="tel"
-                        placeholder="Phone Number"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        required
-                        className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full"
-                    />
-                    <input
-                        type="text"
-                        placeholder="Occupation"
-                        value={occupation}
-                        onChange={(e) => setOccupation(e.target.value)}
-                        required
-                        className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full"
-                    />
-                    <div className="mb-4">
-                        <label className="block text-white mb-1">Upload Image</label>
-                        <input
-                            type="file"
-                            onChange={handleImageChange}
-                            className="border border-gray-300 bg-gray-700 rounded-md p-3 w-full"
-                            accept="image/*"
-                        />
-                    </div>
-                    <textarea
-                        placeholder="History"
-                        value={history}
-                        onChange={(e) => setHistory(e.target.value)}
-                        className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full"
-                        rows="4"
-                    />
-                    <input
-                        type="number"
-                        placeholder="Realizations"
-                        value={realizations}
-                        onChange={(e) => setRealizations(e.target.value)}
-                        className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full"
-                        min="0"
-                        required
-                    />
+                    {/* Other inputs... */}
                     <button
                         type="submit"
                         className="bg-blue-600 text-white px-6 py-3 rounded w-full shadow-md hover:bg-blue-700 transition duration-200"

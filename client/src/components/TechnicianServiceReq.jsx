@@ -32,7 +32,7 @@ const TechnicianRequests = ({ technicianId }) => {
     }, [technicianId]);
 
     return (
-        <div className="min-h-screen bg-gray-900 p-6 rounded-lg shadow-md">
+        <div className="min-h-80 bg-gray-900 p-6 rounded-lg shadow-md">
             <h1 className="text-3xl font-bold text-white mb-6">Technician Requests</h1>
             {loading ? (
                 <p className="text-gray-500">Loading requests...</p>
