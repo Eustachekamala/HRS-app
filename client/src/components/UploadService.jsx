@@ -37,7 +37,7 @@ const UploadService = ({ onUploadSuccess, onUploadError, userToken, adminId }) =
 
         // Upload the file to the backend
         try {
-            const response = await axios.post('https://hrs-app-1.onrender.com/admin/services', formData, {
+            const response = await axios.post('https://hrs-app-1.onrender.com/services', formData, {
                 headers: {
                     'Authorization': `Bearer ${userToken}`,
                     'Content-Type': 'multipart/form-data',
@@ -61,35 +61,37 @@ const UploadService = ({ onUploadSuccess, onUploadError, userToken, adminId }) =
     };
 
     return (
-        <div className="bg-black bg-opacity-90 flex flex-col w-full max-w-md mx-auto p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-bold mb-4 text-center text-white">Upload Service</h2>
-            {error && <p className="text-red-500 mb-2 text-center">{error}</p>}
-            <input
-                type="text"
-                placeholder="Service Name"
-                value={serviceType}
-                onChange={(e) => setServiceType(e.target.value)}
-                className="border border-gray-300 bg-gray-700 rounded-md p-2 mb-4 w-full text-white"
-            />
-            <textarea
-                placeholder="Description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="border border-gray-300 bg-gray-700 rounded-md p-2 mb-4 w-full text-white"
-                rows="3"
-            />
-            <input
-                type="file"
-                onChange={handleFileChange}
-                className="border border-gray-300 bg-gray-700 rounded-md p-2 mb-4 w-full text-white"
-            />
-            <button
-                onClick={handleUpload}
-                disabled={loading}
-                className={`bg-blue-600 text-white px-4 py-2 rounded-md w-full ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
-            >
-                {loading ? 'Uploading...' : 'Upload'}
-            </button>
+        <div className="bg-gray-900 h-screen flex items-center justify-center">
+            <div className="bg-black bg-opacity-90 flex flex-col w-full max-w-md p-6 rounded-lg shadow-md">
+                <h2 className="text-xl font-bold mb-4 text-center text-white">Upload Service</h2>
+                {error && <p className="text-red-500 mb-2 text-center">{error}</p>}
+                <input
+                    type="text"
+                    placeholder="Service Name"
+                    value={serviceType}
+                    onChange={(e) => setServiceType(e.target.value)}
+                    className="border border-gray-300 bg-gray-700 rounded-md p-2 mb-4 w-full text-white"
+                />
+                <textarea
+                    placeholder="Description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="border border-gray-300 bg-gray-700 rounded-md p-2 mb-4 w-full text-white"
+                    rows="3"
+                />
+                <input
+                    type="file"
+                    onChange={handleFileChange}
+                    className="border border-gray-300 bg-gray-700 rounded-md p-2 mb-4 w-full text-white"
+                />
+                <button
+                    onClick={handleUpload}
+                    disabled={loading}
+                    className={`bg-blue-600 text-white px-4 py-2 rounded-md w-full ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
+                >
+                    {loading ? 'Uploading...' : 'Upload'}
+                </button>
+            </div>
         </div>
     );
 };
