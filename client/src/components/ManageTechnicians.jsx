@@ -10,7 +10,14 @@ const ManageTechnicians = () => {
 
     useEffect(() => {
         const loadTechnicians = async () => {
+            setLoading(true);
+            setError(null);
             try {
+                const token = localStorage.getItem('access_token');
+                if (!token) {
+                    throw new Error('No token provided');
+                }
+                
                 const techData = await fetchTechniciansFromApi();
                 setTechnicians(techData);
             } catch (err) {

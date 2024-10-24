@@ -1,74 +1,66 @@
-import React, { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
-import { fetchRequests as apiFetchRequests } from '../api';
+import React, { useState, useEffect } from 'react';
+import { fetchTechnicianRequests } from '../api';
+import Proptypes from 'prop-types';
 
-const TechnicianServiceRequests = ({ technicianName }) => {
-    const [serviceRequests, setServiceRequests] = useState([]);
+const TechnicianRequests = ({ technicianId }) => {
+    const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchRequestsForTechnician = async () => {
-            const token = localStorage.getItem('token'); 
-            if (!token) {
-                setError('No authorization token found.');
-                setLoading(false);
-                return;
-            }
+        const fetchRequests = async () => {
+            setLoading(true);
+            setError(null);
 
             try {
-                const requests = await apiFetchRequests(token);
-                setServiceRequests(requests);
-            } catch (err) {
-                console.log(err)
-                setError('Failed to fetch service requests.');
+                const token = localStorage.getItem('access_token');
+                if (!token) {
+                    throw new Error('No token provided');
+                }
+
+                const requestsResponse = await fetchTechnicianRequests(token, technicianId);
+                setRequests(requestsResponse);
+            } catch (error) {
+                console.error('Error fetching technician requests:', error);
+                setError(error.message || 'Failed to load technician requests. Please try again later.');
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchRequestsForTechnician();
-    }, [technicianName]);
-
-    if (loading) {
-        return <p className="text-gray-400">Loading service requests...</p>;
-    }
-
-    if (error) {
-        return <p className="text-red-500">{error}</p>;
-    }
+        fetchRequests();
+    }, [technicianId]);
 
     return (
-        <div className="flex flex-col items-center bg-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-bold text-white mb-4">Service Requests for {technicianName}</h2>
-            <div className="w-full max-w-lg">
-                {serviceRequests.length > 0 ? (
-                    <ul className="space-y-4">
-                        {serviceRequests.map((request) => (
-                            <li key={request.id} className="bg-gray-700 p-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                                <h3 className="text-lg font-semibold text-blue-400">{request.customerName}</h3>
-                                <p className="text-gray-300">
-                                    Service Type: <span className="font-medium">{request.serviceType}</span>
-                                </p>
-                                <p className="text-gray-300">
-                                    Description: <span className={`font-medium ${request.status === 'completed' ? 'text-green-400' : 'text-red-400'}`}>{request.description}</span>
-                                </p>
-                                <p className="text-gray-300">
-                                    Date: <span className="font-medium">{new Date(request.date).toLocaleDateString()}</span>
-                                </p>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p className="text-gray-400">No service requests found.</p>
-                )}
-            </div>
+        <div className="min-h-screen bg-gray-900 p-6 rounded-lg shadow-md">
+            <h1 className="text-3xl font-bold text-white mb-6">Technician Requests</h1>
+            {loading ? (
+                <p className="text-gray-500">Loading requests...</p>
+            ) : error ? (
+                <p className="text-red-500">{error}</p>
+            ) : (
+                <div>
+                    {requests.length === 0 ? (
+                        <p className="text-gray-500">No requests found for this technician.</p>
+                    ) : (
+                        <ul>
+                            {requests.map(request => (
+                                <li key={request.id} className="text-gray-700">
+                                    {/* Adjust according to the structure of your request object */}
+                                    <p><strong>Request ID:</strong> {request.id}</p>
+                                    <p><strong>Status:</strong> {request.status}</p>
+                                    {/* Add any other relevant details */}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            )}
         </div>
     );
 };
 
-TechnicianServiceRequests.propTypes = {
-    technicianName: PropTypes.string.isRequired,
-};
+TechnicianRequests.propTypes = {
+    technicianId: Proptypes.number.isRequired,}
 
-export default TechnicianServiceRequests;
+export default TechnicianRequests;

@@ -298,44 +298,23 @@ export const processPayment = async (token, paymentData) => {
     }
 };
 
-export const fetchTechnicianRequests = async () => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-        throw new Error("No token provided");
-    }
-
-    try {
-        const response = await apiClient.get('/technician/requests', {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-        console.log(response.data);
-        return response.data;
-    } catch (error) {
-        console.error('Error:', error.response?.data || error.message);
-        throw error; // Propagate the error
-    }
+export const fetchTechnicianRequests = async (token, technicianId) => {
+    const response = await axios.get(`https://hrs-app-1.onrender.com/technician_requests/${technicianId}`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    return response.data;
 };
 
 
-export const fetchStatistics = async () => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-        throw new Error("No token provided");
-    }
-
-    try {
-        const response = await apiClient.get('/statistic', {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching statistics:', error.response?.data || error.message);
-        throw error;
-    }
+export const fetchStatistics = async (token) => {
+    const response = await axios.get('https://hrs-app-1.onrender.com/statistic', {
+        headers: {
+            Authorization: `Bearer ${token}` 
+        }
+    });
+    return response.data;
 };
 
 
