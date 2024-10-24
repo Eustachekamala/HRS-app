@@ -122,7 +122,7 @@ class AdminaddService(Resource):
         
         db.session.add(new_service)
         db.session.commit()
-        return {'message': 'Service created successfully!', 'service_id': new_service.to_dict()}, 201
+        return [new_service.to_dict()], 201
      
 class Index(Resource):
     def get(self):
@@ -190,7 +190,8 @@ class TechnicianResource(Resource):
 
         db.session.add(new_technician)
         db.session.commit()
-        return {'message': 'Technician created successfully!', 'technician_id': new_technician.id}, 201
+        
+        return [new_technician.to_dict()], 201
     
     #! Delete method to delete technician
     @role_required('admin')
@@ -236,7 +237,7 @@ class UserResource(Resource):
         
         db.session.add(new_user)
         db.session.commit()
-        return {'message': 'User created successfully!', 'user_id': new_user.id}, 201
+        return {'user_id': [new_user.to_dict()]}, 201
     
     @role_required('admin')
     def delete(self, customer_id):
