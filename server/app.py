@@ -305,10 +305,11 @@ class CustomerResource(Resource):
 
 #! LoginResource to login
 class LoginResource(Resource):
-    @jwt_required()
     def post(self):
+        data = request.get_json()
+        app.logger.info(f'Received login data: {data}')
         try:
-            data = request.json
+            data = request.get_json()
             email = data.get('email')
             password = data.get('password')
 
@@ -652,7 +653,7 @@ class RequestResource(Resource):
             return {'requests': [req.to_dict() for req in requests]}, 200
         
     #! To make a request
-    # @jwt_required()
+    @jwt_required()
     # @role_required('user')
     def post(self):
         data = request.json
