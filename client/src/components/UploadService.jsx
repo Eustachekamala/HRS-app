@@ -50,7 +50,7 @@ const UploadService = ({ onUploadSuccess, onUploadError}) => {
         const token = localStorage.getItem('token');
         // Upload the file to the backend
         try {
-            const response = await axios.post('http://127.0.0.1:5000/services', formData, {
+            const response = await axios.post('https://hrs-app-1.onrender.com/services', formData, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data',

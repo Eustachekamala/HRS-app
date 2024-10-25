@@ -7,8 +7,8 @@ const ServiceRequestForm = ({ serviceType, serviceId, onClose }) => {
     const [error, setError] = useState('');
 
     const handleSubmit = async () => {
-        const userId = 1; // Replace with actual logged-in user ID
-        const token = localStorage.getItem('jwt'); // Retrieve the JWT from local storage
+        const userId = localStorage.getItem('userId');
+        const token = localStorage.getItem('jwt');
 
         // Function to validate JWT format
         const isValidJWT = (token) => {
@@ -20,9 +20,13 @@ const ServiceRequestForm = ({ serviceType, serviceId, onClose }) => {
             setError('Invalid JWT format. Please log in again.'); 
             return; 
         }
-
         try {
-            const response = await axios.post('http://127.0.0.1:5000/requests', {
+            // Check if the token is valid before making the request
+            if (!token || !/^Bearer\s[0-9a-zA-Z\-._~+/]+=*$/.test(token)) {
+                throw new Error('Invalid token format. Please log in again.');
+            }
+
+            const response = await axios.post('https://hrs-app-1.onrender.com/requests', {
                 user_id: userId,
                 service_id: serviceId,
                 description,
@@ -32,12 +36,12 @@ const ServiceRequestForm = ({ serviceType, serviceId, onClose }) => {
                 },
             });
 
-            alert(response.data.message); // Show success message
+            alert(response.data.message);
             onClose();
         } catch (err) {
-            setError(err.response?.data?.error || 'An error occurred while submitting the request.'); 
+            setError(err.response?.data?.error || 'An error occurred while submitting the request.');
         }
-    };
+    }
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70">
@@ -89,7 +93,7 @@ const ServiceRequestForm = ({ serviceType, serviceId, onClose }) => {
 ServiceRequestForm.propTypes = {
     serviceType: PropTypes.string.isRequired,
     onClose: PropTypes.func.isRequired,
-    serviceId: PropTypes.string.isRequired // Changed to string based on context
+    serviceId: PropTypes.number.isRequired,
 };
 
 export default ServiceRequestForm;

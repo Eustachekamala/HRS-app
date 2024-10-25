@@ -16,7 +16,7 @@ const TechnicianPanel = ({ technicianId }) => {
             if (technicianId) {
                 try {
                     const requestsResponse = await axios.get(
-                        `http://127.0.0.1:5000/technicians/${technicianId}/requests`, {
+                        `https://hrs-app-1.onrender.com/technician_requests/${technicianId}`, {
                             headers: {
                                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                                 'Content-Type': 'application/json',
@@ -27,14 +27,14 @@ const TechnicianPanel = ({ technicianId }) => {
                     
                     // Fetch technician details
                     const technicianResponse = await axios.get(
-                        `http://127.0.0.1:5000/technicians/${technicianId}`, {
+                        `https://hrs-app-1.onrender.com/technician_requests/${technicianId}`, {
                             headers: {
                                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                                 'Content-Type': 'application/json',
                             },
                         }
                     );
-                    setTechnicianName(technicianResponse.data.name); // Assuming the response has a 'name' field
+                    setTechnicianName(technicianResponse.data.name); 
                 } catch (error) {
                     // Check for error responses and set a message accordingly
                     setError(error.response?.data?.message || error.message || 'An error occurred');

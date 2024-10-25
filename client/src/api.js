@@ -2,7 +2,7 @@ import axios from 'axios';
 import jwtDecode from 'jwt-decode';
 
 const apiClient = axios.create({
-    baseURL: 'http://127.0.0.1:5000',
+    baseURL: 'https://hrs-app-1.onrender.com',
 });
 
 
@@ -340,7 +340,7 @@ export const processPayment = async (token, paymentData) => {
 };
 
 export const fetchTechnicianRequests = async (token, technicianId) => {
-    const response = await axios.get(`http://127.0.0.1:5000/technician_requests/${technicianId}`, {
+    const response = await axios.get(`https://hrs-app-1.onrender.com/technician_requests/${technicianId}`, {
         headers: {
             Authorization: `Bearer ${token}`
         }
@@ -350,7 +350,7 @@ export const fetchTechnicianRequests = async (token, technicianId) => {
 
 
 export const fetchStatistics = async (token) => {
-    const response = await axios.get('http://127.0.0.1:5000/statistic', {
+    const response = await axios.get('https://hrs-app-1.onrender.com/statistic', {
         headers: {
             Authorization: `Bearer ${token}` 
         }

@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import ServiceCard from '../pages/ServiceCard';
 import ServiceRequestForm from '../components/ServiceRequestForm';
+import Proptypes from 'prop-types';
 
-const ServiceList = ({ showButton }) => {
+const ServiceList = ({ showButton, token }) => {
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -15,7 +16,7 @@ const ServiceList = ({ showButton }) => {
     useEffect(() => {
         const fetchServices = async () => {
             try {
-                const response = await axios.get('http://127.0.0.1:5000/services');
+                const response = await axios.get('https://hrs-app-1.onrender.com/services');
                 setServices(response.data.services);
             } catch (err) {
                 setError('Failed to fetch services');
@@ -79,11 +80,17 @@ const ServiceList = ({ showButton }) => {
                 <ServiceRequestForm
                     serviceType={selectedServiceType}
                     serviceId={selectedServiceId}
-                    onClose={closeRequestForm} 
+                    onClose={closeRequestForm}
+                    token={token}
                 />
             )}
         </div>
     );
+};
+
+ServiceList.propTypes = {
+    showButton: Proptypes.bool,
+    token: Proptypes.string.isRequired,
 };
 
 export default ServiceList;
