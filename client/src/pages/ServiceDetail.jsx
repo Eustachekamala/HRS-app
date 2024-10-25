@@ -9,7 +9,7 @@ const ServiceDetail = ({ serviceId }) => {
     useEffect(() => {
         const fetchService = async () => {
             try {
-                const response = await axios.get(`http://127.0.0.1:5000/services/${serviceId}`);
+                const response = await axios.get(`https://hrs-app-1.onrender.com/services/${serviceId}`);
                 setService(response.data);
             } catch (err) {
                 setError('Failed to fetch service details');

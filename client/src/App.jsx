@@ -22,6 +22,7 @@ import ServiceList from "./pages/ServiceList";
 import ServiceForm from './pages/ServiceForm';
 import Landingpage from './pages/Landingpage';
 import { ToastContainer } from 'react-toastify';
+import UserPanel from './components/UserPannel';
 
 const App = () => {
     const [technicians, setTechnicians] = useState([]); 
@@ -40,10 +41,10 @@ const App = () => {
 
             try {
                 const response = await apiFetchTechnicians();
-                setTechnicians(response.data); // Assuming the API returns an array of technicians
+                setTechnicians(response.data);
             } catch (error) {
                 console.error('Error fetching technicians:', error);
-                setTechnicians([]); // Resetting to an empty array on error
+                setTechnicians([]);
             } finally {
                 setLoading(false);
             }
@@ -80,6 +81,7 @@ const App = () => {
                     <Route path="/services" element={<ServiceList showButton={true} />} />
 
                     <Route path='/admin-dashboard' element={<AdminDashboard />} />
+                    <Route path='/user-panel' element={<UserPanel />} />
 
                     <Route path='/login' element={<Login />} />
                     <Route path='/signup' element={<Signup />} />

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const ServiceRequestModal = ({ isOpen, onClose, serviceType }) => {
+const ServiceRequestModal = ({ isOpen, onClose, serviceType, token }) => {
     const [description, setDescription] = useState('');
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSuccessMessage('');
@@ -16,19 +16,32 @@ const ServiceRequestModal = ({ isOpen, onClose, serviceType }) => {
             return;
         }
 
-        axios.post('/requests', {
-            service_type: serviceType,
-            description
-        })
-        .then(response => {
+        try {
+            const response = await axios.post(
+                'https://hrs-app-1.onrender.com/technician_requests',
+                {
+                    service_type: serviceType,
+                    description,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`, // Include the JWT token here
+                    },
+                }
+            );
+
             setSuccessMessage('Service request created successfully');
             setDescription(''); // Clear the description
             onClose(); // Close the modal
-        })
-        .catch(error => {
-            setError('There was an error creating the request. Please try again later.');
+        } catch (error) {
+            // Check if the error response is due to an invalid JWT
+            if (error.response && error.response.data.message === 'Invalid JWT format. Please log in again.') {
+                setError('Your session has expired. Please log in again.');
+            } else {
+                setError('There was an error creating the request. Please try again later.');
+            }
             console.error('Error:', error);
-        });
+        }
     };
 
     if (!isOpen) return null;
@@ -44,7 +57,7 @@ const ServiceRequestModal = ({ isOpen, onClose, serviceType }) => {
                             id="description"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded focus:outline-none text-b focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
                         ></textarea>
                     </div>
                     {error && <p className="text-red-600 mb-4">{error}</p>}

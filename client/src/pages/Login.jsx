@@ -60,7 +60,7 @@ const Login = () => {
             } else if (decoded.role === 'technician') {
                 navigate('/technician-panel');
             } else {
-                navigate('/services');
+                navigate('/user-panel');
             }
 
             loginUser(decoded); // Update user context

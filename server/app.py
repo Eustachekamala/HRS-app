@@ -26,7 +26,7 @@ load_dotenv()
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000", "allow_headers": ["Authorization", "Content-Type"]}})
+CORS(app, resources={r"/*": {"origins": "https://hrs-app.onrender.com", "allow_headers": ["Authorization", "Content-Type"]}})
 
 # Configure application
 app.config['SQLALCHEMY_DATABASE_URI'] = (
@@ -160,7 +160,7 @@ class TechnicianResource(Resource):
     # @role_required('admin', 'technician', 'user')
     def get(self):
         try:
-            technicians = Technician.query.all()
+            technicians = Technician.query.filter_by(role='technician').all()
             if not technicians:
                 return jsonify({"message": "No technicians found."}), 404
             
@@ -175,7 +175,7 @@ class TechnicianResource(Resource):
     # @jwt_required()
     # @role_required('admin')
     def post(self):
-        data = request.form  # Use request.form to handle FormData
+        data = request.form  
         logging.info(f"Received technician data: {data}")
 
         required_fields = ['username', 'email', 'password', 'phone', 'occupation', 'role', 'history', 'realizations']
@@ -215,7 +215,7 @@ class TechnicianResource(Resource):
     
     #! Delete method to delete technician
     @jwt_required()
-    @role_required('admin')
+    # @role_required('admin')
     def delete(self, technician_id):
         technician = Technician.query.get(technician_id)
         if not technician:
@@ -727,7 +727,7 @@ class BlogResource(Resource):
         
 #! To get all requests made for a technician
 class TechnicianServiceRequests(Resource):
-    # @jwt_required()
+    @jwt_required()
     # @role_required('technician')
     def get(self, technician_id):
         try:
@@ -738,16 +738,55 @@ class TechnicianServiceRequests(Resource):
             logging.error(f"Error retrieving technician requests: {e}")
             return {'error': 'Failed to retrieve technician requests'}, 500
         
+    def post(self, technician_id):
+        data = request.json
+        logging.info(f"Received request data: {data}")
+
+        required_fields = ['service_id', 'description']
+        for field in required_fields:
+            if field not in data:
+                return {'error': f'Missing {field}'}, 400
+
+        new_request = ClientRequest(
+            technician_id=technician_id,
+            service_id=data['service_id'],
+            description=data['description']
+        )
+
+        db.session.add(new_request)
+        db.session.commit()
+        return [new_request.to_dict()], 201
+        
 #! The statistic of the app..
 class StatisticResource(Resource):
     def get(self):
         total_requests = ClientRequest.query.count()
         active_technicians = Technician.query.filter_by(role='technician').count()
+        total_users = Users.query.filter_by(role='user').count()
+        total_services = Service.query.count()
 
         return {
             'total_requests': total_requests,
-            'active_technicians': active_technicians
+            'active_technicians': active_technicians,
+            'total_users': total_users,
+            'total_services': total_services
         }, 200 
+        
+class HealthResource(Resource):
+    def get(self):
+        try:
+            database_status = db.engine.dialect.has_table(db.engine, 'users')
+            redis_status = True 
+            
+            health_status = {
+                'database': 'Operational' if database_status else 'Down',
+                'redis': 'Operational' if redis_status else 'Down',
+                'message': 'All systems operational.' if database_status and redis_status else 'Some systems are down.'
+            }
+            return jsonify(health_status), 200
+        
+        except Exception as e:
+            return jsonify({'error': str(e), 'message': 'Health check failed.'}), 500
     
 # Add resources to API
 api = Api(app)
@@ -766,8 +805,9 @@ api.add_resource(CustomerResource, '/customers', '/customers/<int:customer_id>')
 api.add_resource(RefreshTokenResource, '/refresh_token')
 api.add_resource(LogoutResource, '/logout')
 api.add_resource(Upload, '/uploads/<path:filename>')
-api.add_resource(TechnicianServiceRequests, '/technician_requests/<int:technician_id>')
+api.add_resource(TechnicianServiceRequests, '/technician_requests/<int:technician_request_id>')
 api.add_resource(StatisticResource, '/statistic')
+api.add_resource(HealthResource, '/health')
 
 # Error handling
 @app.errorhandler(400)

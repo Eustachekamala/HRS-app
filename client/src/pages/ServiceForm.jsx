@@ -15,7 +15,7 @@ const ServiceForm = ({ onSuccess }) => {
         formData.append('file', file);
 
         try {
-            const response = await axios.post('http://127.0.0.1:5000/services', formData);
+            const response = await axios.post('https://hrs-app-1.onrender.com/services', formData);
             onSuccess(response.data.service);
             // Reset form fields or redirect as necessary
         } catch (err) {
