@@ -246,7 +246,7 @@ export const fetchRequests = async (token) => {
     try {
         const response = await apiClient.get('/requests', {
             headers: {
-                Authorization: `Bearer ${token}`, // Ensure the token is formatted correctly
+                Authorization: `Bearer ${token}`, 
             },
         });
         return response.data;
