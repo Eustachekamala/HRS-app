@@ -595,51 +595,6 @@ class ServiceResource(Resource):
             return {'error': 'An error occurred while creating the service.'}, 500
 
         
-
-
-    # @role_required('admin')
-    # def post(self):
-    #     # JWT validation handled by the decorator
-    #     current_user = get_jwt_identity()  # Optional: get user details if needed
-        
-    #     if 'file' not in request.files:
-    #         return {'error': 'No file part'}, 400
-        
-    #     file = request.files['file']
-    #     if file.filename == '':
-    #         return {'error': 'No selected file'}, 400
-        
-    #     service_type = request.form.get('service_type')
-    #     description = request.form.get('description')
-    #     id_admin = request.form.get('id_admin')
-        
-    #     if not service_type or not description:
-    #         return {'error': 'service_type and description are required'}, 400
-        
-    #     if id_admin is None:
-    #         return {'error': 'Admin ID is required'}, 400
-
-    #     filename = secure_filename(file.filename)
-    #     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    #     file.save(file_path)
-
-    #     new_service = Service(
-    #         service_type=service_type,
-    #         description=description,
-    #         image_path=file_path,
-    #         id_admin=id_admin
-    #     )
-
-    #     try:
-    #         db.session.add(new_service)
-    #         db.session.commit()
-    #         service_schema = ServiceSchema()
-    #         return {'message': 'Service created successfully!', 'service': service_schema.dump(new_service)}, 201
-    #     except Exception as e:
-    #         db.session.rollback()
-    #         logging.error(f"Error creating service: {e}")
-    #         return {'error': 'Failed to create service'}, 500
-        
 #! RequestResource to get request details
 class RequestResource(Resource):
     @jwt_required()
@@ -652,7 +607,7 @@ class RequestResource(Resource):
             requests = ClientRequest.query.all()
             return {'requests': [req.to_dict() for req in requests]}, 200
         
-    #! To make a request
+    # To make a request
     @jwt_required()
     # @role_required('user')
     def post(self):
@@ -672,7 +627,9 @@ class RequestResource(Resource):
 
         db.session.add(new_request)
         db.session.commit()
-        return [new_request.to_dict()], 201
+        
+        return {'request': new_request.to_dict()}, 201
+
     
 #! PaymentResource to get payment details
 class PaymentResource(Resource):
@@ -729,16 +686,16 @@ class BlogResource(Resource):
 class TechnicianServiceRequests(Resource):
     @jwt_required()
     # @role_required('technician')
-    def get(self, technician_id):
+    def get(self, technician_request_id):
         try:
-            requests = ClientRequest.query.filter_by(technician_id=technician_id).all()
+            requests = ClientRequest.query.filter_by(technician_id=technician_request_id).all()
             return [ request.to_dict() for request in requests], 200
         
         except Exception as e:
             logging.error(f"Error retrieving technician requests: {e}")
             return {'error': 'Failed to retrieve technician requests'}, 500
         
-    def post(self, technician_id):
+    def post(self, technician_request_id):
         data = request.json
         logging.info(f"Received request data: {data}")
 
@@ -748,7 +705,7 @@ class TechnicianServiceRequests(Resource):
                 return {'error': f'Missing {field}'}, 400
 
         new_request = ClientRequest(
-            technician_id=technician_id,
+            technician_id=technician_request_id,
             service_id=data['service_id'],
             description=data['description']
         )

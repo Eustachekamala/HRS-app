@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import TechnicianList from './TechnicianList';
 import axios from 'axios';
-import { FaUsers, FaMoneyBillWave, FaClipboardList, FaPlus} from 'react-icons/fa';
+import { FaUsers, FaMoneyBillWave, FaClipboardList, FaPlus } from 'react-icons/fa';
 import Statistics from './Statistics';
 import { useNavigate } from 'react-router-dom';
-// import HealthCheckComponent from './SystemHealth';
-import AdminNavbar from './AdminNavbar'; 
-
+import AdminNavbar from './AdminNavbar';
 
 const AdminDashboard = () => {
     const [technicians, setTechnicians] = useState([]);
@@ -49,9 +47,9 @@ const AdminDashboard = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-900 min-h-screen">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-6">
             <AdminNavbar />
-            <h1 className="text-4xl font-extrabold text-center text-gray-100 mb-8">Admin Dashboard</h1>
+            <h1 className="text-4xl font-extrabold text-center text-gray-100 mt-12">Admin Dashboard</h1>
 
             {/* Button Group */}
             <div className='flex flex-col sm:flex-row gap-4 justify-end mb-6'>
@@ -107,14 +105,6 @@ const AdminDashboard = () => {
                     </ul>
                 )}
             </section>
-
-            {/* <section className="mb-8 p-6 bg-gray-800 rounded-lg shadow-md">
-                <h2 className="text-3xl font-semibold text-gray-200 mb-4 flex items-center">
-                    <FaHeartbeat className="mr-2" /> System Health
-                </h2>
-                <p className="text-gray-300">All systems operational.</p>
-                <HealthCheckComponent />
-            </section> */}
         </div>
     );
 };

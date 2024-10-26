@@ -39,12 +39,10 @@ const Login = () => {
 
             console.log('Raw token:', token);
 
-            // Validate token format before decoding
             if (!validateTokenFormat(token)) {
                 throw new Error('Invalid token format. Please log in again.');
             }
 
-            // Decode the token to get user role
             let decoded;
             try {
                 decoded = jwtDecode(token);
@@ -74,8 +72,20 @@ const Login = () => {
     };
 
     return (
-        <div className='flex flex-col text-white justify-center items-center h-screen bg-gray-950'>
-            <h1 className="text-2xl font-bold mb-5">Login</h1>
+        <div
+            style={{ background: 'linear-gradient(to bottom right, #1a1a1a, #4d4d4d)' }}
+            className='flex flex-col justify-center items-center h-screen text-white p-4'
+        >
+            <div className='flex flex-col items-center mb-8'>
+                <h1 className='text-5xl font-bold mb-2 text-center'>
+                    Welcome to Your Gateway!
+                </h1>
+                <p className='text-lg max-w-md text-center'>
+                    Join our community where possibilities are endless. Whether you're here to connect, collaborate, or create, we’ve got a space for you.
+                </p>
+            </div>
+
+            <h2 className="text-3xl font-bold mb-5">Login</h2>
             <form 
                 onSubmit={handleSubmit} 
                 className="bg-black bg-opacity-90 flex flex-col w-full max-w-md mx-auto p-6 rounded-lg shadow-md"
