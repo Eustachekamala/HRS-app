@@ -3,20 +3,22 @@ import TechnicianServiceRequests from './TechnicianServiceReq';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 
-const TechnicianPanel = ({ technicianId }) => {
+const TechnicianPanel = ({ technician_request_id }) => {
     // State variables
     const [assignedRequests, setAssignedRequests] = useState([]);
     const [technicianName, setTechnicianName] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Fetch service requests for the technician
+    // Fetch service requests and technician details
     useEffect(() => {
-        const fetchRequests = async () => {
-            if (technicianId) {
+        const fetchData = async () => {
+            if (technician_request_id) {
                 try {
+                    // Fetch assigned service requests
                     const requestsResponse = await axios.get(
-                        `https://hrs-app-1.onrender.com/technician_requests/${technicianId}`, {
+                        `https://hrs-app-1.onrender.com/technician_requests/${technician_request_id}`,
+                        {
                             headers: {
                                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                                 'Content-Type': 'application/json',
@@ -24,10 +26,11 @@ const TechnicianPanel = ({ technicianId }) => {
                         }
                     );
                     setAssignedRequests(requestsResponse.data);
-                    
+
                     // Fetch technician details
                     const technicianResponse = await axios.get(
-                        `https://hrs-app-1.onrender.com/technician_requests/${technicianId}`, {
+                        `https://hrs-app-1.onrender.com/technicians/${technician_request_id}`,
+                        {
                             headers: {
                                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                                 'Content-Type': 'application/json',
@@ -36,7 +39,7 @@ const TechnicianPanel = ({ technicianId }) => {
                     );
                     setTechnicianName(technicianResponse.data.name); 
                 } catch (error) {
-                    // Check for error responses and set a message accordingly
+                    // Handle errors
                     setError(error.response?.data?.message || error.message || 'An error occurred');
                 } finally {
                     setLoading(false);
@@ -44,8 +47,8 @@ const TechnicianPanel = ({ technicianId }) => {
             }
         };
 
-        fetchRequests();
-    }, [technicianId]);
+        fetchData();
+    }, [technician_request_id]);
 
     // Loading state
     if (loading) {
@@ -72,7 +75,7 @@ const TechnicianPanel = ({ technicianId }) => {
 };
 
 TechnicianPanel.propTypes = {
-    technicianId: PropTypes.number.isRequired,
+    technician_request_id: PropTypes.number.isRequired,
 };
 
 export default TechnicianPanel;

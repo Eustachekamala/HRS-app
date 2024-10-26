@@ -88,7 +88,7 @@ const App = () => {
                     <Route path='/forgot-password' element={<ForgotPassword />} />
                     <Route path='/signout' element={<Signout />} />
 
-                    <Route path='*' element={<NotFound />} />
+                    <Route path='/notfound' element={<NotFound />} />
                 </Routes>
             </Router>
         </AuthProvider>

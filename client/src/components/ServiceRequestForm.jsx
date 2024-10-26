@@ -1,43 +1,41 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const ServiceRequestForm = ({ serviceType, serviceId, onClose }) => {
     const [description, setDescription] = useState('');
     const [error, setError] = useState('');
+    const navigate = useNavigate();
 
     const handleSubmit = async () => {
         const userId = localStorage.getItem('userId');
-        const token = localStorage.getItem('jwt');
 
-        // Function to validate JWT format
-        const isValidJWT = (token) => {
-            return token && token.split('.').length === 3; 
-        };
+        const formData = new FormData();
+        formData.append('user_id', userId);
+        formData.append('service_id', serviceId);
+        formData.append('description', description);
 
-        // Validate the JWT
-        if (!isValidJWT(token)) {
-            setError('Invalid JWT format. Please log in again.'); 
-            return; 
-        }
+        const token = localStorage.getItem('token');
         try {
             // Check if the token is valid before making the request
             if (!token || !/^Bearer\s[0-9a-zA-Z\-._~+/]+=*$/.test(token)) {
                 throw new Error('Invalid token format. Please log in again.');
             }
 
-            const response = await axios.post('https://hrs-app-1.onrender.com/requests', {
-                user_id: userId,
-                service_id: serviceId,
-                description,
-            }, {
-                headers: {
+            const response = await axios.post('https://hrs-app-1.onrender.com/requests', formData, {
+                headers: { 
                     Authorization: `Bearer ${token}`, 
+                    'Content-Type': 'multipart/form-data',    
                 },
             });
 
             alert(response.data.message);
             onClose();
+
+            // Navigate to the payment form after successful submission
+            navigate('/payment');
+
         } catch (err) {
             setError(err.response?.data?.error || 'An error occurred while submitting the request.');
         }

@@ -59,12 +59,6 @@ const Landingpage = () => {
                     >
                         Reliable repairs for every corner of your home.
                     </motion.p>
-                    {/* <button 
-                        onClick={handleBookServiceClick} 
-                        className="bg-blue-600 text-white px-6 py-3 rounded mt-4 inline-block transition-transform transform hover:scale-105 shadow-md"
-                    >
-                        Book a Service
-                    </button> */}
                 </motion.div>
             </section>
 

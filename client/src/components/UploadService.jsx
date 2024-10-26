@@ -3,6 +3,8 @@ import axios from 'axios';
 import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { FaTimes } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 // Define the UploadService component
 const UploadService = ({ onUploadSuccess, onUploadError}) => {
@@ -11,6 +13,7 @@ const UploadService = ({ onUploadSuccess, onUploadError}) => {
     const [description, setDescription] = useState('');
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     // Handle file change
     const handleFileChange = (event) => {
@@ -72,8 +75,18 @@ const UploadService = ({ onUploadSuccess, onUploadError}) => {
         }
     };
 
+    const handleClose = () => {
+        // onUploadError('');
+        // setError('');
+        // setLoading(false);
+        navigate('/admin-dashboard');
+    };  
+
     return (
         <div className="bg-gray-900 h-screen flex items-center justify-center">
+            <button className='absolute top-6 right-6 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-500 transition' onClick={handleClose}>
+                <FaTimes />
+            </button>
             <div className="bg-black bg-opacity-90 flex flex-col w-full max-w-md p-6 rounded-lg shadow-md">
                 <h2 className="text-xl font-bold mb-4 text-center text-white">Upload Service</h2>
                 {error && <p className="text-red-500 mb-2 text-center">{error}</p>}

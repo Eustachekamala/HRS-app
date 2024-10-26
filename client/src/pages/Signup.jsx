@@ -15,33 +15,36 @@ const Signup = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true); // Set loading to true
-        setError(''); // Reset error before submission
+        setLoading(true);
+        setError('');
 
         try {
-            // Send the role and admin code (if applicable) along with other signup data
             const response = await signup(email, password, username, phone, role, role === 'admin' ? adminCode : null);
-            console.log(response); // Log response for debugging
-            
-            const { success, error } = response; // Destructure response
+            const { success, error } = response;
 
             if (success) {
-                // After successful signup, navigate to login page
-                navigate('/login'); 
+                navigate('/login');
             } else {
                 setError(error || 'Signup failed');
             }
         } catch (err) {
             setError(err.response?.data?.error || 'Signup failed');
-     } 
-        finally {
-            setLoading(false); // Set loading to false after API call
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="flex flex-col text-white justify-center items-center h-screen bg-gray-950">
-            <div className="bg-black bg-opacity-90 flex flex-col w-full max-w-md mx-auto p-6 rounded-lg shadow-md">
+        <div style={{ height: '100vh', background: 'linear-gradient(to bottom right, #1a1a1a, #4d4d4d)' }} className="flex flex-col md:flex-row text-white justify-center items-center">
+            <div className='flex flex-col items-center justify-center w-full md:w-1/2 p-4'>
+                <h1 className='text-4xl md:text-5xl font-bold mb-2 text-center'>
+                    Sign Up Today!
+                </h1>
+                <p className='text-lg max-w-md text-center mb-6'>
+                    Unlock exclusive features and experiences tailored just for you. It only takes a moment to create an account and start your journey with us.
+                </p>
+            </div>
+            <div className="bg-black bg-opacity-90 flex flex-col w-full md:w-1/2 max-w-md mx-auto p-6 rounded-lg shadow-md">
                 <h2 className="text-2xl font-bold text-white text-center mb-4">Create an Account</h2>
                 {error && <p className="text-red-500 text-sm text-center">{error}</p>}
                 <form onSubmit={handleSubmit} className="mt-4">
@@ -78,13 +81,12 @@ const Signup = () => {
                         className="border border-gray-300 bg-gray-700 rounded-md p-3 mb-4 w-full"
                     />
                     <div className='flex flex-col items-center justify-center'>
-                        {/* Role Selection */}
                         <select 
                             value={role} 
                             onChange={(e) => {
                                 setRole(e.target.value);
                                 if (e.target.value === 'user') {
-                                    setAdminCode(''); // Reset admin code when switching to user
+                                    setAdminCode('');
                                 }
                             }} 
                             className="border text-blue-500 border-gray-300 p-3 w-full mb-4 rounded"
@@ -93,7 +95,6 @@ const Signup = () => {
                             <option value="admin">Admin</option>
                         </select>
                         
-                        {/* Conditional Rendering for Admin Role */}
                         {role === 'admin' && (
                             <input 
                                 type="password"
@@ -106,7 +107,7 @@ const Signup = () => {
                         )}
 
                         <button type="submit" className="bg-blue-600 text-white px-6 py-3 rounded w-full shadow-md hover:bg-blue-700 transition duration-200">
-                            Signup
+                            {loading ? 'Signing up...' : 'Signup'}
                         </button>
                     </div>
                 </form>
