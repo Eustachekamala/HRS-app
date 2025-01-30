@@ -1,5 +1,5 @@
 {
-  "proxy": "https://hrs-app-1.onrender.com",
+  "proxy": "http://127.0.0.1:5000m",
   "name": "vite-project",
   "private": true,
   "version": "0.0.0",

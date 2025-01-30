@@ -35,7 +35,7 @@ const AddTechnician = () => {
         const token = localStorage.getItem('token');
 
         try {
-            const response = await axios.post('https://hrs-app-1.onrender.com/technicians', formData, {
+            const response = await axios.post('http://127.0.0.1:5000m/technicians', formData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data',

@@ -21,7 +21,7 @@ const ManageTechnicians = () => {
             setLoading(true);
             setError('');
             try {
-                const techData = await axios.get('https://hrs-app-1.onrender.com/technicians');
+                const techData = await axios.get('http://127.0.0.1:5000m/technicians');
                 setTechnicians(techData.data.technicians);
             } catch (err) {
                 setError('Failed to fetch technicians');
@@ -35,7 +35,7 @@ const ManageTechnicians = () => {
 
     const handleDeleteTechnician = async (technicianId) => {
     try {
-        await axios.delete(`https://hrs-app-1.onrender.com/technicians/${technicianId}`, {
+        await axios.delete(`http://127.0.0.1:5000m/technicians/${technicianId}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`
             }

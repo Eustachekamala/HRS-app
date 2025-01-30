@@ -13,7 +13,7 @@ const TechnicianList = ({ onDelete, onEdit }) => {
     useEffect(() => {
         const fetchTechnicians = async () => {
             try {
-                const response = await axios.get('https://hrs-app-1.onrender.com/technicians');
+                const response = await axios.get('http://127.0.0.1:5000m/technicians');
                 setTechnicians(response.data.technicians);
             } catch (err) {
                 setError('Failed to retrieve technicians.');
@@ -47,7 +47,7 @@ const TechnicianList = ({ onDelete, onEdit }) => {
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
                 {technicians.map(tech => {
                     const imageUrl = tech.image_path ? 
-                        `https://hrs-app-1.onrender.com/uploads/${tech.image_path.replace(/^uploads\//, '')}` : 
+                        `http://127.0.0.1:5000m/uploads/${tech.image_path.replace(/^uploads\//, '')}` : 
                         '';
 
                     return (

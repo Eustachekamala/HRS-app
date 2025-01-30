@@ -10,7 +10,7 @@ const Statistics = () => {
     useEffect(() => {
         const fetchStatistics = async () => {
             try {
-                const response = await axios.get('https://hrs-app-1.onrender.com/statistic');
+                const response = await axios.get('http://127.0.0.1:5000m/statistic');
                 setStatistics(response.data);
             } catch (err) {
                 setError(err);

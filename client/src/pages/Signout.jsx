@@ -8,7 +8,7 @@ const Signout = ({ setUser }) => {
 
     const handleSignout = async () => {
         try {
-            await axios.post('/https://hrs-app-1.onrender.com/logout');
+            await axios.post('/http://127.0.0.1:5000m/logout');
             setUser(null); 
             navigate('/'); 
         } catch (error) {

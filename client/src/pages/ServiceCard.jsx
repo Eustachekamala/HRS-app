@@ -13,7 +13,7 @@ const ServiceCard = ({ service, showButton, onRequestService }) => {
     };
 
     // Construct image URL, removing 'uploads/' prefix if necessary
-    const imageUrl = service.image_path ? `https://hrs-app-1.onrender.com/uploads/${service.image_path.replace(/^uploads\//, '')}` : '';
+    const imageUrl = service.image_path ? `m/uploads/${service.image_path.replace(/^uploads\//, '')}` : '';
 
     return (
         <div className="flex flex-col justify-between border border-gray-700 rounded-lg shadow-md p-4 bg-gray-800">

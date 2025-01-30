@@ -9,7 +9,7 @@ const HealthCheckComponent = () => {
     useEffect(() => {
         const fetchHealthStatus = async () => {
             try {
-                const response = await axios.get('https://hrs-app-1.onrender.com/health');
+                const response = await axios.get('http://127.0.0.1:5000m/health');
                 setHealthStatus(response.data);
             } catch (err) {
                 setError('Failed to retrieve health status.');

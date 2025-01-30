@@ -16,7 +16,7 @@ const ServiceList = ({ showButton, token }) => {
     useEffect(() => {
         const fetchServices = async () => {
             try {
-                const response = await axios.get('https://hrs-app-1.onrender.com/services');
+                const response = await axios.get('http://127.0.0.1:5000m/services');
                 setServices(response.data.services);
             } catch (err) {
                 setError('Failed to fetch services');

@@ -7,7 +7,7 @@ import axios from 'axios';
 const UserNavbar = () => {
     const handleLogout = async () => { 
         try {
-            await axios.post('https://hrs-app-1.onrender.com/logout'); 
+            await axios.post('http://127.0.0.1:5000m/logout'); 
             window.location.href = '/login';
         } catch (error) {
             console.error("Signout failed:", error);

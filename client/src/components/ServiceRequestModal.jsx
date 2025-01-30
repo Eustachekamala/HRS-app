@@ -18,7 +18,7 @@ const ServiceRequestModal = ({ isOpen, onClose, serviceType, token }) => {
 
         try {
             const response = await axios.post(
-                'https://hrs-app-1.onrender.com/technician_requests',
+                'http://127.0.0.1:5000m/technician_requests',
                 {
                     service_type: serviceType,
                     description,
