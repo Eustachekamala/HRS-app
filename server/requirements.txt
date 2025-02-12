@@ -69,7 +69,7 @@ traitlets==5.14.3
 typing_extensions==4.12.2
 uvicorn==0.30.6
 uvloop==0.20.0
-virtualenv==20.26.3
+virtualenv==20.26.6
 watchfiles==0.24.0
 wcwidth==0.2.13
 websockets==13.0.1
